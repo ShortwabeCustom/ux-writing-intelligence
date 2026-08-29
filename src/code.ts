@@ -1,11 +1,16 @@
 import type { FetchPort } from './analyze-api';
 import { AnalyzeApiError } from './analyze-api';
+import type { AnalysisTransportKind } from './analysis-transport';
 import {
-  ACTIVE_TRANSPORT_KIND,
   createAnalyzeRequest,
   selectAnalysisTransport,
   transportRequiresApiKey,
 } from './analysis-transport';
+import type { AnalysisMode } from './analysis-mode';
+import { DEFAULT_ANALYSIS_MODE, getAnalysisMode, saveAnalysisMode } from './analysis-mode';
+import type { AnalysisBlockedReason, AnalysisRoute } from './analysis-routing';
+import { resolveAnalysisTransport, routeNeedsLocalStatus } from './analysis-routing';
+import type { LocalRuntimeState, LocalRuntimeStatus } from './local-runtime-health';
 import { checkLocalRuntime } from './local-runtime-health';
 import { getApiKey, deleteApiKey, getApiKeyConfigured, saveApiKey } from './api-key-storage';
 import type { AnalysisContext } from './analysis-session';
@@ -64,6 +69,18 @@ let applyInFlightRequestId: string | null = null;
 let currentSelectionSnapshot = createSelectionSnapshot();
 const pluginFetch = fetch as unknown as FetchPort;
 
+/**
+ * Frescura del estado del motor local.
+ *
+ * Evita repetir GET /v1/runtime/status en cada evento de UI sin llegar a
+ * confiar en un estado viejo al momento de enrutar. No sustituye a la
+ * comprobación real: un runtime puede caerse dentro de esta ventana, y por eso
+ * un fallo posterior al POST se trata como fallo posterior al POST.
+ */
+const LOCAL_STATUS_TTL_MS = 30_000;
+let cachedLocalStatus: LocalRuntimeStatus | null = null;
+let cachedLocalStatusAt = 0;
+
 export function getCurrentSelectionState(): SelectionState {
   return getSelectionState(figma.currentPage.selection);
 }
@@ -88,15 +105,62 @@ function sendMessage(message: MainToUiMessage): void {
  * explícito — nunca en cada cambio de selección ni en cada tecla. No dispara
  * inferencia: el runtime responde con su catálogo de modelos.
  */
+function publishLocalRuntimeStatus(status: LocalRuntimeStatus): void {
+  cachedLocalStatus = status;
+  cachedLocalStatusAt = Date.now();
+  sendMessage({ type: 'LOCAL_RUNTIME_STATUS', payload: status });
+}
+
+async function refreshLocalRuntimeStatus(): Promise<LocalRuntimeStatus> {
+  const status = await checkLocalRuntime(pluginFetch);
+  publishLocalRuntimeStatus(status);
+  return status;
+}
+
+/** Estado del motor local, reutilizando el resultado reciente si lo hay. */
+async function getLocalRuntimeStatus(): Promise<LocalRuntimeStatus> {
+  if (
+    cachedLocalStatus !== null
+    && Date.now() - cachedLocalStatusAt < LOCAL_STATUS_TTL_MS
+  ) {
+    return cachedLocalStatus;
+  }
+
+  return refreshLocalRuntimeStatus();
+}
+
 async function sendLocalRuntimeStatus(): Promise<void> {
   sendMessage({
     type: 'LOCAL_RUNTIME_STATUS',
     payload: { state: 'checking', modelLabel: null },
   });
 
-  const status = await checkLocalRuntime(pluginFetch);
+  await refreshLocalRuntimeStatus();
+}
 
-  sendMessage({ type: 'LOCAL_RUNTIME_STATUS', payload: status });
+async function readAnalysisMode(): Promise<AnalysisMode> {
+  try {
+    return await getAnalysisMode(figma.clientStorage);
+  } catch {
+    // Un fallo de lectura no debe dejar el plugin sin política. `auto` es el
+    // valor de migración y el más conservador disponible.
+    return DEFAULT_ANALYSIS_MODE;
+  }
+}
+
+async function sendAnalysisModeStatus(): Promise<void> {
+  sendMessage({
+    type: 'ANALYSIS_MODE_STATUS',
+    payload: { mode: await readAnalysisMode() },
+  });
+}
+
+async function isCloudConfigured(): Promise<boolean> {
+  try {
+    return await getApiKeyConfigured(figma.clientStorage);
+  } catch {
+    return false;
+  }
 }
 
 function sendSelectionState(): void {
@@ -136,6 +200,7 @@ function sendSettingsError(code: SettingsErrorCode): void {
 function sendAnalysisFailure(
   requestId: string | null,
   code: AnalyzeErrorCode,
+  cloudRetryAvailable: boolean,
   retryAfterSeconds?: number,
 ): void {
   const error: AnalyzeError = retryAfterSeconds === undefined
@@ -146,7 +211,65 @@ function sendAnalysisFailure(
     type: 'ANALYSIS_FAILED',
     requestId,
     error,
+    cloudRetryAvailable,
   });
+}
+
+function blockedReasonToErrorCode(
+  reason: AnalysisBlockedReason,
+): AnalyzeErrorCode {
+  switch (reason) {
+    case 'CLOUD_NOT_CONFIGURED':
+      return 'CLOUD_NOT_CONFIGURED';
+    case 'NO_LOCAL_NO_CLOUD':
+      return 'NO_ANALYSIS_ENGINE_AVAILABLE';
+    case 'LOCAL_ONLY_MODEL_MISSING':
+      return 'LOCAL_MODEL_NOT_AVAILABLE';
+    case 'LOCAL_ONLY_UNAVAILABLE':
+    case 'LOCAL_STATUS_UNKNOWN':
+      return 'LOCAL_RUNTIME_UNAVAILABLE';
+    default:
+      return assertNever(reason);
+  }
+}
+
+/**
+ * Resuelve la ruta ANTES de enviar el texto.
+ *
+ * Lee la salud local solo si la política la necesita, y consulta si la nube
+ * está configurada solo cuando la nube sigue siendo una opción. En
+ * `auto` + local listo no se toca el almacenamiento de la API Key.
+ */
+async function resolveRoute(mode: AnalysisMode): Promise<AnalysisRoute> {
+  let localRuntimeState: LocalRuntimeState = 'checking';
+
+  if (routeNeedsLocalStatus(mode)) {
+    localRuntimeState = (await getLocalRuntimeStatus()).state;
+  }
+
+  const cloudStillPossible = mode === 'cloud'
+    || (mode === 'auto' && localRuntimeState !== 'ready');
+  const cloudConfigured = cloudStillPossible ? await isCloudConfigured() : false;
+
+  return resolveAnalysisTransport({ mode, localRuntimeState, cloudConfigured });
+}
+
+/**
+ * ¿Ofrecer la acción explícita «Usar análisis en la nube» tras un fallo?
+ *
+ * Nunca en `local`: quien eligió Solo local afirmó que su contenido no sale
+ * de esta Mac, y ofrecer la nube ahí contradiría esa promesa. Tampoco cuando
+ * el fallo ya ocurrió en la nube.
+ */
+async function canOfferCloudRetry(
+  mode: AnalysisMode,
+  transport: AnalysisTransportKind,
+): Promise<boolean> {
+  if (mode === 'local' || transport !== 'local') {
+    return false;
+  }
+
+  return isCloudConfigured();
 }
 
 function sendApplyFailure(
@@ -199,17 +322,90 @@ function synchronizeSelectionAfterInvalidAnalysis(): void {
   sendSelectionState();
 }
 
-async function handleAnalyzeRequest(selectionRevisionFromUi: number): Promise<void> {
-  const currentSelection = getCurrentSelectionState();
+/**
+ * Punto de entrada compartido del análisis.
+ *
+ * Local y nube pasan por aquí: mismas guardas de obsolescencia, mismo
+ * requestId, misma sesión de Apply, mismo contrato de respuesta. El
+ * transporte se decide abajo y no duplica ninguna de esas reglas.
+ *
+ * `forcedTransport` lo usan las DOS acciones explícitas de recuperación, cada
+ * una con su transporte fijo: «Reintentar local» fuerza local y «Usar análisis
+ * en la nube» fuerza nube. Ninguna consulta la política de AUTO, así que
+ * ninguna puede cambiar de destino con el paso del tiempo. Nunca las activa un
+ * fallo por sí solo.
+ */
+async function handleAnalyzeRequest(
+  selectionRevisionFromUi: number,
+  forcedTransport?: AnalysisTransportKind,
+): Promise<void> {
   const selectionValidation = validateAnalysisSelection(
     selectionRevisionFromUi,
     currentSelectionSnapshot,
-    currentSelection,
+    getCurrentSelectionState(),
   );
 
   if (!selectionValidation.valid) {
     synchronizeSelectionAfterInvalidAnalysis();
-    sendAnalysisFailure(null, selectionValidation.code);
+    sendAnalysisFailure(null, selectionValidation.code, false);
+    return;
+  }
+
+  const mode = await readAnalysisMode();
+
+  // ------------------------------------------------------------------
+  // DECISIÓN DE TRANSPORTE — ocurre ANTES de que el texto salga del plugin.
+  // Este es el ÚNICO punto donde la nube puede elegirse automáticamente.
+  // ------------------------------------------------------------------
+  let route: AnalysisRoute;
+
+  if (forcedTransport === 'local') {
+    // «Reintentar local». Transporte fijo, sin excepciones: ni el modo, ni la
+    // antigüedad del estado de salud, ni tener API Key configurada pueden
+    // convertir este reintento en una petición a la nube. Si el motor local
+    // sigue caído, el resultado correcto es OTRO error local.
+    //
+    // Se refresca la salud para que el indicador diga la verdad, pero ese
+    // dato NO participa en la elección de transporte.
+    if (routeNeedsLocalStatus(mode)) {
+      await refreshLocalRuntimeStatus();
+    }
+
+    route = { status: 'ready', transport: 'local', reason: 'LOCAL_ONLY' };
+  } else if (forcedTransport === 'cloud') {
+    // Petición explícita de la persona. Aun así se verifica el modo: en Solo
+    // local no existe ruta a la nube, ni siquiera pedida a mano.
+    if (mode === 'local') {
+      sendAnalysisFailure(null, 'NO_ANALYSIS_ENGINE_AVAILABLE', false);
+      return;
+    }
+
+    route = await isCloudConfigured()
+      ? { status: 'ready', transport: 'cloud', reason: 'CLOUD_ONLY' }
+      : { status: 'blocked', reason: 'CLOUD_NOT_CONFIGURED' };
+  } else {
+    route = await resolveRoute(mode);
+  }
+
+  if (route.status === 'blocked') {
+    // No se envió texto a ninguna parte. La selección sigue siendo válida, así
+    // que no se invalida ni se toca la sesión de Apply.
+    sendAnalysisFailure(null, blockedReasonToErrorCode(route.reason), false);
+    return;
+  }
+
+  // Resolver la ruta implicó E/S asíncrona. La selección pudo cambiar en ese
+  // intervalo, y analizar el texto nuevo bajo la intención vieja sería un
+  // error silencioso: se revalida contra la MISMA revisión que pidió la UI.
+  const revalidation = validateAnalysisSelection(
+    selectionRevisionFromUi,
+    currentSelectionSnapshot,
+    getCurrentSelectionState(),
+  );
+
+  if (!revalidation.valid) {
+    synchronizeSelectionAfterInvalidAnalysis();
+    sendAnalysisFailure(null, revalidation.code, false);
     return;
   }
 
@@ -223,22 +419,26 @@ async function handleAnalyzeRequest(selectionRevisionFromUi: number): Promise<vo
     requestId,
     requestToken: activeRequestToken,
     selectionRevision,
-    nodeId: selectionValidation.nodeId,
-    originalText: selectionValidation.originalText,
+    nodeId: revalidation.nodeId,
+    originalText: revalidation.originalText,
   };
 
-  sendMessage({ type: 'ANALYSIS_STARTED', requestId });
+  sendMessage({
+    type: 'ANALYSIS_STARTED',
+    requestId,
+    transport: route.transport,
+  });
 
-  // La API Key solo se lee cuando el transporte activo la necesita. El
+  // La API Key solo se lee cuando el transporte elegido la necesita. El
   // transporte local NO la requiere y nunca debe recibirla.
   let apiKey: string | null = null;
 
-  if (transportRequiresApiKey(ACTIVE_TRANSPORT_KIND)) {
+  if (transportRequiresApiKey(route.transport)) {
     try {
       apiKey = await getApiKey(figma.clientStorage);
     } catch {
       if (isContextCurrent(context)) {
-        sendAnalysisFailure(requestId, 'UNKNOWN_ERROR');
+        sendAnalysisFailure(requestId, 'UNKNOWN_ERROR', false);
       } else {
         refreshSelectionIfRequestBecameStale(context);
       }
@@ -251,12 +451,12 @@ async function handleAnalyzeRequest(selectionRevisionFromUi: number): Promise<vo
     }
 
     if (apiKey === null) {
-      sendAnalysisFailure(requestId, 'MISSING_API_KEY');
+      sendAnalysisFailure(requestId, 'MISSING_API_KEY', false);
       return;
     }
   }
 
-  const transport = selectAnalysisTransport(pluginFetch, apiKey);
+  const transport = selectAnalysisTransport(pluginFetch, route.transport, apiKey);
 
   try {
     const result = await transport.analyze(
@@ -266,6 +466,16 @@ async function handleAnalyzeRequest(selectionRevisionFromUi: number): Promise<vo
     if (!isContextCurrent(context)) {
       refreshSelectionIfRequestBecameStale(context);
       return;
+    }
+
+    // Un análisis local exitoso es la prueba más fuerte de que el motor está
+    // listo. Sin esto, el indicador podía quedarse en «Comprobando…» pese a
+    // haber respondido correctamente.
+    if (route.transport === 'local') {
+      publishLocalRuntimeStatus({
+        state: 'ready',
+        modelLabel: cachedLocalStatus?.modelLabel ?? null,
+      });
     }
 
     activeApplySession = createApplySession(context, result.suggestion);
@@ -291,6 +501,22 @@ async function handleAnalyzeRequest(selectionRevisionFromUi: number): Promise<vo
       }
     }
   } catch (error: unknown) {
+    // ------------------------------------------------------------------
+    // FALLO POSTERIOR AL POST.
+    //
+    // El texto YA salió hacia el transporte elegido. Aquí NO se reencamina a
+    // la nube bajo ninguna circunstancia: hacerlo enviaría a un servicio
+    // remoto un contenido que la persona pidió procesar localmente, sin que
+    // ella lo supiera. Solo se informa el fallo y, si la nube es una opción
+    // legítima, se ofrece una acción que debe pulsar a mano.
+    // ------------------------------------------------------------------
+    if (!isContextCurrent(context)) {
+      refreshSelectionIfRequestBecameStale(context);
+      return;
+    }
+
+    const cloudRetryAvailable = await canOfferCloudRetry(mode, route.transport);
+
     if (!isContextCurrent(context)) {
       refreshSelectionIfRequestBecameStale(context);
       return;
@@ -300,12 +526,13 @@ async function handleAnalyzeRequest(selectionRevisionFromUi: number): Promise<vo
       sendAnalysisFailure(
         requestId,
         error.details.code,
+        cloudRetryAvailable,
         error.details.retryAfterSeconds,
       );
       return;
     }
 
-    sendAnalysisFailure(requestId, 'UNKNOWN_ERROR');
+    sendAnalysisFailure(requestId, 'UNKNOWN_ERROR', cloudRetryAvailable);
   }
 }
 
@@ -442,6 +669,7 @@ async function handleUiMessage(message: UiToMainMessage): Promise<void> {
       currentSelectionSnapshot = createSelectionSnapshot();
       sendSelectionState();
       await sendApiKeyStatus();
+      await sendAnalysisModeStatus();
       await sendLocalRuntimeStatus();
       break;
 
@@ -449,7 +677,38 @@ async function handleUiMessage(message: UiToMainMessage): Promise<void> {
       await sendLocalRuntimeStatus();
       break;
 
+    case 'SET_ANALYSIS_MODE':
+      try {
+        await saveAnalysisMode(figma.clientStorage, message.mode);
+      } catch {
+        sendSettingsError('STORAGE_SAVE_FAILED');
+        return;
+      }
+
+      // El cambio de modo afecta a la SIGUIENTE petición. Una solicitud en
+      // vuelo conserva el transporte con el que empezó: redirigirla enviaría
+      // el mismo texto dos veces, a dos destinos distintos.
+      sendMessage({ type: 'ANALYSIS_MODE_STATUS', payload: { mode: message.mode } });
+
+      if (message.mode !== 'cloud') {
+        await sendLocalRuntimeStatus();
+      }
+      break;
+
+    case 'RETRY_LOCAL_ANALYSIS':
+      await handleAnalyzeRequest(message.selectionRevision, 'local');
+      break;
+
+    case 'USE_CLOUD_FOR_CURRENT_ANALYSIS':
+      await handleAnalyzeRequest(message.selectionRevision, 'cloud');
+      break;
+
     case 'OPEN_SETTINGS':
+      await sendApiKeyStatus();
+      await sendAnalysisModeStatus();
+      await sendLocalRuntimeStatus();
+      break;
+
     case 'REQUEST_API_KEY_STATUS':
       await sendApiKeyStatus();
       break;

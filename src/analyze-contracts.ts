@@ -34,6 +34,9 @@ export type AnalyzeErrorCode =
   | 'LOCAL_RUNTIME_UNAVAILABLE'
   | 'LOCAL_MODEL_NOT_AVAILABLE'
   | 'LOCAL_ANALYSIS_TIMEOUT'
+  // Enrutamiento (FASE 8.5.5): el análisis se bloquea ANTES de enviar texto
+  | 'CLOUD_NOT_CONFIGURED'
+  | 'NO_ANALYSIS_ENGINE_AVAILABLE'
   // Nube (sin cambios)
   | 'MISSING_API_KEY'
   | 'INVALID_SELECTION'
@@ -114,6 +117,8 @@ export function isAnalyzeErrorCode(value: unknown): value is AnalyzeErrorCode {
   return value === 'LOCAL_RUNTIME_UNAVAILABLE'
     || value === 'LOCAL_MODEL_NOT_AVAILABLE'
     || value === 'LOCAL_ANALYSIS_TIMEOUT'
+    || value === 'CLOUD_NOT_CONFIGURED'
+    || value === 'NO_ANALYSIS_ENGINE_AVAILABLE'
     || value === 'MISSING_API_KEY'
     || value === 'INVALID_SELECTION'
     || value === 'STALE_SELECTION'

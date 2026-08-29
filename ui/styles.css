@@ -952,33 +952,46 @@ input:focus-visible {
 }
 
 
-/* Estado del motor local (FASE 8.5.4). Compacto a propósito: informa sin
-   competir con el flujo principal de análisis. */
-.local-engine-row {
+/* Motor de análisis activo (FASE 8.5.5).
+   Los colores usan los tokens que Figma inyecta con themeColors, igual que el
+   resto del plugin. En 8.5.5 se introdujeron aquí `--text-primary` y
+   `--text-secondary`, que no existen en ninguna parte: cada regla caía a su
+   literal de reserva —casi negro— y quedaba ilegible sobre el tema oscuro. */
+.engine-row {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
   margin-bottom: 8px;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--figma-color-bg-secondary, #f5f5f5);
 }
 
-.local-engine-dot {
+.engine-dot {
   flex: 0 0 auto;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #9aa0a6;
+  background: var(--figma-color-icon-tertiary, #b3b3b3);
 }
 
-.local-engine-row[data-state='ready'] .local-engine-dot { background: #1a8f3c; }
-.local-engine-row[data-state='checking'] .local-engine-dot { background: #b58900; }
-.local-engine-row[data-state='unavailable'] .local-engine-dot,
-.local-engine-row[data-state='model_missing'] .local-engine-dot,
-.local-engine-row[data-state='degraded'] .local-engine-dot { background: #c5221f; }
+.engine-row[data-engine='local'] .engine-dot {
+  background: var(--figma-color-icon-success, #14ae5c);
+}
 
-.local-engine-copy {
+.engine-row[data-engine='cloud'] .engine-dot {
+  background: var(--figma-color-icon-brand, #0d99ff);
+}
+
+.engine-row[data-engine='blocked'] .engine-dot {
+  background: var(--figma-color-icon-danger, #f24822);
+}
+
+.engine-row[data-engine='unknown'] .engine-dot {
+  background: var(--figma-color-icon-warning, #ffcd29);
+}
+
+.engine-copy {
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -986,18 +999,145 @@ input:focus-visible {
   flex: 1 1 auto;
 }
 
-.local-engine-title {
+.engine-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.engine-name {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--figma-color-text, #1a1a1a);
 }
 
-.local-engine-detail {
+.engine-detail {
   font-size: 11px;
-  color: var(--text-secondary, #6b6b6b);
+  color: var(--figma-color-text-secondary, #737373);
 }
 
-.local-engine-row[data-state='unavailable'] .local-engine-detail,
-.local-engine-row[data-state='model_missing'] .local-engine-detail {
-  color: #c5221f;
+.engine-detail:empty { display: none; }
+
+.engine-row[data-engine='blocked'] .engine-detail {
+  color: var(--figma-color-text-danger, #dc3412);
 }
+
+/* Acción explícita hacia la nube tras un fallo local. Se separa del reintento
+   para que cambiar de destino nunca sea un clic por inercia. */
+.cloud-retry-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.cloud-retry-note {
+  font-size: 11px;
+  color: var(--figma-color-text-secondary, #737373);
+  margin: 0;
+}
+
+/* Selector de motor en Ajustes.
+   Una opción no seleccionada NO es una opción deshabilitada: se dibuja con el
+   mismo color de texto que la seleccionada. Atenuarla haría creer que no se
+   puede elegir. */
+.mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--figma-color-border, #e6e6e6);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.mode-option:has(input:checked) {
+  border-color: var(--figma-color-border-selected, #0d99ff);
+  background: var(--figma-color-bg-secondary, #f5f5f5);
+}
+
+.mode-option input {
+  margin: 2px 0 0;
+  flex: 0 0 auto;
+  accent-color: var(--figma-color-bg-brand, #0d99ff);
+}
+
+.mode-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mode-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--figma-color-text, #1a1a1a);
+}
+
+.mode-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--figma-color-bg-brand, #0d99ff);
+  color: var(--figma-color-text-onbrand, #ffffff);
+}
+
+.mode-description {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.local-engine-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--figma-color-border, #e6e6e6);
+}
+
+.settings-subheading {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.local-engine-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settings-local-state {
+  font-size: 12px;
+  color: var(--figma-color-text, #1a1a1a);
+}
+
+.analysis-loading-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.analysis-loading-engine {
+  font-size: 11px;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.analysis-loading-engine:empty { display: none; }

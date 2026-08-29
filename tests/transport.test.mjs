@@ -27,7 +27,6 @@ const moduleSource = bundle.outputFiles[0]?.text;
 assert.ok(moduleSource, 'esbuild no produjo el bundle de transporte');
 
 const {
-  ACTIVE_TRANSPORT_KIND,
   ANALYZE_ENDPOINT,
   LOCAL_ANALYZE_ENDPOINT,
   LOCAL_STATUS_ENDPOINT,
@@ -116,7 +115,8 @@ test('BLOQUEANTE: ningún secreto aparece en la petición local completa', async
   const { calls, fetchPort } = recordingFetch(() => jsonResponse(200, VALID_RESPONSE));
 
   // El transporte local se construye sin recibir siquiera la clave.
-  await selectAnalysisTransport(fetchPort, SECRET).analyze(createAnalyzeRequest('Continuar'));
+  await selectAnalysisTransport(fetchPort, 'local', SECRET)
+    .analyze(createAnalyzeRequest('Continuar'));
 
   const serialized = JSON.stringify(calls[0]);
   assert.ok(!serialized.includes(SECRET), 'un secreto de la nube llegó a localhost');
@@ -286,15 +286,15 @@ test('los errores locales no se colapsan en un solo código genérico', async ()
 
 // --- Política de transporte (STEP 8 / 21) ------------------------------------
 
-test('el transporte activo de esta fase es local', () => {
-  assert.equal(ACTIVE_TRANSPORT_KIND, 'local');
+test('solo la nube requiere API Key', () => {
   assert.equal(transportRequiresApiKey('local'), false);
   assert.equal(transportRequiresApiKey('cloud'), true);
 });
 
-test('selectAnalysisTransport devuelve el transporte local', () => {
+test('selectAnalysisTransport construye el transporte pedido', () => {
   const { fetchPort } = recordingFetch(() => jsonResponse(200, VALID_RESPONSE));
-  assert.equal(selectAnalysisTransport(fetchPort, 'clave').kind, 'local');
+  assert.equal(selectAnalysisTransport(fetchPort, 'local', null).kind, 'local');
+  assert.equal(selectAnalysisTransport(fetchPort, 'cloud', 'clave').kind, 'cloud');
 });
 
 test('NO hay fallback automático a la nube cuando el local falla', async () => {
@@ -304,7 +304,7 @@ test('NO hay fallback automático a la nube cuando el local falla', async () => 
     throw new Error('ECONNREFUSED');
   };
 
-  await selectAnalysisTransport(fetchPort, 'clave')
+  await selectAnalysisTransport(fetchPort, 'local', 'clave')
     .analyze(createAnalyzeRequest('Continuar'))
     .catch(() => {});
 

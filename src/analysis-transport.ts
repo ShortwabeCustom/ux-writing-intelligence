@@ -179,20 +179,18 @@ export function createCloudAnalysisTransport(
 }
 
 /**
- * Política de transporte de FASE 8.5.4.
+ * Selección de transporte.
  *
- * LOCAL es la ruta activa. La nube permanece compilada, probada y disponible,
- * pero NO se invoca automáticamente cuando el local falla: durante QA
- * necesitamos ver los fallos locales, no esconderlos tras un fallback.
- * La política de fallback pertenece a FASE 8.5.5.
+ * A partir de FASE 8.5.5 la decisión NO vive aquí: la toma
+ * `resolveAnalysisTransport` en analysis-routing.ts, antes de enviar el
+ * texto. Esta función solo construye el transporte ya elegido.
  */
-export const ACTIVE_TRANSPORT_KIND: AnalysisTransportKind = 'local';
-
 export function selectAnalysisTransport(
   fetchPort: FetchPort,
+  kind: AnalysisTransportKind,
   apiKey: string | null,
 ): AnalysisTransport {
-  if (ACTIVE_TRANSPORT_KIND === 'local') {
+  if (kind === 'local') {
     return createLocalAnalysisTransport(fetchPort);
   }
 

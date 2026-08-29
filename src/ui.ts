@@ -1,4 +1,10 @@
 import type { LocalRuntimeStatusPayload } from './shared/messages';
+import type { AnalysisMode } from './analysis-mode';
+import { ANALYSIS_MODE_LABEL, DEFAULT_ANALYSIS_MODE, isAnalysisMode } from './analysis-mode';
+import type { AnalysisRoute } from './analysis-routing';
+import { resolveAnalysisTransport } from './analysis-routing';
+import type { AnalysisTransportKind } from './analysis-transport';
+import { describeBlockedRoute, resolveEngineDisplay } from './engine-display';
 import type {
   AnalyzeError,
   AnalyzeResponse,
@@ -15,6 +21,7 @@ import {
   reduceAnalysisState,
 } from './analysis-state';
 import { createAnalysisRequestMessage } from './analysis-session';
+import { getAnalysisProvenance } from './analysis-state';
 import { isApplyError, isApplySuccessPayload } from './apply-contracts';
 import type { ApplyUiEvent, ApplyUiState } from './apply-state';
 import {
@@ -67,9 +74,17 @@ const selectionContextLabel = getElement<HTMLElement>('selection-context-label')
 const nodeName = getElement<HTMLElement>('node-name');
 const selectedText = getElement<HTMLElement>('selected-text');
 const readyStatus = getElement<HTMLElement>('ready-status');
-const localEngineRow = getElement<HTMLElement>('local-engine-row');
-const localEngineDetail = getElement<HTMLElement>('local-engine-detail');
-const localEngineRetry = getElement<HTMLButtonElement>('local-engine-retry');
+const engineRow = getElement<HTMLElement>('engine-row');
+const engineName = getElement<HTMLElement>('engine-name');
+const engineDetail = getElement<HTMLElement>('engine-detail');
+const engineRetry = getElement<HTMLButtonElement>('engine-retry');
+const cloudRetryBlock = getElement<HTMLElement>('cloud-retry-block');
+const useCloudButton = getElement<HTMLButtonElement>('use-cloud-button');
+const settingsLocalState = getElement<HTMLElement>('settings-local-state');
+const settingsCheckLocalButton = getElement<HTMLButtonElement>('settings-check-local-button');
+const modeAutoInput = getElement<HTMLInputElement>('mode-auto');
+const modeLocalInput = getElement<HTMLInputElement>('mode-local');
+const modeCloudInput = getElement<HTMLInputElement>('mode-cloud');
 const apiKeyStatusRow = getElement<HTMLElement>('api-key-status-row');
 const apiKeyStatusText = getElement<HTMLElement>('api-key-status-text');
 const configureApiKeyButton = getElement<HTMLButtonElement>('configure-api-key-button');
@@ -80,6 +95,7 @@ const applySuccessFeedbackTitle = getElement<HTMLElement>('apply-success-feedbac
 const applySuccessFeedbackDescription = getElement<HTMLElement>('apply-success-feedback-description');
 const analysisLoadingPanel = getElement<HTMLElement>('analysis-loading');
 const analysisLoadingMessage = getElement<HTMLElement>('analysis-loading-message');
+const analysisLoadingEngine = getElement<HTMLElement>('analysis-loading-engine');
 const analysisResultPanel = getElement<HTMLElement>('analysis-result');
 const analysisErrorPanel = getElement<HTMLElement>('analysis-error');
 const analysisErrorTitle = getElement<HTMLElement>('analysis-error-title');
@@ -141,6 +157,14 @@ let currentSelectionState: SelectionSnapshot = {
 };
 let apiKeyConfigured = false;
 let hasApiKeyStatus = false;
+let analysisMode: AnalysisMode = DEFAULT_ANALYSIS_MODE;
+let localRuntimeState: LocalRuntimeStatusPayload = {
+  state: 'checking',
+  modelLabel: null,
+};
+/** ¿El último fallo admite la acción explícita hacia la nube? Lo decide el
+ *  hilo principal; la UI nunca lo infiere por su cuenta. */
+let cloudRetryAvailable = false;
 let settingsState: SettingsState = 'loading';
 let stableSettingsState: StableSettingsState = 'unconfigured';
 let settingsErrorCode: SettingsErrorCode | null = null;
@@ -176,16 +200,55 @@ function postToMain(message: UiToMainMessage): void {
 function setReadyContentVisible(isVisible: boolean): void {
   selectionDetails.hidden = !isVisible;
   readyStatus.hidden = !isVisible;
-  apiKeyStatusRow.hidden = !isVisible;
+
+  if (!isVisible) {
+    apiKeyStatusRow.hidden = true;
+  }
+
   analyzeButton.hidden = !isVisible;
   phaseNote.hidden = !isVisible;
 }
 
+/**
+ * Ruta que usaría la SIGUIENTE petición.
+ *
+ * Misma función pura que aplica el hilo principal. La UI la usa para mostrar
+ * el motor y habilitar el botón; la decisión vinculante se vuelve a resolver
+ * en `code.ts` justo antes de enviar el texto, con el estado más reciente.
+ */
+function currentRoute(): AnalysisRoute {
+  return resolveAnalysisTransport({
+    mode: analysisMode,
+    localRuntimeState: localRuntimeState.state,
+    cloudConfigured: apiKeyConfigured,
+  });
+}
+
 function canAnalyze(): boolean {
   return currentSelectionState.status === 'ready'
-    && apiKeyConfigured
+    && currentRoute().status === 'ready'
     && canRequestAnalysis(analysisState)
     && applyState.status !== 'applying';
+}
+
+/**
+ * Motor activo, visible ANTES de analizar.
+ *
+ * Que el uso de la nube sea evidente antes de pulsar «Analizar texto» es lo
+ * que impide que el contenido salga del equipo sin que nadie lo advierta. La
+ * decisión vive en `resolveEngineDisplay`, que es pura y está probada.
+ */
+function renderEngineRow(): void {
+  const display = resolveEngineDisplay({
+    activeTransport: getAnalysisProvenance(analysisState),
+    route: currentRoute(),
+    mode: analysisMode,
+  });
+
+  engineRow.dataset['engine'] = display.kind;
+  engineName.textContent = display.name;
+  engineDetail.textContent = display.detail;
+  engineRetry.hidden = !display.showRecheck;
 }
 
 function renderAnalyzeAvailability(): void {
@@ -201,17 +264,43 @@ function renderAnalyzeAvailability(): void {
     return;
   }
 
-  if (!hasApiKeyStatus) {
-    phaseNote.textContent = 'Comprobando configuración';
+  const route = currentRoute();
+
+  if (route.status === 'ready') {
+    phaseNote.textContent = route.transport === 'local'
+      ? 'Listo para analizar en esta Mac'
+      : 'Listo para analizar en la nube';
     return;
   }
 
-  phaseNote.textContent = apiKeyConfigured
-    ? 'Configuración lista'
-    : 'Configura tu API Key para continuar';
+  phaseNote.textContent = route.reason === 'LOCAL_STATUS_UNKNOWN'
+    ? 'Comprobando el motor de análisis'
+    : describeBlockedRoute(route.reason);
 }
 
+/**
+ * Indicador de API Key en la pantalla principal.
+ *
+ * Solo aparece cuando la nube es realmente el motor activo. Mostrarlo con el
+ * motor local activo daba a entender que la clave era necesaria para analizar
+ * en esta Mac, y no lo es.
+ */
 function renderApiKeyIndicator(): void {
+  renderEngineRow();
+
+  const route = currentRoute();
+  const cloudIsRelevant = analysisMode !== 'local'
+    && (route.status !== 'ready' || route.transport === 'cloud');
+
+  if (!cloudIsRelevant) {
+    apiKeyStatusRow.hidden = true;
+    configureApiKeyButton.hidden = true;
+    renderAnalyzeAvailability();
+    return;
+  }
+
+  apiKeyStatusRow.hidden = currentSelectionState.status !== 'ready';
+
   if (!hasApiKeyStatus) {
     apiKeyStatusText.textContent = 'Comprobando configuración…';
     configureApiKeyButton.hidden = true;
@@ -220,13 +309,13 @@ function renderApiKeyIndicator(): void {
   }
 
   if (apiKeyConfigured) {
-    apiKeyStatusText.textContent = 'API Key configurada';
+    apiKeyStatusText.textContent = 'Servicio en la nube configurado';
     configureApiKeyButton.hidden = true;
     renderAnalyzeAvailability();
     return;
   }
 
-  apiKeyStatusText.textContent = 'API Key pendiente de configurar';
+  apiKeyStatusText.textContent = 'Servicio en la nube sin configurar';
   configureApiKeyButton.hidden = false;
   renderAnalyzeAvailability();
 }
@@ -303,6 +392,14 @@ function updateAnalysisState(event: AnalysisUiEvent): void {
     analysisLoadingFeedback.clear();
   }
 
+  if (
+    event.type === 'ANALYZE_REQUESTED'
+    || event.type === 'SELECTION_CHANGED'
+    || event.type === 'API_KEY_CHANGED'
+  ) {
+    cloudRetryAvailable = false;
+  }
+
   renderAnalysis();
 }
 
@@ -313,6 +410,12 @@ function updateApplyState(event: ApplyUiEvent): void {
 }
 
 function renderAnalysis(): void {
+  // La tarjeta del motor se repinta AQUÍ. En 8.5.5.2 la decisión de la
+  // etiqueta ya era correcta, pero solo se repintaba desde
+  // `renderApiKeyIndicator` —selección, estado del runtime o cambio de modo—,
+  // así que un retry explícito actualizaba la copia de carga y dejaba la
+  // tarjeta congelada diciendo «Local».
+  renderEngineRow();
   statePanel.dataset.analysisState = analysisState.status;
   selectionContextLabel.textContent = analysisState.status === 'success'
     ? 'Texto analizado'
@@ -328,6 +431,11 @@ function renderAnalysis(): void {
       analysisLoadingMessage.textContent = analysisLoadingFeedback.isExtended()
         ? EXTENDED_ANALYSIS_LOADING_MESSAGE
         : INITIAL_ANALYSIS_LOADING_MESSAGE;
+      analysisLoadingEngine.textContent = analysisState.transport === null
+        ? ''
+        : analysisState.transport === 'local'
+          ? 'Procesando en esta Mac'
+          : 'Procesando en la nube';
       analysisLoadingPanel.hidden = false;
       break;
     case 'success':
@@ -493,7 +601,38 @@ function renderAnalysisError(error: AnalyzeError): void {
   analysisOpenSettingsButton.textContent = presentation.actionLabel ?? 'Abrir Configuración';
   retryAnalysisButton.hidden = presentation.action !== 'retry';
   retryAnalysisButton.textContent = presentation.actionLabel ?? 'Intentar nuevamente';
-  retryAnalysisButton.disabled = presentation.action === 'retry' && !canAnalyze();
+  // Tras un fallo local, «Reintentar local» debe poder pulsarse aunque la
+  // ruta general esté bloqueada: fuerza local y no depende de `canAnalyze()`.
+  retryAnalysisButton.disabled = presentation.action === 'retry'
+    && (isLocalFailure()
+      ? currentSelectionState.status !== 'ready' || !canRequestAnalysis(analysisState)
+      : !canAnalyze());
+
+  // La nube solo se ofrece; nunca se toma sola. El hilo principal ya decidió
+  // si esta acción es legítima (jamás lo es en Solo local).
+  cloudRetryBlock.hidden = !cloudRetryAvailable;
+  useCloudButton.disabled = currentSelectionState.status !== 'ready'
+    || !canRequestAnalysis(analysisState);
+}
+
+/**
+ * Arranque común de cualquier análisis.
+ *
+ * `transport` es el motor ya decidido cuando la acción lo fija —los dos
+ * botones de recuperación— y `null` cuando lo resolverá el hilo principal.
+ * Fijarlo aquí hace que la interfaz diga la verdad DESDE EL CLIC, sin esperar
+ * a la respuesta.
+ */
+function startAnalysis(
+  message: UiToMainMessage,
+  transport: AnalysisTransportKind | null,
+): void {
+  cloudRetryAvailable = false;
+  updateApplyState({ type: 'ANALYZE_REQUESTED' });
+  // El transporte entra en el estado desde el clic: por eso la tarjeta y la
+  // etiqueta de carga dicen «Nube» antes de que salga la petición.
+  updateAnalysisState({ type: 'ANALYZE_REQUESTED', transport });
+  postToMain(message);
 }
 
 function requestAnalysis(): void {
@@ -503,9 +642,51 @@ function requestAnalysis(): void {
     return;
   }
 
-  updateApplyState({ type: 'ANALYZE_REQUESTED' });
-  updateAnalysisState({ type: 'ANALYZE_REQUESTED' });
-  postToMain(requestMessage);
+  startAnalysis(requestMessage, null);
+}
+
+/** ¿El fallo visible proviene del motor local? */
+function isLocalFailure(): boolean {
+  if (analysisState.status !== 'error') {
+    return false;
+  }
+
+  const code = analysisState.error.code;
+  return code === 'LOCAL_RUNTIME_UNAVAILABLE'
+    || code === 'LOCAL_MODEL_NOT_AVAILABLE'
+    || code === 'LOCAL_ANALYSIS_TIMEOUT';
+}
+
+/**
+ * «Reintentar local». Transporte fijo.
+ *
+ * No pasa por la resolución de ruta: por eso no puede acabar en la nube al
+ * caducar la caché de salud, que era el defecto. Si el motor sigue caído, lo
+ * correcto es otro error local.
+ */
+function retryLocalAnalysis(): void {
+  if (currentSelectionState.status !== 'ready' || !canRequestAnalysis(analysisState)) {
+    return;
+  }
+
+  startAnalysis(
+    { type: 'RETRY_LOCAL_ANALYSIS', selectionRevision: currentSelectionState.revision },
+    'local',
+  );
+}
+
+function useCloudForCurrentAnalysis(): void {
+  if (currentSelectionState.status !== 'ready' || !canRequestAnalysis(analysisState)) {
+    return;
+  }
+
+  startAnalysis(
+    {
+      type: 'USE_CLOUD_FOR_CURRENT_ANALYSIS',
+      selectionRevision: currentSelectionState.revision,
+    },
+    'cloud',
+  );
 }
 
 function requestApplySuggestion(): void {
@@ -676,6 +857,16 @@ function isSelectionSnapshot(value: unknown): value is SelectionSnapshot {
   }
 }
 
+function isLocalRuntimeState(
+  value: unknown,
+): value is LocalRuntimeStatusPayload['state'] {
+  return value === 'checking'
+    || value === 'ready'
+    || value === 'unavailable'
+    || value === 'model_missing'
+    || value === 'degraded';
+}
+
 function isSettingsErrorCode(value: unknown): value is SettingsErrorCode {
   return value === 'INVALID_API_KEY'
     || value === 'STORAGE_READ_FAILED'
@@ -703,14 +894,25 @@ function isMainToUiMessage(value: unknown): value is MainToUiMessage {
     case 'SETTINGS_ERROR':
       return isRecord(value.payload)
         && isSettingsErrorCode(value.payload.code);
+    // Faltaba en FASE 8.5.4: sin este caso la UI descartaba TODOS los avisos
+    // de estado del motor, y el indicador se quedaba en «Comprobando…».
+    case 'LOCAL_RUNTIME_STATUS':
+      return isRecord(value.payload)
+        && isLocalRuntimeState(value.payload.state)
+        && (typeof value.payload.modelLabel === 'string'
+          || value.payload.modelLabel === null);
+    case 'ANALYSIS_MODE_STATUS':
+      return isRecord(value.payload) && isAnalysisMode(value.payload.mode);
     case 'ANALYSIS_STARTED':
-      return typeof value.requestId === 'string';
+      return typeof value.requestId === 'string'
+        && (value.transport === 'local' || value.transport === 'cloud');
     case 'ANALYSIS_SUCCEEDED':
       return typeof value.requestId === 'string'
         && isAnalyzeResponse(value.result);
     case 'ANALYSIS_FAILED':
       return (typeof value.requestId === 'string' || value.requestId === null)
-        && isAnalyzeError(value.error);
+        && isAnalyzeError(value.error)
+        && typeof value.cloudRetryAvailable === 'boolean';
     case 'APPLY_STARTED':
       return typeof value.requestId === 'string';
     case 'APPLY_BLOCKED':
@@ -744,13 +946,18 @@ function handleMainMessage(message: MainToUiMessage): void {
     case 'SETTINGS_ERROR':
       showSettingsError(message.payload.code);
       break;
+    case 'ANALYSIS_MODE_STATUS':
+      renderAnalysisMode(message.payload.mode);
+      break;
     case 'ANALYSIS_STARTED':
       updateAnalysisState({
         type: 'ANALYSIS_STARTED',
         requestId: message.requestId,
+        transport: message.transport,
       });
       break;
     case 'ANALYSIS_SUCCEEDED':
+      cloudRetryAvailable = false;
       updateAnalysisState({
         type: 'ANALYSIS_SUCCEEDED',
         requestId: message.requestId,
@@ -758,6 +965,7 @@ function handleMainMessage(message: MainToUiMessage): void {
       });
       break;
     case 'ANALYSIS_FAILED':
+      cloudRetryAvailable = message.cloudRetryAvailable;
       updateAnalysisState(message.requestId === null
         ? {
             type: 'ANALYSIS_VALIDATION_FAILED',
@@ -815,39 +1023,51 @@ function handleMainMessage(message: MainToUiMessage): void {
  * Deliberadamente sin detalles de infraestructura: no se muestran host,
  * puerto, ni nombres de servicios. Eso vive en los registros de desarrollo.
  */
-function renderLocalRuntimeStatus(
-  payload: LocalRuntimeStatusPayload,
-): void {
-  localEngineRow.dataset['state'] = payload.state;
+function renderLocalRuntimeStatus(payload: LocalRuntimeStatusPayload): void {
+  localRuntimeState = payload;
+  settingsLocalState.textContent = describeLocalRuntimeState(payload);
+  settingsCheckLocalButton.hidden = payload.state === 'checking';
+  renderApiKeyIndicator();
+  renderAnalysis();
+}
 
-  const modelSuffix = payload.modelLabel === null
-    ? 'Local'
-    : `${payload.modelLabel} · Local`;
-
+function describeLocalRuntimeState(payload: LocalRuntimeStatusPayload): string {
   switch (payload.state) {
     case 'checking':
-      localEngineDetail.textContent = 'Comprobando…';
-      localEngineRetry.hidden = true;
-      break;
+      return 'Comprobando…';
     case 'ready':
-      localEngineDetail.textContent = `Listo · ${modelSuffix}`;
-      localEngineRetry.hidden = true;
-      break;
+      return payload.modelLabel === null
+        ? 'Listo'
+        : `Listo · ${payload.modelLabel}`;
     case 'model_missing':
-      localEngineDetail.textContent = 'El modelo aún no está listo para analizar.';
-      localEngineRetry.hidden = false;
-      break;
+      return 'Modelo no disponible';
     case 'degraded':
-      localEngineDetail.textContent = 'El motor local no está respondiendo bien.';
-      localEngineRetry.hidden = false;
-      break;
+      return 'No disponible';
     case 'unavailable':
-      localEngineDetail.textContent = 'Motor local no disponible.';
-      localEngineRetry.hidden = false;
-      break;
+      return 'No disponible';
     default:
-      assertNever(payload.state);
+      return assertNever(payload.state);
   }
+}
+
+function renderAnalysisMode(mode: AnalysisMode): void {
+  analysisMode = mode;
+  modeAutoInput.checked = mode === 'auto';
+  modeLocalInput.checked = mode === 'local';
+  modeCloudInput.checked = mode === 'cloud';
+  renderApiKeyIndicator();
+  renderAnalysis();
+}
+
+function setAnalysisMode(mode: AnalysisMode): void {
+  if (mode === analysisMode) {
+    return;
+  }
+
+  // Optimista en la UI, persistido por el hilo principal. Un cambio de modo
+  // NO redirige una petición en vuelo: afecta a la siguiente.
+  renderAnalysisMode(mode);
+  postToMain({ type: 'SET_ANALYSIS_MODE', mode });
 }
 
 function assertNever(_value: never): never {
@@ -860,13 +1080,36 @@ analysisOpenSettingsButton.addEventListener('click', openSettings);
 closeSettingsButton.addEventListener('click', closeSettings);
 analyzeButton.addEventListener('click', requestAnalysis);
 analyzeAgainButton.addEventListener('click', requestAnalysis);
-retryAnalysisButton.addEventListener('click', requestAnalysis);
+retryAnalysisButton.addEventListener('click', (): void => {
+  if (isLocalFailure()) {
+    retryLocalAnalysis();
+    return;
+  }
+
+  requestAnalysis();
+});
 applySuggestionButton.addEventListener('click', requestApplySuggestion);
 
-localEngineRetry.addEventListener('click', (): void => {
-  localEngineRetry.hidden = true;
-  postMessage({ type: 'CHECK_LOCAL_RUNTIME' });
+// En FASE 8.5.4 este manejador llamaba a `postMessage` en lugar de
+// `postToMain`, así que el mensaje salía sin el sobre `pluginMessage` y el
+// hilo principal nunca lo recibía.
+engineRetry.addEventListener('click', (): void => {
+  postToMain({ type: 'CHECK_LOCAL_RUNTIME' });
 });
+
+settingsCheckLocalButton.addEventListener('click', (): void => {
+  postToMain({ type: 'CHECK_LOCAL_RUNTIME' });
+});
+
+useCloudButton.addEventListener('click', useCloudForCurrentAnalysis);
+
+for (const input of [modeAutoInput, modeLocalInput, modeCloudInput]) {
+  input.addEventListener('change', (): void => {
+    if (input.checked && isAnalysisMode(input.value)) {
+      setAnalysisMode(input.value);
+    }
+  });
+}
 
 apiKeyForm.addEventListener('submit', (event: SubmitEvent): void => {
   event.preventDefault();

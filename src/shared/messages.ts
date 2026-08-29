@@ -1,4 +1,7 @@
 import type { AnalyzeError, AnalyzeResponse } from '../analyze-contracts';
+import type { AnalysisMode } from '../analysis-mode';
+import { isAnalysisMode } from '../analysis-mode';
+import type { AnalysisTransportKind } from '../analysis-transport';
 import type { ApplyError, ApplySuccessPayload } from '../apply-contracts';
 
 export type SelectionState =
@@ -44,6 +47,12 @@ export type LocalRuntimeStatusPayload = {
 
 export type MainToUiMessage =
   | {
+      type: 'ANALYSIS_MODE_STATUS';
+      payload: {
+        mode: AnalysisMode;
+      };
+    }
+  | {
       type: 'LOCAL_RUNTIME_STATUS';
       payload: LocalRuntimeStatusPayload;
     }
@@ -78,6 +87,9 @@ export type MainToUiMessage =
   | {
       type: 'ANALYSIS_STARTED';
       requestId: string;
+      /** Motor que procesará ESTA petición. Ya está decidido: el texto se
+       *  envía a este transporte y a ningún otro. */
+      transport: AnalysisTransportKind;
     }
   | {
       type: 'ANALYSIS_SUCCEEDED';
@@ -88,6 +100,9 @@ export type MainToUiMessage =
       type: 'ANALYSIS_FAILED';
       requestId: string | null;
       error: AnalyzeError;
+      /** ¿Se le puede ofrecer a la persona la acción explícita de analizar en
+       *  la nube? Nunca implica que la nube vaya a usarse sola. */
+      cloudRetryAvailable: boolean;
     }
   | {
       type: 'APPLY_STARTED';
@@ -115,6 +130,18 @@ export type UiToMainMessage =
     }
   | {
       type: 'CHECK_LOCAL_RUNTIME';
+    }
+  | {
+      type: 'SET_ANALYSIS_MODE';
+      mode: AnalysisMode;
+    }
+  | {
+      type: 'RETRY_LOCAL_ANALYSIS';
+      selectionRevision: number;
+    }
+  | {
+      type: 'USE_CLOUD_FOR_CURRENT_ANALYSIS';
+      selectionRevision: number;
     }
   | {
       type: 'OPEN_SETTINGS';
@@ -156,7 +183,23 @@ export function isUiToMainMessage(value: unknown): value is UiToMainMessage {
     case 'OPEN_SETTINGS':
     case 'REQUEST_API_KEY_STATUS':
     case 'DELETE_API_KEY':
+    // Faltaba en FASE 8.5.4: sin este caso el mensaje caía en `default` y el
+    // botón de reintento del motor local no hacía absolutamente nada.
+    case 'CHECK_LOCAL_RUNTIME':
       return true;
+
+    case 'SET_ANALYSIS_MODE':
+      return 'mode' in value && isAnalysisMode(value.mode);
+
+    // Cada intento de recuperación lleva su transporte fijo. No comparten el
+    // flujo genérico de análisis: era justo esa reutilización la que permitía
+    // que «Reintentar» acabara en la nube al caducar la caché de salud.
+    case 'RETRY_LOCAL_ANALYSIS':
+    case 'USE_CLOUD_FOR_CURRENT_ANALYSIS':
+      return 'selectionRevision' in value
+        && typeof value.selectionRevision === 'number'
+        && Number.isSafeInteger(value.selectionRevision)
+        && value.selectionRevision >= 0;
 
     case 'SAVE_API_KEY':
       return 'apiKey' in value && typeof value.apiKey === 'string';

@@ -269,9 +269,10 @@ test('Analyze Again transitions directly from result to loading', () => {
   };
   const loading = core.reduceAnalysisState(result, {
     type: 'ANALYZE_REQUESTED',
+    transport: null,
   });
 
-  assert.deepEqual(loading, { status: 'loading', requestId: null });
+  assert.deepEqual(loading, { status: 'loading', requestId: null, transport: null });
   assert.equal('result' in loading, false);
 });
 
@@ -282,7 +283,7 @@ test('double Analyze Again preserves the single active request', () => {
   };
 
   assert.deepEqual(
-    core.reduceAnalysisState(loading, { type: 'ANALYZE_REQUESTED' }),
+    core.reduceAnalysisState(loading, { type: 'ANALYZE_REQUESTED', transport: null }),
     loading,
   );
 });
@@ -295,10 +296,12 @@ test('new success replaces the previous result completely', () => {
   };
   const loading = core.reduceAnalysisState(previous, {
     type: 'ANALYZE_REQUESTED',
+    transport: null,
   });
   const started = core.reduceAnalysisState(loading, {
     type: 'ANALYSIS_STARTED',
     requestId: 'analysis-2',
+    transport: 'local',
   });
   const replacement = {
     ...validResponse,
@@ -315,6 +318,7 @@ test('new success replaces the previous result completely', () => {
     status: 'success',
     requestId: 'analysis-2',
     result: replacement,
+    transport: 'local',
   });
   assert.notDeepEqual(success.result, previous.result);
 });

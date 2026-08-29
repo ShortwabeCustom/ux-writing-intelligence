@@ -52,14 +52,15 @@
 
           <p id="ready-status" class="ready-status" hidden>Texto listo</p>
 
-          <div id="local-engine-row" class="local-engine-row" data-state="checking">
-            <span class="local-engine-dot" aria-hidden="true"></span>
-            <div class="local-engine-copy">
-              <span id="local-engine-title" class="local-engine-title">Motor local</span>
-              <span id="local-engine-detail" class="local-engine-detail">Comprobando…</span>
+          <div id="engine-row" class="engine-row" data-engine="unknown">
+            <span class="engine-dot" aria-hidden="true"></span>
+            <div class="engine-copy">
+              <span class="engine-label">Motor de análisis</span>
+              <span id="engine-name" class="engine-name">Comprobando…</span>
+              <span id="engine-detail" class="engine-detail"></span>
             </div>
-            <button id="local-engine-retry" type="button" class="text-button" hidden>
-              Reintentar
+            <button id="engine-retry" type="button" class="text-button" hidden>
+              Comprobar de nuevo
             </button>
           </div>
 
@@ -82,7 +83,10 @@
 
           <section id="analysis-loading" class="analysis-feedback" aria-live="polite" hidden>
             <span class="loading-indicator" aria-hidden="true"></span>
-            <span id="analysis-loading-message">Analizando contenido…</span>
+            <span class="analysis-loading-copy">
+              <span id="analysis-loading-message">Analizando contenido…</span>
+              <span id="analysis-loading-engine" class="analysis-loading-engine"></span>
+            </span>
           </section>
 
           <section id="analysis-error" class="analysis-error" role="alert" hidden>
@@ -103,6 +107,14 @@
             <button id="retry-analysis-button" class="secondary-button" type="button">
               Intentar nuevamente
             </button>
+            <div id="cloud-retry-block" class="cloud-retry-block" hidden>
+              <button id="use-cloud-button" class="secondary-button" type="button">
+                Usar análisis en la nube
+              </button>
+              <p class="cloud-retry-note">
+                El contenido se enviará al servicio en la nube para realizar el análisis.
+              </p>
+            </div>
           </section>
 
           <section id="analysis-result" class="analysis-result" aria-live="polite" hidden>
@@ -252,7 +264,58 @@
         </header>
 
         <section class="settings-section">
-          <p class="settings-kicker">API Key</p>
+          <p class="settings-kicker">Motor de análisis</p>
+          <h2>Dónde se procesa tu contenido</h2>
+
+          <div class="mode-options" role="radiogroup" aria-label="Motor de análisis">
+            <label class="mode-option">
+              <input type="radio" name="analysis-mode" value="auto" id="mode-auto" />
+              <span class="mode-copy">
+                <span class="mode-title">
+                  Automático
+                  <span class="mode-badge">Recomendado</span>
+                </span>
+                <span class="mode-description">
+                  Prioriza el procesamiento local y usa la nube cuando el motor local no
+                  está disponible antes de iniciar.
+                </span>
+              </span>
+            </label>
+
+            <label class="mode-option">
+              <input type="radio" name="analysis-mode" value="local" id="mode-local" />
+              <span class="mode-copy">
+                <span class="mode-title">Solo local</span>
+                <span class="mode-description">
+                  El contenido se procesa únicamente en esta Mac.
+                </span>
+              </span>
+            </label>
+
+            <label class="mode-option">
+              <input type="radio" name="analysis-mode" value="cloud" id="mode-cloud" />
+              <span class="mode-copy">
+                <span class="mode-title">Solo nube</span>
+                <span class="mode-description">
+                  El contenido se envía al servicio en la nube para realizar el análisis.
+                </span>
+              </span>
+            </label>
+          </div>
+
+          <div class="local-engine-settings">
+            <span class="settings-subheading">Motor local</span>
+            <div class="local-engine-status-row">
+              <span id="settings-local-state" class="settings-local-state">Comprobando…</span>
+              <button id="settings-check-local-button" type="button" class="text-button">
+                Comprobar de nuevo
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <p class="settings-kicker">Servicio en la nube</p>
           <h2>Acceso al análisis</h2>
           <p class="settings-description">
             Configura la clave que utilizará UX Writing Intelligence para analizar contenido.

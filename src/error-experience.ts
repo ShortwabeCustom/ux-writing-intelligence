@@ -29,6 +29,10 @@ export function getAnalyzeRecoverability(
   switch (code) {
     case 'MISSING_API_KEY':
     case 'UNAUTHORIZED':
+    // Enrutamiento bloqueado antes de enviar texto: se resuelve en Ajustes,
+    // eligiendo otro motor o configurando la nube.
+    case 'CLOUD_NOT_CONFIGURED':
+    case 'NO_ANALYSIS_ENGINE_AVAILABLE':
       return 'requires-settings';
     // El motor local se recupera reintentando: la persona no necesita tocar
     // ajustes ni volver a seleccionar. No se le pide correr comandos.
@@ -60,7 +64,7 @@ export function getAnalyzeErrorPresentation(
         description: 'No pudimos iniciar el análisis local.',
         recoverability: 'retryable',
         action: 'retry',
-        actionLabel: 'Reintentar',
+        actionLabel: 'Reintentar local',
       };
     case 'LOCAL_MODEL_NOT_AVAILABLE':
       return {
@@ -68,7 +72,7 @@ export function getAnalyzeErrorPresentation(
         description: 'El motor de UX Writing aún no está listo para analizar.',
         recoverability: 'retryable',
         action: 'retry',
-        actionLabel: 'Reintentar',
+        actionLabel: 'Reintentar local',
       };
     case 'LOCAL_ANALYSIS_TIMEOUT':
       return {
@@ -76,7 +80,24 @@ export function getAnalyzeErrorPresentation(
         description: 'Inténtalo nuevamente.',
         recoverability: 'retryable',
         action: 'retry',
-        actionLabel: 'Reintentar',
+        actionLabel: 'Reintentar local',
+      };
+    case 'CLOUD_NOT_CONFIGURED':
+      return {
+        title: 'Falta configurar el servicio en la nube',
+        description: 'Configura el servicio en la nube para usar este modo.',
+        recoverability: 'requires-settings',
+        action: 'open-settings',
+        actionLabel: 'Abrir Configuración',
+      };
+    case 'NO_ANALYSIS_ENGINE_AVAILABLE':
+      return {
+        title: 'No hay un motor disponible',
+        description:
+          'El motor local no está disponible y el servicio en la nube no está configurado.',
+        recoverability: 'requires-settings',
+        action: 'open-settings',
+        actionLabel: 'Abrir Configuración',
       };
     case 'MISSING_API_KEY':
       return {

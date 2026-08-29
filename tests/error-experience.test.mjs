@@ -100,6 +100,7 @@ test('stale selection replaces a previous result with a recoverable error', () =
     status: 'error',
     requestId: null,
     error: { code: 'STALE_SELECTION' },
+    transport: null,
   });
   assert.equal('result' in next, false);
 });
@@ -107,6 +108,7 @@ test('stale selection replaces a previous result with a recoverable error', () =
 test('Analyze loading blocks a second Analyze request', () => {
   const loading = core.reduceAnalysisState(core.INITIAL_ANALYSIS_STATE, {
     type: 'ANALYZE_REQUESTED',
+    transport: null,
   });
 
   assert.equal(core.canRequestAnalysis(loading), false);
@@ -138,12 +140,30 @@ test('new Analyze request and success clear previous Analyze errors', () => {
   assert.equal('error' in success, false);
 });
 
-test('all Analyze CTAs reuse the same requestAnalysis action', async () => {
+test('todos los CTA de análisis pasan por el mismo arranque', async () => {
+  // El invariante no es «todos llaman a requestAnalysis» —el reintento tras un
+  // fallo local debe forzar transporte local— sino que ninguna ruta se salte
+  // `startAnalysis`, que es donde viven las guardas y el estado del motor.
   const uiSource = await readFile(path.join(workspace, 'src/ui.ts'), 'utf8');
 
   assert.match(uiSource, /analyzeButton\.addEventListener\('click', requestAnalysis\)/u);
   assert.match(uiSource, /analyzeAgainButton\.addEventListener\('click', requestAnalysis\)/u);
-  assert.match(uiSource, /retryAnalysisButton\.addEventListener\('click', requestAnalysis\)/u);
+
+  for (const entryPoint of [
+    'function requestAnalysis',
+    'function retryLocalAnalysis',
+    'function useCloudForCurrentAnalysis',
+  ]) {
+    const body = uiSource.slice(uiSource.indexOf(entryPoint));
+    assert.ok(
+      body.slice(0, body.indexOf('\n}')).includes('startAnalysis('),
+      `${entryPoint} no pasa por startAnalysis`,
+    );
+  }
+
+  // Ninguna acción puede publicar un mensaje de análisis por su cuenta.
+  const strayPosts = uiSource.match(/postToMain\(\{\s*\n?\s*type: '(ANALYZE_REQUEST|RETRY_LOCAL_ANALYSIS|USE_CLOUD_FOR_CURRENT_ANALYSIS)'/gu);
+  assert.equal(strayPosts, null, 'hay un análisis que no pasa por startAnalysis');
 });
 
 test('Settings retry repeats the operation that actually failed', () => {
