@@ -119,6 +119,10 @@ async function createPlugin({
   };
 
   const listeners = new Map();
+  let selectionCounter = 0;
+  // El plugin captura `fetch` al importarse, así que el estado del motor debe
+  // ser mutable AQUÍ; reemplazar el global después no tendría efecto.
+  let currentLocalStatus = localStatus;
 
   globalThis.__html__ = '<html></html>';
   globalThis.figma = {
@@ -151,11 +155,11 @@ async function createPlugin({
     requests.push({ url, options });
 
     if (url === LOCAL_STATUS) {
-      if (localStatus === null) {
+      if (currentLocalStatus === null) {
         throw new Error('ECONNREFUSED');
       }
 
-      return jsonResponse(200, localStatus);
+      return jsonResponse(200, currentLocalStatus);
     }
 
     if (url === LOCAL_ANALYZE) {
@@ -211,6 +215,19 @@ async function createPlugin({
     localAnalyzeRequests: () => requests.filter((r) => r.url === LOCAL_ANALYZE),
     lastFailure: () => [...messages].reverse().find((m) => m.type === 'ANALYSIS_FAILED'),
     advanceClock: (ms) => { fakeNow += ms; },
+    /** Cambia la selección como lo haría Figma y dispara el evento. */
+    changeSelection: async (text) => {
+      selectionCounter += 1;
+      textNode.characters = text ?? `Texto ${selectionCounter}`;
+      const handler = listeners.get('selectionchange');
+      if (handler !== undefined) {
+        handler();
+      }
+      await drain(3);
+    },
+    applySessions: () => messages.filter((m) => m.type === 'APPLY_SUCCEEDED'),
+    /** Simula que el runtime local arranca o se detiene. */
+    setLocalStatus: (status) => { currentLocalStatus = status; },
     lastStarted: () => [...messages].reverse().find((m) => m.type === 'ANALYSIS_STARTED'),
     succeeded: () => messages.filter((m) => m.type === 'ANALYSIS_SUCCEEDED'),
   };
@@ -683,4 +700,243 @@ test('el retry explícito anuncia la nube antes de recibir respuesta', async () 
 
   assert.ok(startedCloud, 'no se anunció la nube');
   assert.ok(startedCloud.i < succeeded.i, 'la nube se anunció después del resultado');
+});
+
+
+// =============================================================================
+// FASE 8.5.6 — carreras y obsolescencia (STEP 25, 26, 27, 40)
+// =============================================================================
+
+test('STEP 25: 12 cambios de selección durante un análisis descartan el resultado', async () => {
+  let release;
+  const pending = new Promise((resolve) => { release = resolve; });
+  const plugin = await createPlugin({
+    mode: 'auto',
+    apiKey: SECRET,
+    localAnalyze: async () => { await pending; return jsonResponse(200, VALID_RESULT); },
+  });
+
+  const analysis = plugin.analyze();
+
+  for (let index = 0; index < 12; index += 1) {
+    await plugin.changeSelection(`Texto distinto ${index}`);
+  }
+
+  release();
+  await analysis;
+  await plugin.drain();
+
+  // El resultado corresponde a un texto que ya no está seleccionado: se tira.
+  assert.equal(plugin.succeeded().length, 0, 'un resultado obsoleto llegó a la UI');
+  assert.equal(plugin.applySessions().length, 0, 'se abrió una sesión de Apply obsoleta');
+});
+
+test('STEP 25: un resultado obsoleto no se atribuye a la selección nueva', async () => {
+  let release;
+  const pending = new Promise((resolve) => { release = resolve; });
+  const plugin = await createPlugin({
+    mode: 'auto',
+    localAnalyze: async () => { await pending; return jsonResponse(200, VALID_RESULT); },
+  });
+
+  const analysis = plugin.analyze();
+  await plugin.changeSelection('Un texto completamente distinto');
+  release();
+  await analysis;
+  await plugin.drain();
+
+  assert.equal(plugin.succeeded().length, 0);
+  // Y la UI recibió una selección actualizada, no un resultado colgado.
+  const lastSelection = [...plugin.messages].reverse()
+    .find((m) => m.type === 'SELECTION_CHANGED');
+  assert.equal(lastSelection.payload.text, 'Un texto completamente distinto');
+});
+
+test('STEP 26: gana la petición más reciente; la anterior se descarta', async () => {
+  const plugin = await createPlugin({ mode: 'auto', apiKey: SECRET });
+
+  await plugin.analyze();
+  assert.equal(plugin.succeeded().length, 1);
+  const firstId = plugin.succeeded()[0].requestId;
+
+  // «Analizar de nuevo» sobre la misma selección.
+  await plugin.send({ type: 'ANALYZE_REQUEST', selectionRevision: plugin.revision() });
+
+  const successes = plugin.succeeded();
+  assert.equal(successes.length, 2);
+  assert.notEqual(successes[1].requestId, firstId, 'se reutilizó el requestId');
+});
+
+test('STEP 40: con dos peticiones simultáneas solo la más nueva entrega resultado', async () => {
+  // El hilo principal NO deduplica: quien impide el doble envío es la guarda de
+  // la UI (`canRequestAnalysis`). Lo que sí garantiza el hilo principal es que
+  // una respuesta vieja nunca llegue a la interfaz.
+  const releases = [];
+  const plugin = await createPlugin({
+    mode: 'auto',
+    apiKey: SECRET,
+    localAnalyze: () => new Promise((resolve) => {
+      releases.push(() => resolve(jsonResponse(200, VALID_RESULT)));
+    }),
+  });
+
+  const first = plugin.analyze();
+  const second = plugin.send({ type: 'ANALYZE_REQUEST', selectionRevision: 0 });
+  await plugin.drain();
+
+  // Se resuelven en orden inverso: la vieja responde la última.
+  releases.reverse().forEach((release) => { release(); });
+  await Promise.all([first, second]);
+  await plugin.drain();
+
+  assert.equal(plugin.succeeded().length, 1, 'llegaron dos resultados a la UI');
+  assert.equal(plugin.cloudRequests().length, 0);
+});
+
+test('STEP 40: una revisión que ya no existe se rechaza', async () => {
+  const plugin = await createPlugin({ mode: 'auto', apiKey: SECRET });
+  await plugin.send({ type: 'ANALYZE_REQUEST', selectionRevision: 77 });
+
+  assert.equal(plugin.localAnalyzeRequests().length, 0);
+  assert.equal(plugin.lastFailure().error.code, 'STALE_SELECTION');
+});
+
+test('STEP 12: alternar de modo entre análisis usa el modo nuevo cada vez', async () => {
+  const plugin = await createPlugin({ mode: 'auto', apiKey: SECRET });
+
+  await plugin.analyze();
+  assert.equal(plugin.lastStarted().transport, 'local');
+
+  await plugin.send({ type: 'SET_ANALYSIS_MODE', mode: 'cloud' });
+  await plugin.send({ type: 'ANALYZE_REQUEST', selectionRevision: plugin.revision() });
+  assert.equal(plugin.lastStarted().transport, 'cloud');
+
+  await plugin.send({ type: 'SET_ANALYSIS_MODE', mode: 'local' });
+  await plugin.send({ type: 'ANALYZE_REQUEST', selectionRevision: plugin.revision() });
+  assert.equal(plugin.lastStarted().transport, 'local');
+
+  // Una petición por análisis; ninguna duplicada por el vaivén de modos.
+  assert.equal(plugin.localAnalyzeRequests().length, 2);
+  assert.equal(plugin.cloudRequests().length, 1);
+});
+
+test('STEP 13: la salud dice listo pero el runtime cae antes del POST', async () => {
+  // Carrera real: «listo» hace un segundo no garantiza «listo» ahora.
+  let runtimeAlive = true;
+  const plugin = await createPlugin({
+    mode: 'auto',
+    apiKey: SECRET,
+    localAnalyze: () => {
+      if (!runtimeAlive) throw new Error('ECONNREFUSED');
+      return jsonResponse(200, VALID_RESULT);
+    },
+  });
+
+  runtimeAlive = false;   // muere tras la comprobación de salud
+  await plugin.analyze();
+
+  assert.equal(plugin.lastStarted().transport, 'local');
+  assert.equal(plugin.cloudRequests().length, 0, 'la carrera de salud disparó la nube');
+  assert.equal(plugin.lastFailure().error.code, 'LOCAL_RUNTIME_UNAVAILABLE');
+  assert.equal(plugin.lastFailure().cloudRetryAvailable, true);
+});
+
+test('STEP 14: el motor local arranca después y la siguiente petición va a local', async () => {
+  const plugin = await createPlugin({
+    mode: 'auto',
+    apiKey: SECRET,
+    localStatus: null,
+  });
+
+  await plugin.analyze();
+  assert.equal(plugin.lastStarted().transport, 'cloud');
+
+  // El runtime arranca y la persona pulsa «Comprobar de nuevo».
+  plugin.setLocalStatus(READY_STATUS);
+  await plugin.send({ type: 'CHECK_LOCAL_RUNTIME' });
+  const status = plugin.messages.filter((m) => m.type === 'LOCAL_RUNTIME_STATUS').pop();
+  assert.equal(status.payload.state, 'ready');
+
+  await plugin.send({ type: 'ANALYZE_REQUEST', selectionRevision: plugin.revision() });
+  assert.equal(plugin.lastStarted().transport, 'local');
+});
+
+// =============================================================================
+// FASE 8.5.6 — compuertas de privacidad (STEP 21, 22, 23)
+// Bloqueantes de release. No comprueban intenciones: cuentan tráfico.
+// =============================================================================
+
+test('STEP 21 BLOQUEANTE: 10 análisis en Solo local con clave configurada → 0 nube', async () => {
+  const plugin = await createPlugin({ mode: 'local', apiKey: SECRET });
+
+  for (let index = 0; index < 10; index += 1) {
+    await plugin.send({ type: 'ANALYZE_REQUEST', selectionRevision: plugin.revision() });
+  }
+
+  assert.equal(plugin.localAnalyzeRequests().length, 10);
+  assert.equal(plugin.cloudRequests().length, 0, 'Solo local envió contenido a la nube');
+
+  // Ninguna petición, de ningún tipo, salió hacia el dominio de la nube.
+  const foreign = plugin.requests.filter(
+    (r) => !String(r.url).startsWith('http://localhost:8787'),
+  );
+  assert.deepEqual(foreign, [], 'hubo tráfico fuera del runtime local');
+
+  // El plugin NUNCA habla con Ollama: solo el runtime lo hace.
+  const ollama = plugin.requests.filter((r) => String(r.url).includes('11434'));
+  assert.equal(ollama.length, 0, 'el plugin llamó a Ollama directamente');
+
+  // Y el secreto no aparece en ninguna petición.
+  assert.ok(!JSON.stringify(plugin.requests).includes(SECRET));
+});
+
+test('STEP 22 BLOQUEANTE: 10 análisis en AUTO con local listo → 10 locales, 0 nube', async () => {
+  const plugin = await createPlugin({ mode: 'auto', apiKey: SECRET });
+
+  for (let index = 0; index < 10; index += 1) {
+    await plugin.send({ type: 'ANALYZE_REQUEST', selectionRevision: plugin.revision() });
+  }
+
+  assert.equal(plugin.localAnalyzeRequests().length, 10);
+  assert.equal(plugin.cloudRequests().length, 0);
+  assert.equal(plugin.succeeded().length, 10);
+
+  // Cada análisis anunció el motor local.
+  const started = plugin.messages.filter((m) => m.type === 'ANALYSIS_STARTED');
+  assert.equal(started.length, 10);
+  assert.ok(started.every((m) => m.transport === 'local'));
+
+  assert.ok(!JSON.stringify(plugin.requests).includes(SECRET));
+});
+
+test('STEP 23 BLOQUEANTE: tres clases de fallo tras el POST → 0 nube automática', async () => {
+  const failures = [
+    { name: 'timeout', respond: () => jsonResponse(504, { code: 'MODEL_TIMEOUT' }) },
+    { name: 'respuesta inválida', respond: () => jsonResponse(200, { roto: true }) },
+    { name: 'conexión caída', respond: () => { throw new Error('ECONNRESET'); } },
+  ];
+
+  for (const failure of failures) {
+    const plugin = await createPlugin({
+      mode: 'auto', apiKey: SECRET, localAnalyze: failure.respond,
+    });
+    await plugin.analyze();
+
+    assert.equal(plugin.localAnalyzeRequests().length, 1, failure.name);
+    assert.equal(
+      plugin.cloudRequests().length, 0,
+      `«${failure.name}» disparó una petición automática a la nube`,
+    );
+    assert.equal(plugin.succeeded().length, 0, failure.name);
+  }
+});
+
+test('el plugin nunca contacta con Ollama en ningún modo', async () => {
+  for (const mode of ['auto', 'local', 'cloud']) {
+    const plugin = await createPlugin({ mode, apiKey: SECRET });
+    await plugin.analyze();
+
+    const ollama = plugin.requests.filter((r) => String(r.url).includes('11434'));
+    assert.equal(ollama.length, 0, `en modo ${mode} el plugin llamó a Ollama`);
+  }
 });
