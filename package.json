@@ -1,0 +1,18 @@
+{
+  "name": "ux-writing-intelligence",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm run typecheck && npm run build && npm test"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.135.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

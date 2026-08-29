@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>UX Writing Intelligence — UI Harness</title>
+    <style>
+      body {
+        margin: 0;
+        background: #2c2c2c;
+      }
+
+      iframe {
+        width: 360px;
+        height: 560px;
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe id="plugin-ui" src="../dist/ui.html" title="Plugin UI"></iframe>
+    <script>
+      const pluginUi = document.getElementById('plugin-ui');
+      const searchParams = new URLSearchParams(window.location.search);
+      const fixture = searchParams.get('fixture') || 'success-low';
+      const requestedDelay = Number(searchParams.get('analysisDelay'));
+      const analysisDelay = Number.isFinite(requestedDelay) && requestedDelay >= 0
+        ? requestedDelay
+        : 250;
+      let configured = searchParams.get('configured') === '1';
+      let analyzeRequestCount = 0;
+      let applyRequestCount = 0;
+      let settingsRequestCount = 0;
+
+      function exposeCounts() {
+        document.body.dataset.analyzeRequests = String(analyzeRequestCount);
+        document.body.dataset.applyRequests = String(applyRequestCount);
+        document.body.dataset.settingsRequests = String(settingsRequestCount);
+      }
+
+      exposeCounts();
+
+      const baseResult = {
+        text: '¿Quieres guardar los cambios?',
+        locale: 'es-MX',
+        score: 86,
+        severity: 'low',
+        clarity: 5,
+        concision: 4,
+        utility: 5,
+        jargon: false,
+        predictability: 5,
+        orthography: 5,
+        issues: [{
+          category: 'concision',
+          severity: 'low',
+          term: null,
+          reason: 'El mensaje puede mantenerse breve y directo.',
+        }],
+        reason: 'El contenido es claro y anticipa correctamente la acción.',
+        suggestion: '¿Guardar los cambios?',
+      };
+
+      function getFixtureResult() {
+        switch (fixture) {
+          case 'success-empty':
+            return { ...baseResult, score: 96, issues: [], jargon: false };
+          case 'success-medium':
+            return { ...baseResult, score: 68, severity: 'medium' };
+          case 'success-high':
+            return {
+              ...baseResult,
+              score: 34,
+              severity: 'high',
+              clarity: 2,
+              concision: 2,
+              utility: 1,
+              jargon: true,
+              predictability: 2,
+              issues: [
+                {
+                  category: 'jargon',
+                  severity: 'high',
+                  term: 'originación',
+                  reason: 'El término pertenece al lenguaje interno del negocio.',
+                },
+                {
+                  category: 'information_architecture',
+                  severity: 'medium',
+                  term: null,
+                  reason: 'La acción esperada no es evidente en este contexto.',
+                },
+              ],
+              reason: 'El mensaje requiere contexto interno y no anticipa claramente el resultado.',
+              suggestion: 'Iniciar solicitud',
+            };
+          case 'success-duplicate': {
+            const repeatedReason = 'El término pertenece al lenguaje interno del negocio.';
+            return {
+              ...baseResult,
+              reason: repeatedReason,
+              issues: [{ ...baseResult.issues[0], reason: repeatedReason }],
+            };
+          }
+          case 'success-long':
+            return {
+              ...baseResult,
+              text: 'Contenido seleccionado de prueba con una extensión considerable para validar el comportamiento del resumen superior.',
+              issues: Array.from({ length: 4 }, (_, index) => ({
+                category: index === 0 ? 'clarity' : `custom_category_${index}`,
+                severity: index === 3 ? 'high' : 'medium',
+                term: index === 0 ? 'proceder con la solicitud correspondiente' : null,
+                reason: 'Explicación puntual extensa que debe conservarse completa y ajustarse al ancho disponible sin provocar desplazamiento horizontal. '.repeat(2),
+              })),
+              reason: 'Explicación general extensa que debe mantenerse completa, admitir varias líneas y conservar una lectura cómoda dentro del scroll vertical del plugin. '.repeat(3),
+              suggestion: 'Completa la solicitud con la información necesaria para continuar y recibir una confirmación clara del siguiente paso.',
+            };
+          default:
+            return baseResult;
+        }
+      }
+
+      function sendToPlugin(message) {
+        pluginUi.contentWindow.postMessage({ pluginMessage: message }, '*');
+      }
+
+      window.addEventListener('message', (event) => {
+        const message = event.data && event.data.pluginMessage;
+
+        if (!message || typeof message.type !== 'string') {
+          return;
+        }
+
+        switch (message.type) {
+          case 'UI_READY':
+            const selectionText = fixture === 'empty-text'
+              ? '   \n\t '
+              : getFixtureResult().text;
+            sendToPlugin({
+              type: 'SELECTION_CHANGED',
+              payload: {
+                status: fixture === 'empty-text' ? 'empty-text' : 'ready',
+                revision: 1,
+                nodeId: 'test-node',
+                nodeName: 'Título de prueba',
+                text: selectionText,
+              },
+            });
+            sendToPlugin({ type: 'API_KEY_STATUS', payload: { configured } });
+            break;
+          case 'OPEN_SETTINGS':
+          case 'REQUEST_API_KEY_STATUS':
+            settingsRequestCount += 1;
+            exposeCounts();
+
+            if (fixture === 'settings-read-error' && settingsRequestCount === 1) {
+              sendToPlugin({
+                type: 'SETTINGS_ERROR',
+                payload: { code: 'STORAGE_READ_FAILED' },
+              });
+              break;
+            }
+
+            sendToPlugin({ type: 'API_KEY_STATUS', payload: { configured } });
+            break;
+          case 'SAVE_API_KEY':
+            settingsRequestCount += 1;
+            exposeCounts();
+
+            if (fixture === 'settings-save-error' && settingsRequestCount === 2) {
+              sendToPlugin({
+                type: 'SETTINGS_ERROR',
+                payload: { code: 'STORAGE_SAVE_FAILED' },
+              });
+              break;
+            }
+
+            configured = true;
+            sendToPlugin({ type: 'API_KEY_SAVED', payload: { configured: true } });
+            break;
+          case 'DELETE_API_KEY':
+            settingsRequestCount += 1;
+            exposeCounts();
+
+            if (fixture === 'settings-delete-error' && settingsRequestCount === 2) {
+              sendToPlugin({
+                type: 'SETTINGS_ERROR',
+                payload: { code: 'STORAGE_DELETE_FAILED' },
+              });
+              break;
+            }
+
+            configured = false;
+            sendToPlugin({ type: 'API_KEY_DELETED', payload: { configured: false } });
+            break;
+          case 'ANALYZE_REQUEST':
+            analyzeRequestCount += 1;
+            exposeCounts();
+            const analysisSequence = analyzeRequestCount;
+            const analysisRequestId = `analysis-harness-${analysisSequence}`;
+            sendToPlugin({ type: 'ANALYSIS_STARTED', requestId: analysisRequestId });
+
+            if (fixture === 'loading') {
+              break;
+            }
+
+            window.setTimeout(() => {
+              const analyzeErrors = {
+                'error-missing-key': { code: 'MISSING_API_KEY' },
+                'error-unauthorized': { code: 'UNAUTHORIZED' },
+                'error-rate-limited': { code: 'RATE_LIMITED', retryAfterSeconds: 42 },
+                'error-service-unavailable': { code: 'SERVICE_UNAVAILABLE' },
+                'error-network': { code: 'NETWORK_ERROR' },
+                'error-invalid-response': { code: 'INVALID_RESPONSE' },
+                'error-stale-selection': { code: 'STALE_SELECTION' },
+                'error-unknown': { code: 'UNKNOWN_ERROR' },
+              };
+              const analyzeError = analyzeErrors[fixture];
+
+              if (analyzeError) {
+                sendToPlugin({
+                  type: 'ANALYSIS_FAILED',
+                  requestId: analysisRequestId,
+                  error: analyzeError,
+                });
+                return;
+              }
+
+              sendToPlugin({
+                type: 'ANALYSIS_SUCCEEDED',
+                requestId: analysisRequestId,
+                result: analysisSequence === 1
+                  ? getFixtureResult()
+                  : {
+                      ...getFixtureResult(),
+                      score: 91,
+                      reason: 'Resultado actualizado por un nuevo análisis explícito.',
+                    },
+              });
+
+              if (fixture === 'apply-mixed-styles') {
+                sendToPlugin({
+                  type: 'APPLY_BLOCKED',
+                  requestId: analysisRequestId,
+                  error: { code: 'MIXED_STYLES_UNSUPPORTED' },
+                });
+              }
+
+              if (fixture === 'apply-missing-font') {
+                sendToPlugin({
+                  type: 'APPLY_BLOCKED',
+                  requestId: analysisRequestId,
+                  error: { code: 'MISSING_FONT' },
+                });
+              }
+            }, analysisDelay);
+            break;
+          case 'APPLY_SUGGESTION':
+            applyRequestCount += 1;
+            exposeCounts();
+            sendToPlugin({
+              type: 'APPLY_STARTED',
+              requestId: message.requestId,
+            });
+
+            if (fixture === 'apply-loading') {
+              break;
+            }
+
+            window.setTimeout(() => {
+              if (fixture === 'apply-mixed-styles') {
+                sendToPlugin({
+                  type: 'APPLY_FAILED',
+                  requestId: message.requestId,
+                  error: { code: 'MIXED_STYLES_UNSUPPORTED' },
+                });
+                return;
+              }
+
+              if (fixture === 'apply-text-changed') {
+                sendToPlugin({
+                  type: 'APPLY_FAILED',
+                  requestId: message.requestId,
+                  error: { code: 'TEXT_CHANGED' },
+                });
+                return;
+              }
+
+              if (fixture === 'apply-node-deleted') {
+                sendToPlugin({
+                  type: 'SELECTION_CHANGED',
+                  payload: { status: 'no-selection', revision: 2 },
+                });
+                sendToPlugin({
+                  type: 'APPLY_FAILED',
+                  requestId: message.requestId,
+                  error: { code: 'INVALID_SELECTION' },
+                });
+                return;
+              }
+
+              const appliedText = getFixtureResult().suggestion;
+              sendToPlugin({
+                type: 'SELECTION_CHANGED',
+                payload: {
+                  status: 'ready',
+                  revision: 2,
+                  nodeId: 'test-node',
+                  nodeName: 'Título de prueba',
+                  text: appliedText,
+                },
+              });
+              sendToPlugin({
+                type: 'APPLY_SUCCEEDED',
+                requestId: message.requestId,
+                payload: {
+                  nodeId: 'test-node',
+                  previousText: getFixtureResult().text,
+                  appliedText,
+                  selectionRevision: 2,
+                },
+              });
+            }, 250);
+            break;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UX Writing Intelligence</title>
+    <style>
+      /* INLINE_STYLES */
+    </style>
+  </head>
+  <body>
+    <main class="plugin-shell">
+      <section id="main-view">
+        <header class="plugin-header">
+          <div class="brand-mark" aria-hidden="true">UX</div>
+          <div class="plugin-header-copy">
+            <h1>UX Writing Intelligence</h1>
+            <p>Revisa el contenido de tu interfaz antes de publicarlo.</p>
+          </div>
+          <button
+            id="open-settings-button"
+            class="icon-button"
+            type="button"
+            aria-label="Abrir configuración"
+            title="Configuración"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 5.5A2.5 2.5 0 1 0 8 10.5 2.5 2.5 0 0 0 8 5.5Z" />
+              <path d="M13.2 8.8V7.2l-1.5-.5a5 5 0 0 0-.4-1l.7-1.4-1.2-1.2-1.4.7a5 5 0 0 0-1-.4L8 2H6.4L6 3.5a5 5 0 0 0-1 .4l-1.4-.7-1.2 1.2.7 1.4a5 5 0 0 0-.4 1l-1.5.5v1.6l1.5.5a5 5 0 0 0 .4 1l-.7 1.4 1.2 1.2 1.4-.7a5 5 0 0 0 1 .4l.5 1.5H8l.5-1.5a5 5 0 0 0 1-.4l1.4.7 1.2-1.2-.7-1.4a5 5 0 0 0 .4-1l1.4-.5Z" />
+            </svg>
+          </button>
+        </header>
+
+        <section id="state-panel" class="state-panel" data-state="no-selection">
+          <div class="state-heading">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="state-eyebrow" class="eyebrow">Esperando selección</span>
+          </div>
+
+          <h2 id="state-title">Selecciona un texto</h2>
+          <p id="state-description" class="state-description" aria-live="polite" aria-atomic="true">
+            Selecciona una capa de texto en Figma para comenzar el análisis.
+          </p>
+
+          <div id="selection-details" class="selection-details" hidden>
+            <div class="selection-label-row">
+              <span id="selection-context-label">Texto seleccionado</span>
+              <span id="node-name" class="node-name"></span>
+            </div>
+            <p id="selected-text" class="selected-text" tabindex="0"></p>
+          </div>
+
+          <p id="ready-status" class="ready-status" hidden>Texto listo</p>
+
+          <div id="local-engine-row" class="local-engine-row" data-state="checking">
+            <span class="local-engine-dot" aria-hidden="true"></span>
+            <div class="local-engine-copy">
+              <span id="local-engine-title" class="local-engine-title">Motor local</span>
+              <span id="local-engine-detail" class="local-engine-detail">Comprobando…</span>
+            </div>
+            <button id="local-engine-retry" type="button" class="text-button" hidden>
+              Reintentar
+            </button>
+          </div>
+
+          <div id="api-key-status-row" class="api-key-status-row" hidden>
+            <span id="api-key-status-text">Comprobando configuración…</span>
+            <button id="configure-api-key-button" type="button" class="text-button" hidden>
+              Configurar
+            </button>
+          </div>
+
+          <section id="apply-success-feedback" class="apply-feedback" aria-live="polite" hidden>
+            <h3 id="apply-success-feedback-title"></h3>
+            <p id="apply-success-feedback-description"></p>
+          </section>
+
+          <button id="analyze-button" type="button" disabled hidden>
+            Analizar texto
+          </button>
+          <p id="phase-note" class="phase-note" hidden>Comprobando configuración</p>
+
+          <section id="analysis-loading" class="analysis-feedback" aria-live="polite" hidden>
+            <span class="loading-indicator" aria-hidden="true"></span>
+            <span id="analysis-loading-message">Analizando contenido…</span>
+          </section>
+
+          <section id="analysis-error" class="analysis-error" role="alert" hidden>
+            <div class="feedback-heading">
+              <span class="feedback-icon" aria-hidden="true">!</span>
+              <h3 id="analysis-error-title">No pudimos completar el análisis</h3>
+            </div>
+            <p id="analysis-error-message"></p>
+            <p id="analysis-retry-after" class="retry-after" hidden></p>
+            <button
+              id="analysis-open-settings-button"
+              class="text-button error-settings-button"
+              type="button"
+              hidden
+            >
+              Abrir Configuración
+            </button>
+            <button id="retry-analysis-button" class="secondary-button" type="button">
+              Intentar nuevamente
+            </button>
+          </section>
+
+          <section id="analysis-result" class="analysis-result" aria-live="polite" hidden>
+            <div class="score-summary">
+              <span class="result-label">UX Writing Score</span>
+              <div class="score-summary-row">
+                <p class="score-value-row">
+                  <strong id="analysis-score" class="score-value">0</strong>
+                  <span class="score-scale">/100</span>
+                </p>
+                <strong id="analysis-severity" class="result-severity severity-low">
+                  Buen nivel
+                </strong>
+              </div>
+            </div>
+
+            <dl class="metrics-list" aria-label="Métricas de UX Writing">
+              <div class="metric-row">
+                <dt>Claridad</dt>
+                <dd>
+                  <span class="metric-track" aria-hidden="true">
+                    <span id="analysis-clarity-bar" class="metric-fill"></span>
+                  </span>
+                  <strong id="analysis-clarity">0/5</strong>
+                </dd>
+              </div>
+              <div class="metric-row">
+                <dt>Concisión</dt>
+                <dd>
+                  <span class="metric-track" aria-hidden="true">
+                    <span id="analysis-concision-bar" class="metric-fill"></span>
+                  </span>
+                  <strong id="analysis-concision">0/5</strong>
+                </dd>
+              </div>
+              <div class="metric-row">
+                <dt>Utilidad</dt>
+                <dd>
+                  <span class="metric-track" aria-hidden="true">
+                    <span id="analysis-utility-bar" class="metric-fill"></span>
+                  </span>
+                  <strong id="analysis-utility">0/5</strong>
+                </dd>
+              </div>
+              <div class="metric-row">
+                <dt>Predictibilidad</dt>
+                <dd>
+                  <span class="metric-track" aria-hidden="true">
+                    <span id="analysis-predictability-bar" class="metric-fill"></span>
+                  </span>
+                  <strong id="analysis-predictability">0/5</strong>
+                </dd>
+              </div>
+              <div class="metric-row">
+                <dt>Ortografía</dt>
+                <dd>
+                  <span class="metric-track" aria-hidden="true">
+                    <span id="analysis-orthography-bar" class="metric-fill"></span>
+                  </span>
+                  <strong id="analysis-orthography">0/5</strong>
+                </dd>
+              </div>
+            </dl>
+
+            <p id="analysis-jargon" class="jargon-alert" hidden>
+              <strong>Jerga detectada</strong>
+              <span>Revisa si el lenguaje es familiar para tus usuarios.</span>
+            </p>
+
+            <div id="analysis-issues-section" class="result-section opportunities-section" hidden>
+              <h3>Oportunidades detectadas</h3>
+              <div id="analysis-issues" class="issues-list"></div>
+            </div>
+
+            <div id="analysis-reason-section" class="result-section">
+              <h3>Por qué importa</h3>
+              <p id="analysis-reason"></p>
+            </div>
+
+            <div id="suggestion-section" class="result-section suggestion-section">
+              <div id="suggestion-change-content">
+                <span class="result-label">Sugerencia</span>
+                <p id="analysis-suggestion"></p>
+              </div>
+              <div id="no-change-content" class="no-change-content" hidden>
+                <div class="no-change-heading">
+                  <span class="no-change-icon" aria-hidden="true">✓</span>
+                  <h3>No requiere cambios</h3>
+                </div>
+                <p>Este texto ya tiene un buen nivel de UX Writing.</p>
+              </div>
+              <section
+                id="apply-local-feedback"
+                class="apply-feedback apply-local-feedback"
+                role="alert"
+                hidden
+              >
+                <div class="feedback-heading">
+                  <span class="feedback-icon" aria-hidden="true">!</span>
+                  <h3 id="apply-local-feedback-title"></h3>
+                </div>
+                <p id="apply-local-feedback-description"></p>
+              </section>
+              <button id="apply-suggestion-button" class="primary-button apply-button" type="button">
+                <span
+                  id="apply-loading-indicator"
+                  class="button-loading-indicator"
+                  aria-hidden="true"
+                  hidden
+                ></span>
+                <span id="apply-button-label">Aplicar al texto</span>
+              </button>
+            </div>
+
+            <button id="analyze-again-button" class="secondary-button analyze-again" type="button">
+              Analizar de nuevo
+            </button>
+          </section>
+
+          <section
+            id="apply-error-fallback"
+            class="apply-feedback apply-error-fallback"
+            role="alert"
+            hidden
+          >
+            <div class="feedback-heading">
+              <span class="feedback-icon" aria-hidden="true">!</span>
+              <h3 id="apply-error-fallback-title"></h3>
+            </div>
+            <p id="apply-error-fallback-description"></p>
+          </section>
+        </section>
+      </section>
+
+      <section id="settings-view" hidden>
+        <header class="settings-header">
+          <button
+            id="close-settings-button"
+            class="back-button"
+            type="button"
+            aria-label="Volver al plugin"
+          >
+            <span aria-hidden="true">←</span>
+            Volver
+          </button>
+          <h1>Configuración</h1>
+        </header>
+
+        <section class="settings-section">
+          <p class="settings-kicker">API Key</p>
+          <h2>Acceso al análisis</h2>
+          <p class="settings-description">
+            Configura la clave que utilizará UX Writing Intelligence para analizar contenido.
+          </p>
+
+          <div id="settings-loading" class="settings-feedback" aria-live="polite">
+            <span class="loading-indicator" aria-hidden="true"></span>
+            Comprobando configuración…
+          </div>
+
+          <form id="api-key-form" class="api-key-form" novalidate hidden>
+            <h3 id="form-heading">Agregar API Key</h3>
+            <label for="api-key-input">API Key</label>
+            <input
+              id="api-key-input"
+              name="api-key"
+              type="password"
+              placeholder="Ingresa tu API Key"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              aria-describedby="api-key-input-error"
+            />
+            <p id="api-key-input-error" class="field-error" role="alert" hidden></p>
+            <div class="button-stack">
+              <button id="save-api-key-button" class="primary-button" type="submit">
+                Guardar clave
+              </button>
+              <button id="cancel-edit-button" class="secondary-button" type="button" hidden>
+                Cancelar
+              </button>
+            </div>
+          </form>
+
+          <div id="configured-panel" class="configured-panel" hidden>
+            <div class="configured-value">
+              <div>
+                <span class="configured-label">Clave configurada</span>
+                <span class="masked-key" aria-label="API Key oculta">••••••••••••</span>
+              </div>
+              <span class="configured-dot" aria-hidden="true"></span>
+            </div>
+            <div class="button-row">
+              <button id="change-api-key-button" class="secondary-button" type="button">
+                Cambiar clave
+              </button>
+              <button id="request-delete-button" class="danger-button" type="button">
+                Eliminar clave
+              </button>
+            </div>
+          </div>
+
+          <div id="delete-confirmation" class="confirmation-panel" hidden>
+            <h3>¿Eliminar API Key?</h3>
+            <p>Tendrás que volver a configurarla antes de analizar contenido.</p>
+            <div class="button-row">
+              <button id="cancel-delete-button" class="secondary-button" type="button">
+                Cancelar
+              </button>
+              <button id="confirm-delete-button" class="danger-filled-button" type="button">
+                Eliminar
+              </button>
+            </div>
+          </div>
+
+          <div id="settings-error" class="error-panel" role="alert" hidden>
+            <div class="feedback-heading">
+              <span class="feedback-icon" aria-hidden="true">!</span>
+              <h3 id="settings-error-title">No pudimos completar la acción</h3>
+            </div>
+            <p id="settings-error-message">
+              No pudimos guardar la configuración. Inténtalo nuevamente.
+            </p>
+            <button id="retry-settings-button" class="secondary-button" type="button">
+              Volver a intentar
+            </button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      /* INLINE_SCRIPT */
+    </script>
+  </body>
+</html>
