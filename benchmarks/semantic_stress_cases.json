@@ -1,0 +1,516 @@
+{
+ "schema_version": "8.5.2",
+ "suite": "semantic_stress",
+ "notes": "Set de estrés semántico. Cada caso lleva 'facts' con expectativas estructuradas validadas por semantic_fidelity.py (HEURÍSTICO). 'forbidden' son regex específicas del caso. 'no_op' marca textos ya correctos que no deben reescribirse.",
+ "cases": [
+  {
+   "id": "state_01",
+   "category": "product_state",
+   "text": "Tu préstamo fue aprobado.",
+   "no_op": true,
+   "cold": true,
+   "facts": {
+    "approved": true,
+    "available": false,
+    "status": "approved"
+   },
+   "forbidden": [
+    "\\bdisponible\\b",
+    "\\bya puedes (?:usar|retirar|disponer)\\b"
+   ]
+  },
+  {
+   "id": "state_02",
+   "category": "product_state",
+   "text": "Tu solicitud está en revisión.",
+   "no_op": true,
+   "facts": {
+    "status": "in_review",
+    "approved": false,
+    "confirmed": false
+   }
+  },
+  {
+   "id": "state_03",
+   "category": "product_state",
+   "text": "Recibimos tu documentación.",
+   "facts": {
+    "status": "received",
+    "approved": false
+   }
+  },
+  {
+   "id": "state_04",
+   "category": "product_state",
+   "text": "Tu incremento fue rechazado.",
+   "facts": {
+    "status": "rejected",
+    "approved": false
+   }
+  },
+  {
+   "id": "cond_01",
+   "category": "conditional",
+   "text": "Si no recibimos tu confirmación, la visita no se llevará a cabo.",
+   "no_op": true,
+   "facts": {
+    "conditional": true,
+    "negation": true
+   }
+  },
+  {
+   "id": "cond_02",
+   "category": "conditional",
+   "text": "Si tu pago se registra hoy, tu línea se libera mañana.",
+   "facts": {
+    "conditional": true,
+    "no_new_numbers": true
+   }
+  },
+  {
+   "id": "cond_03",
+   "category": "conditional",
+   "text": "Cuando completes tu registro, podrás solicitar tu préstamo.",
+   "facts": {
+    "conditional": true,
+    "modality": "permission"
+   }
+  },
+  {
+   "id": "neg_01",
+   "category": "negation",
+   "text": "No fue posible aprobar el incremento.",
+   "no_op": true,
+   "facts": {
+    "approved": false,
+    "negation": true
+   }
+  },
+  {
+   "id": "neg_02",
+   "category": "negation",
+   "text": "No compartas tu contraseña con nadie.",
+   "facts": {
+    "negation": true
+   }
+  },
+  {
+   "id": "neg_03",
+   "category": "negation",
+   "text": "Tu cuenta no tiene adeudos vencidos.",
+   "facts": {
+    "negation": true
+   }
+  },
+  {
+   "id": "perm_01",
+   "category": "permission_vs_requirement",
+   "text": "Puedes usar tu préstamo inicial.",
+   "no_op": true,
+   "facts": {
+    "modality": "permission",
+    "requirement": false
+   }
+  },
+  {
+   "id": "perm_02",
+   "category": "permission_vs_requirement",
+   "text": "Puedes cambiar tu fecha de pago una vez al año.",
+   "facts": {
+    "modality": "permission",
+    "requirement": false,
+    "no_new_numbers": true
+   }
+  },
+  {
+   "id": "perm_03",
+   "category": "permission_vs_requirement",
+   "text": "Podrás retirar el monto cuando tu asesor valide tus documentos.",
+   "facts": {
+    "modality": "permission",
+    "requirement": false,
+    "conditional": true
+   }
+  },
+  {
+   "id": "opt_01",
+   "category": "optional_vs_required",
+   "text": "Este campo es opcional.",
+   "no_op": true,
+   "facts": {
+    "optional": true
+   }
+  },
+  {
+   "id": "opt_02",
+   "category": "optional_vs_required",
+   "text": "Agregar un correo alterno es opcional.",
+   "facts": {
+    "optional": true
+   }
+  },
+  {
+   "id": "opt_03",
+   "category": "optional_vs_required",
+   "text": "Puedes omitir este paso si lo prefieres.",
+   "facts": {
+    "optional": true,
+    "modality": "permission"
+   }
+  },
+  {
+   "id": "time_01",
+   "category": "time",
+   "text": "Te avisaremos cuando tu asesor esté en camino.",
+   "no_op": true,
+   "cold": true,
+   "facts": {
+    "in_transit": false,
+    "conditional": true
+   }
+  },
+  {
+   "id": "time_02",
+   "category": "time",
+   "text": "Tu depósito se verá reflejado en un plazo de 24 horas.",
+   "facts": {
+    "no_new_numbers": true,
+    "preserve_literals": [
+     "24"
+    ]
+   }
+  },
+  {
+   "id": "time_03",
+   "category": "time",
+   "text": "Programaremos tu visita en los próximos días.",
+   "facts": {
+    "in_transit": false,
+    "confirmed": false
+   }
+  },
+  {
+   "id": "status_01",
+   "category": "status",
+   "text": "Tu visita ha sido agendada.",
+   "no_op": true,
+   "facts": {
+    "status": "scheduled",
+    "confirmed": false
+   },
+   "forbidden": [
+    "confirmad"
+   ]
+  },
+  {
+   "id": "status_02",
+   "category": "status",
+   "text": "Tu solicitud quedó registrada.",
+   "no_op": true,
+   "facts": {
+    "status": "registered",
+    "approved": false,
+    "confirmed": false
+   }
+  },
+  {
+   "id": "status_03",
+   "category": "status",
+   "text": "Guardamos tus cambios.",
+   "facts": {
+    "status": "saved"
+   }
+  },
+  {
+   "id": "action_01",
+   "category": "user_action",
+   "text": "Consulta tu solicitud.",
+   "no_op": true,
+   "facts": {
+    "action_verb": {
+     "keep": "consulta",
+     "reject": [
+      "confirma",
+      "autoriza",
+      "cancela"
+     ]
+    }
+   }
+  },
+  {
+   "id": "action_02",
+   "category": "user_action",
+   "text": "Revisa el monto antes de continuar.",
+   "facts": {
+    "action_verb": {
+     "keep": "revisa",
+     "reject": [
+      "confirma",
+      "acepta"
+     ]
+    }
+   }
+  },
+  {
+   "id": "action_03",
+   "category": "user_action",
+   "text": "Captura el monto que necesitas.",
+   "facts": {
+    "action_verb": {
+     "keep": "captura",
+     "reject": [
+      "confirma",
+      "aprueba"
+     ]
+    }
+   }
+  },
+  {
+   "id": "money_01",
+   "category": "money_credit",
+   "text": "El monto mínimo es de 3,000 pesos.",
+   "no_op": true,
+   "facts": {
+    "no_new_numbers": true,
+    "preserve_literals": [
+     "3,000"
+    ]
+   }
+  },
+  {
+   "id": "money_02",
+   "category": "money_credit",
+   "text": "Tu pago de 1,250 pesos vence el 15 de mayo.",
+   "facts": {
+    "no_new_numbers": true,
+    "preserve_literals": [
+     "1,250",
+     "15 de mayo"
+    ]
+   }
+  },
+  {
+   "id": "money_03",
+   "category": "money_credit",
+   "text": "Tu línea de crédito disponible es de 8,500 pesos.",
+   "facts": {
+    "no_new_numbers": true,
+    "preserve_literals": [
+     "8,500"
+    ]
+   }
+  },
+  {
+   "id": "money_04",
+   "category": "money_credit",
+   "text": "Aún debes 2 pagos de tu préstamo anterior.",
+   "facts": {
+    "no_new_numbers": true,
+    "requirement": true
+   }
+  },
+  {
+   "id": "money_05",
+   "category": "money_credit",
+   "text": "Tu tasa anual es de 45%. Este dato no afecta tu historial crediticio.",
+   "facts": {
+    "no_new_numbers": true,
+    "negation": true,
+    "preserve_literals": [
+     "45%"
+    ]
+   }
+  },
+  {
+   "id": "error_01",
+   "category": "failure_error",
+   "text": "Hubo un problema al guardar.",
+   "cold": true,
+   "facts": {
+    "cause_stated": false,
+    "recovery_path": false
+   }
+  },
+  {
+   "id": "error_02",
+   "category": "failure_error",
+   "text": "No pudimos validar tu identificación.",
+   "facts": {
+    "negation": true,
+    "cause_stated": false,
+    "recovery_path": false
+   }
+  },
+  {
+   "id": "error_03",
+   "category": "failure_error",
+   "text": "El servicio no está disponible en este momento.",
+   "facts": {
+    "negation": true,
+    "cause_stated": false,
+    "recovery_path": false
+   }
+  },
+  {
+   "id": "gloss_01",
+   "category": "glossary",
+   "text": "Proceder con la originación",
+   "cold": true,
+   "facts": {},
+   "forbidden": [
+    "\\bla origen\\b",
+    "\\bel origen\\b"
+   ],
+   "mandatory_regression": true,
+   "expected_final": "Proceder con la solicitud"
+  },
+  {
+   "id": "gloss_02",
+   "category": "glossary",
+   "text": "Ingresa tus credenciales",
+   "facts": {},
+   "expected_final": "Ingresa tus datos de acceso"
+  },
+  {
+   "id": "gloss_03",
+   "category": "glossary",
+   "text": "Completa tu originación para continuar.",
+   "facts": {},
+   "forbidden": [
+    "\\btu origen\\b"
+   ],
+   "expected_final": "Completa tu solicitud para continuar."
+  },
+  {
+   "id": "long_01",
+   "category": "long_content",
+   "cold": true,
+   "text": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.",
+   "facts": {
+    "approved": false,
+    "negation": true,
+    "modality": "permission",
+    "requirement": false
+   }
+  },
+  {
+   "id": "long_02",
+   "category": "long_content",
+   "text": "Tu visita domiciliaria está programada.\n\nUn asesor acudirá al domicilio que registraste. Ten a la mano tu identificación oficial vigente y un comprobante de domicilio con antigüedad no mayor a tres meses.\n\nSi no hay errores en tus datos, el proceso tarda alrededor de 20 minutos.",
+   "facts": {
+    "status": "scheduled",
+    "confirmed": false,
+    "conditional": true,
+    "no_new_numbers": true
+   }
+  },
+  {
+   "id": "long_03",
+   "category": "long_content",
+   "text": "Escribe el monto que quieres solicitar.\n\nEl monto mínimo es de 3,000 pesos y el máximo depende de tu historial de pagos con nosotros.\n\nEste dato no afecta tu historial crediticio.",
+   "facts": {
+    "no_new_numbers": true,
+    "negation": true,
+    "preserve_literals": [
+     "3,000"
+    ]
+   }
+  },
+  {
+   "id": "long_04",
+   "category": "long_content",
+   "text": "No pudimos aprobar tu solicitud en esta ocasión.\n\nTu historial con nosotros sigue activo y tu préstamo actual no cambia.\n\nPuedes volver a solicitar un incremento dentro de 60 días.",
+   "facts": {
+    "approved": false,
+    "negation": true,
+    "modality": "permission",
+    "no_new_numbers": true
+   }
+  },
+  {
+   "id": "long_05",
+   "category": "long_content",
+   "text": "Tu pago está próximo a vencer.\n\nRegistramos un saldo pendiente de 1,250 pesos con fecha límite del 15 de mayo.\n\nSi ya realizaste el pago, ignora este mensaje.",
+   "facts": {
+    "conditional": true,
+    "no_new_numbers": true,
+    "preserve_literals": [
+     "1,250",
+     "15 de mayo"
+    ]
+   }
+  },
+  {
+   "id": "ph_01",
+   "category": "placeholders",
+   "cold": true,
+   "text": "Hola {{name}}, tu visita es el {{date}} a las {{time}}.",
+   "facts": {
+    "confirmed": false
+   }
+  },
+  {
+   "id": "ph_02",
+   "category": "placeholders",
+   "text": "Tu pago de {{amount}} vence el {{date}}.",
+   "facts": {}
+  },
+  {
+   "id": "ph_03",
+   "category": "placeholders",
+   "text": "{{name}}, tu préstamo de {{amount}} fue aprobado.",
+   "facts": {
+    "approved": true,
+    "available": false
+   }
+  },
+  {
+   "id": "ph_04",
+   "category": "placeholders",
+   "text": "Te enviamos el comprobante de tu pago de {{amount}} a {{email}}.",
+   "facts": {}
+  },
+  {
+   "id": "ph_05",
+   "category": "placeholders",
+   "text": "Hola {{name}}, tu visita domiciliaria quedó agendada para el {{date}} a las {{time}}.\n\nSi necesitas cambiarla, escríbenos a soporte@bancoazteca.com.mx antes del {{date}}.",
+   "facts": {
+    "status": "scheduled",
+    "confirmed": false,
+    "conditional": true
+   }
+  },
+  {
+   "id": "bound_01",
+   "category": "boundary",
+   "text": "Revisa tu App Banco Azteca porque hay errores en los datos que capturaste.",
+   "facts": {}
+  },
+  {
+   "id": "bound_02",
+   "category": "boundary",
+   "text": "No fue posible completar el registro.",
+   "facts": {
+    "negation": true
+   }
+  },
+  {
+   "id": "bound_03",
+   "category": "boundary",
+   "text": "hola ,María",
+   "facts": {},
+   "expected_final": "hola, María",
+   "strict_content": true
+  },
+  {
+   "id": "bound_04",
+   "category": "boundary",
+   "text": "no  fue posible",
+   "facts": {
+    "negation": true
+   },
+   "expected_final": "no fue posible",
+   "strict_content": true
+  }
+ ]
+}

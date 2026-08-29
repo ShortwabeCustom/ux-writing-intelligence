@@ -1,0 +1,25 @@
+{
+  "short": {
+    "n": 20,
+    "mean": 6.262,
+    "p50": 6.007,
+    "min": 3.58,
+    "max": 12.172,
+    "p95": 6.69,
+    "p95_basis": "percentil empírico"
+  },
+  "long": {
+    "n": 5,
+    "mean": 8.688,
+    "p50": 8.631,
+    "min": 8.053,
+    "max": 9.641,
+    "p95": 9.641,
+    "p95_basis": "percentil sobre muestra pequeña (n=5); indicativo, no robusto"
+  },
+  "reference_8_5_2_direct_ollama": {
+    "warm_p50": 4.861,
+    "warm_p95": 8.109
+  },
+  "note": "La comparación contra 8.5.2 no aísla el sobrecosto del runtime: la máquina derivó entre ambas mediciones. El sobrecosto limpio se mide con orden alternado en overhead-interleaved.json."
+}

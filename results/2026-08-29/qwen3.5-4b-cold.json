@@ -1,0 +1,426 @@
+{
+  "model": "qwen3.5:4b",
+  "mode": "cold",
+  "reps_per_case": 1,
+  "keep_alive": 0,
+  "options": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 2048
+  },
+  "system_prompt_sha_len": 1929,
+  "json_format_forced": false,
+  "started_at": "2026-08-29T00:18:42",
+  "memory": [
+    {
+      "label": "antes de cargar el modelo",
+      "ollama_ps": "NAME          ID              SIZE      PROCESSOR    CONTEXT    UNTIL              \nqwen3.5:4b    2a654d98e6fb    3.1 GB    100% GPU     2048       9 minutes from now",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                    11107.\nPages active:                                 429740.\nPages inactive:                               424438.\nPages speculative:                              4604.\nPages throttled:                                   0.\nPages wired down:                             402795.\nPages purgeable:                                7588.\n\"Translation faults\":                      102542731.\nPages copy-on-write:                         5689266.\nPages zero filled:                          90915683.\nPages reactivated:                          15684441.\nPages purged:                                5923275.\nFile-backed pages:                            326712.\nAnonymous pages:                              532070.\nPages stored in compressor:                   565750.\nPages occupied by compressor:                 259253.\nDecompressions:                             11440643.\nCompressions:                               14699768.\nPageins:                                     4524129.\nPageouts:                                     312487.\nSwapins:                                       31667.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "4494032"
+    },
+    {
+      "label": "cold A1 rep1",
+      "ollama_ps": "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                   328825.\nPages active:                                 391289.\nPages inactive:                               389292.\nPages speculative:                              1459.\nPages throttled:                                   0.\nPages wired down:                             172812.\nPages purgeable:                                4269.\n\"Translation faults\":                      102893691.\nPages copy-on-write:                         5691418.\nPages zero filled:                          91332585.\nPages reactivated:                          15695710.\nPages purged:                                5928998.\nFile-backed pages:                            358207.\nAnonymous pages:                              423833.\nPages stored in compressor:                   575042.\nPages occupied by compressor:                 248748.\nDecompressions:                             11446472.\nCompressions:                               14741985.\nPageins:                                     4597299.\nPageouts:                                     312576.\nSwapins:                                       31667.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "78624"
+    },
+    {
+      "label": "cold B1 rep1",
+      "ollama_ps": "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                   340531.\nPages active:                                 384734.\nPages inactive:                               385806.\nPages speculative:                              1739.\nPages throttled:                                   0.\nPages wired down:                             171331.\nPages purgeable:                                 681.\n\"Translation faults\":                      103233424.\nPages copy-on-write:                         5693436.\nPages zero filled:                          91753315.\nPages reactivated:                          15696572.\nPages purged:                                5936218.\nFile-backed pages:                            359989.\nAnonymous pages:                              412290.\nPages stored in compressor:                   574542.\nPages occupied by compressor:                 248456.\nDecompressions:                             11448940.\nCompressions:                               14745227.\nPageins:                                     4601655.\nPageouts:                                     312592.\nSwapins:                                       31667.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "82656"
+    },
+    {
+      "label": "cold D1 rep1",
+      "ollama_ps": "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                   335484.\nPages active:                                 388594.\nPages inactive:                               383661.\nPages speculative:                              4316.\nPages throttled:                                   0.\nPages wired down:                             156726.\nPages purgeable:                                7703.\n\"Translation faults\":                      103691917.\nPages copy-on-write:                         5698688.\nPages zero filled:                          92244243.\nPages reactivated:                          15709205.\nPages purged:                                5936366.\nFile-backed pages:                            351862.\nAnonymous pages:                              424709.\nPages stored in compressor:                   604412.\nPages occupied by compressor:                 263204.\nDecompressions:                             11459482.\nCompressions:                               14785747.\nPageins:                                     4603260.\nPageouts:                                     312670.\nSwapins:                                       31667.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "82720"
+    },
+    {
+      "label": "cold E1 rep1",
+      "ollama_ps": "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                   327482.\nPages active:                                 389036.\nPages inactive:                               386169.\nPages speculative:                              2174.\nPages throttled:                                   0.\nPages wired down:                             164270.\nPages purgeable:                                4015.\n\"Translation faults\":                      104058743.\nPages copy-on-write:                         5701949.\nPages zero filled:                          92675734.\nPages reactivated:                          15709780.\nPages purged:                                5936464.\nFile-backed pages:                            352737.\nAnonymous pages:                              424642.\nPages stored in compressor:                   604285.\nPages occupied by compressor:                 263112.\nDecompressions:                             11461590.\nCompressions:                               14787749.\nPageins:                                     4607166.\nPageouts:                                     313062.\nSwapins:                                       31667.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "83648"
+    },
+    {
+      "label": "cold H1 rep1",
+      "ollama_ps": "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                   333886.\nPages active:                                 390138.\nPages inactive:                               389209.\nPages speculative:                               975.\nPages throttled:                                   0.\nPages wired down:                             154030.\nPages purgeable:                                6621.\n\"Translation faults\":                      104603305.\nPages copy-on-write:                         5704886.\nPages zero filled:                          93232868.\nPages reactivated:                          15710384.\nPages purged:                                5938847.\nFile-backed pages:                            348563.\nAnonymous pages:                              431759.\nPages stored in compressor:                   607512.\nPages occupied by compressor:                 264236.\nDecompressions:                             11463196.\nCompressions:                               14792637.\nPageins:                                     4609326.\nPageouts:                                     313301.\nSwapins:                                       31667.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "83744"
+    },
+    {
+      "label": "después del benchmark",
+      "ollama_ps": "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                   333691.\nPages active:                                 390141.\nPages inactive:                               389216.\nPages speculative:                               981.\nPages throttled:                                   0.\nPages wired down:                             154030.\nPages purgeable:                                6623.\n\"Translation faults\":                      104609885.\nPages copy-on-write:                         5705861.\nPages zero filled:                          93234804.\nPages reactivated:                          15710384.\nPages purged:                                5938847.\nFile-backed pages:                            348577.\nAnonymous pages:                              431761.\nPages stored in compressor:                   607512.\nPages occupied by compressor:                 264236.\nDecompressions:                             11463196.\nCompressions:                               14792637.\nPageins:                                     4609575.\nPageouts:                                     313301.\nSwapins:                                       31667.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "83744"
+    }
+  ],
+  "runs": [
+    {
+      "case_id": "A1",
+      "category": "high_quality",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 6.754,
+        "total_s": 6.751,
+        "load_s": 2.114,
+        "prompt_eval_s": 1.845,
+        "eval_s": 2.788,
+        "prompt_eval_count": 578,
+        "eval_count": 72,
+        "eval_tok_s": 25.83,
+        "prompt_tok_s": 313.34
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Continuar\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GOOD_TEXT_NO_UNNECESSARY_CHANGE",
+            "status": "PASS",
+            "reason": "texto correcto no reescrito",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Continuar"
+    },
+    {
+      "case_id": "B1",
+      "category": "orthography",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 6.455,
+        "total_s": 6.453,
+        "load_s": 1.594,
+        "prompt_eval_s": 1.92,
+        "eval_s": 2.935,
+        "prompt_eval_count": 578,
+        "eval_count": 72,
+        "eval_tok_s": 24.53,
+        "prompt_tok_s": 300.97
+      },
+      "raw": "{\n  \"clarity\": 1,\n  \"concision\": 1,\n  \"utility\": 1,\n  \"predictability\": 1,\n  \"orthography\": 1,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"prestamo\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_PRESTAMO",
+            "status": "FAIL",
+            "reason": "mantiene 'prestamo' sin tilde",
+            "critical": false
+          }
+        ],
+        "passed": 3,
+        "total": 4,
+        "case_status": "FAIL",
+        "critical_failures": []
+      },
+      "suggestion": "prestamo"
+    },
+    {
+      "case_id": "D1",
+      "category": "protected_content",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 8.236,
+        "total_s": 8.234,
+        "load_s": 1.853,
+        "prompt_eval_s": 2.233,
+        "eval_s": 4.144,
+        "prompt_eval_count": 608,
+        "eval_count": 101,
+        "eval_tok_s": 24.37,
+        "prompt_tok_s": 272.26
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}."
+    },
+    {
+      "case_id": "E1",
+      "category": "multiline",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 8.667,
+        "total_s": 8.666,
+        "load_s": 1.866,
+        "prompt_eval_s": 2.096,
+        "eval_s": 4.698,
+        "prompt_eval_count": 621,
+        "eval_count": 117,
+        "eval_tok_s": 24.9,
+        "prompt_tok_s": 296.21
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 4,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Hola María, seguimos contigo. 👋\\n\\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\\n\\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (3 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_APPBANCO",
+            "status": "PASS",
+            "reason": "sin corrupción 'AppBanco'",
+            "critical": false
+          },
+          {
+            "check": "NO_NOFUE",
+            "status": "PASS",
+            "reason": "sin corrupción 'nofue'",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 7,
+        "total": 7,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca."
+    },
+    {
+      "case_id": "H1",
+      "category": "long_ux_content",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 10.5,
+        "total_s": 10.498,
+        "load_s": 1.573,
+        "prompt_eval_s": 2.15,
+        "eval_s": 6.772,
+        "prompt_eval_count": 673,
+        "eval_count": 168,
+        "eval_tok_s": 24.81,
+        "prompt_tok_s": 313.09
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Hola {{Nombre}}, tu visita domiciliaria está programada para el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\\n\\nUn asesor acudirá al domicilio que registraste. Ten a la mano tu identificación oficial vigente y un comprobante de domicilio con antigüedad no mayor a tres meses.\\n\\nSi no hay errores en tus datos, el proceso tarda alrededor de 20 minutos.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (3 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_HAYERRORES",
+            "status": "PASS",
+            "reason": "sin corrupción 'hayerrores'",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 7,
+        "total": 7,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola {{Nombre}}, tu visita domiciliaria está programada para el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\n\nUn asesor acudirá al domicilio que registraste. Ten a la mano tu identificación oficial vigente y un comprobante de domicilio con antigüedad no mayor a tres meses.\n\nSi no hay errores en tus datos, el proceso tarda alrededor de 20 minutos."
+    }
+  ],
+  "summary": {
+    "requests": 5,
+    "request_errors": 0,
+    "wall_s": {
+      "n": 5,
+      "mean": 8.122,
+      "p50": 8.236,
+      "min": 6.455,
+      "max": 10.5,
+      "p95": null,
+      "p95_basis": "muestra insuficiente (n=5 < 20); no se fabrica p95"
+    },
+    "total_s": {
+      "n": 5,
+      "mean": 8.12,
+      "p50": 8.234,
+      "min": 6.453,
+      "max": 10.498,
+      "p95": null,
+      "p95_basis": "muestra insuficiente (n=5 < 20); no se fabrica p95"
+    },
+    "load_s": {
+      "n": 5,
+      "mean": 1.8,
+      "p50": 1.853,
+      "min": 1.573,
+      "max": 2.114,
+      "p95": null,
+      "p95_basis": "muestra insuficiente (n=5 < 20); no se fabrica p95"
+    },
+    "eval_tok_s": {
+      "n": 5,
+      "mean": 24.888,
+      "p50": 24.81,
+      "min": 24.37,
+      "max": 25.83,
+      "p95": null,
+      "p95_basis": "muestra insuficiente (n=5 < 20); no se fabrica p95"
+    },
+    "checks_passed": 27,
+    "checks_total": 28,
+    "cases_pass": 4,
+    "json_ok": 5,
+    "critical_failures": []
+  },
+  "finished_at": "2026-08-29T00:19:38"
+}

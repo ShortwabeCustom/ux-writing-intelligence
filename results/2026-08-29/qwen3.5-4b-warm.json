@@ -1,0 +1,2870 @@
+{
+  "model": "qwen3.5:4b",
+  "mode": "warm",
+  "reps_per_case": 3,
+  "keep_alive": "10m",
+  "options": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 2048
+  },
+  "system_prompt_sha_len": 1929,
+  "json_format_forced": false,
+  "started_at": "2026-08-29T00:19:38",
+  "memory": [
+    {
+      "label": "antes de cargar el modelo",
+      "ollama_ps": "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                   334655.\nPages active:                                 389819.\nPages inactive:                               388557.\nPages speculative:                              1262.\nPages throttled:                                   0.\nPages wired down:                             154003.\nPages purgeable:                                6623.\n\"Translation faults\":                      104620952.\nPages copy-on-write:                         5707240.\nPages zero filled:                          93238239.\nPages reactivated:                          15710384.\nPages purged:                                5938847.\nFile-backed pages:                            348861.\nAnonymous pages:                              430777.\nPages stored in compressor:                   607511.\nPages occupied by compressor:                 264236.\nDecompressions:                             11463197.\nCompressions:                               14792637.\nPageins:                                     4609917.\nPageouts:                                     313301.\nSwapins:                                       31667.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "83744"
+    },
+    {
+      "label": "modelo residente (warm)",
+      "ollama_ps": "NAME          ID              SIZE      PROCESSOR    CONTEXT    UNTIL              \nqwen3.5:4b    2a654d98e6fb    3.1 GB    100% GPU     2048       9 minutes from now",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                    23151.\nPages active:                                 427968.\nPages inactive:                               425328.\nPages speculative:                              3867.\nPages throttled:                                   0.\nPages wired down:                             389529.\nPages purgeable:                                7622.\n\"Translation faults\":                      105039446.\nPages copy-on-write:                         5712353.\nPages zero filled:                          93687828.\nPages reactivated:                          15716124.\nPages purged:                                5938866.\nFile-backed pages:                            345513.\nAnonymous pages:                              511650.\nPages stored in compressor:                   597463.\nPages occupied by compressor:                 262270.\nDecompressions:                             11478407.\nCompressions:                               14805993.\nPageins:                                     4615877.\nPageouts:                                     313373.\nSwapins:                                       31667.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "4926976"
+    },
+    {
+      "label": "fin de benchmark, modelo aún residente",
+      "ollama_ps": "NAME          ID              SIZE      PROCESSOR    CONTEXT    UNTIL              \nqwen3.5:4b    2a654d98e6fb    3.1 GB    100% GPU     2048       9 minutes from now",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4181.\nPages active:                                 444822.\nPages inactive:                               441063.\nPages speculative:                              3774.\nPages throttled:                                   0.\nPages wired down:                             401048.\nPages purgeable:                                6732.\n\"Translation faults\":                      107104235.\nPages copy-on-write:                         5757760.\nPages zero filled:                          96224152.\nPages reactivated:                          15717752.\nPages purged:                                5952526.\nFile-backed pages:                            211632.\nAnonymous pages:                              678027.\nPages stored in compressor:                   537674.\nPages occupied by compressor:                 237528.\nDecompressions:                             11533746.\nCompressions:                               14805993.\nPageins:                                     4679066.\nPageouts:                                     313827.\nSwapins:                                       31726.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "4979344"
+    },
+    {
+      "label": "después del benchmark",
+      "ollama_ps": "NAME          ID              SIZE      PROCESSOR    CONTEXT    UNTIL              \nqwen3.5:4b    2a654d98e6fb    3.1 GB    100% GPU     2048       9 minutes from now",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     5705.\nPages active:                                 444469.\nPages inactive:                               439909.\nPages speculative:                              3676.\nPages throttled:                                   0.\nPages wired down:                             400930.\nPages purgeable:                                6239.\n\"Translation faults\":                      107122745.\nPages copy-on-write:                         5758727.\nPages zero filled:                          96236213.\nPages reactivated:                          15721635.\nPages purged:                                5953025.\nFile-backed pages:                            211070.\nAnonymous pages:                              676984.\nPages stored in compressor:                   538019.\nPages occupied by compressor:                 237699.\nDecompressions:                             11533747.\nCompressions:                               14806339.\nPageins:                                     4679348.\nPageouts:                                     313827.\nSwapins:                                       31726.\nSwapouts:                                      98004.",
+      "swap": "total = 2048.00M  used = 507.06M  free = 1540.94M  (encrypted)",
+      "ollama_rss_kb": "4979344"
+    }
+  ],
+  "runs": [
+    {
+      "case_id": "A1",
+      "category": "high_quality",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 2.917,
+        "total_s": 2.915,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.099,
+        "eval_s": 2.811,
+        "prompt_eval_count": 578,
+        "eval_count": 72,
+        "eval_tok_s": 25.61,
+        "prompt_tok_s": 5862.07
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Continuar\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GOOD_TEXT_NO_UNNECESSARY_CHANGE",
+            "status": "PASS",
+            "reason": "texto correcto no reescrito",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Continuar"
+    },
+    {
+      "case_id": "A1",
+      "category": "high_quality",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 2.953,
+        "total_s": 2.951,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.108,
+        "eval_s": 2.833,
+        "prompt_eval_count": 578,
+        "eval_count": 72,
+        "eval_tok_s": 25.42,
+        "prompt_tok_s": 5330.09
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Continuar\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GOOD_TEXT_NO_UNNECESSARY_CHANGE",
+            "status": "PASS",
+            "reason": "texto correcto no reescrito",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Continuar"
+    },
+    {
+      "case_id": "A1",
+      "category": "high_quality",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 3.044,
+        "total_s": 3.042,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.107,
+        "eval_s": 2.926,
+        "prompt_eval_count": 578,
+        "eval_count": 72,
+        "eval_tok_s": 24.61,
+        "prompt_tok_s": 5392.7
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Continuar\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GOOD_TEXT_NO_UNNECESSARY_CHANGE",
+            "status": "PASS",
+            "reason": "texto correcto no reescrito",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Continuar"
+    },
+    {
+      "case_id": "A2",
+      "category": "high_quality",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 4.905,
+        "total_s": 4.904,
+        "load_s": 0.002,
+        "prompt_eval_s": 1.927,
+        "eval_s": 2.967,
+        "prompt_eval_count": 583,
+        "eval_count": 76,
+        "eval_tok_s": 25.62,
+        "prompt_tok_s": 302.49
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Tu visita ha sido confirmada.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GOOD_TEXT_NO_UNNECESSARY_CHANGE",
+            "status": "PASS",
+            "reason": "texto correcto no reescrito",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Tu visita ha sido confirmada."
+    },
+    {
+      "case_id": "A2",
+      "category": "high_quality",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 3.155,
+        "total_s": 3.154,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.107,
+        "eval_s": 3.037,
+        "prompt_eval_count": 583,
+        "eval_count": 76,
+        "eval_tok_s": 25.02,
+        "prompt_tok_s": 5423.46
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Tu visita ha sido confirmada.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GOOD_TEXT_NO_UNNECESSARY_CHANGE",
+            "status": "PASS",
+            "reason": "texto correcto no reescrito",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Tu visita ha sido confirmada."
+    },
+    {
+      "case_id": "A2",
+      "category": "high_quality",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 3.128,
+        "total_s": 3.127,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.106,
+        "eval_s": 3.011,
+        "prompt_eval_count": 583,
+        "eval_count": 76,
+        "eval_tok_s": 25.24,
+        "prompt_tok_s": 5513.26
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Tu visita ha sido confirmada.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GOOD_TEXT_NO_UNNECESSARY_CHANGE",
+            "status": "PASS",
+            "reason": "texto correcto no reescrito",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Tu visita ha sido confirmada."
+    },
+    {
+      "case_id": "B1",
+      "category": "orthography",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 4.381,
+        "total_s": 4.379,
+        "load_s": 0.002,
+        "prompt_eval_s": 1.619,
+        "eval_s": 2.749,
+        "prompt_eval_count": 578,
+        "eval_count": 72,
+        "eval_tok_s": 26.19,
+        "prompt_tok_s": 357.07
+      },
+      "raw": "{\n  \"clarity\": 1,\n  \"concision\": 1,\n  \"utility\": 1,\n  \"predictability\": 1,\n  \"orthography\": 1,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"prestamo\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_PRESTAMO",
+            "status": "FAIL",
+            "reason": "mantiene 'prestamo' sin tilde",
+            "critical": false
+          }
+        ],
+        "passed": 3,
+        "total": 4,
+        "case_status": "FAIL",
+        "critical_failures": []
+      },
+      "suggestion": "prestamo"
+    },
+    {
+      "case_id": "B1",
+      "category": "orthography",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 2.918,
+        "total_s": 2.917,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.108,
+        "eval_s": 2.799,
+        "prompt_eval_count": 578,
+        "eval_count": 72,
+        "eval_tok_s": 25.73,
+        "prompt_tok_s": 5350.46
+      },
+      "raw": "{\n  \"clarity\": 1,\n  \"concision\": 1,\n  \"utility\": 1,\n  \"predictability\": 1,\n  \"orthography\": 1,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"prestamo\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_PRESTAMO",
+            "status": "FAIL",
+            "reason": "mantiene 'prestamo' sin tilde",
+            "critical": false
+          }
+        ],
+        "passed": 3,
+        "total": 4,
+        "case_status": "FAIL",
+        "critical_failures": []
+      },
+      "suggestion": "prestamo"
+    },
+    {
+      "case_id": "B1",
+      "category": "orthography",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 2.968,
+        "total_s": 2.966,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.103,
+        "eval_s": 2.854,
+        "prompt_eval_count": 578,
+        "eval_count": 72,
+        "eval_tok_s": 25.23,
+        "prompt_tok_s": 5637.32
+      },
+      "raw": "{\n  \"clarity\": 1,\n  \"concision\": 1,\n  \"utility\": 1,\n  \"predictability\": 1,\n  \"orthography\": 1,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"prestamo\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_PRESTAMO",
+            "status": "FAIL",
+            "reason": "mantiene 'prestamo' sin tilde",
+            "critical": false
+          }
+        ],
+        "passed": 3,
+        "total": 4,
+        "case_status": "FAIL",
+        "critical_failures": []
+      },
+      "suggestion": "prestamo"
+    },
+    {
+      "case_id": "B2",
+      "category": "orthography",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 6.886,
+        "total_s": 6.885,
+        "load_s": 0.002,
+        "prompt_eval_s": 1.699,
+        "eval_s": 5.175,
+        "prompt_eval_count": 580,
+        "eval_count": 128,
+        "eval_tok_s": 24.73,
+        "prompt_tok_s": 341.39
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 3,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"Como\",\n      \"reason\": \"La palabra 'cómo' debe llevar tilde en la 'o' para indicar interrogación indirecta o duda.\"\n    }\n  ],\n  \"suggestion\": \"¿Cómo funciona?\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_COMO",
+            "status": "PASS",
+            "reason": "corrige a 'cómo' con tilde",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "¿Cómo funciona?"
+    },
+    {
+      "case_id": "B2",
+      "category": "orthography",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 5.408,
+        "total_s": 5.407,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.11,
+        "eval_s": 5.288,
+        "prompt_eval_count": 580,
+        "eval_count": 128,
+        "eval_tok_s": 24.21,
+        "prompt_tok_s": 5268.23
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 3,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"Como\",\n      \"reason\": \"La palabra 'cómo' debe llevar tilde en la 'o' para indicar interrogación indirecta o duda.\"\n    }\n  ],\n  \"suggestion\": \"¿Cómo funciona?\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_COMO",
+            "status": "PASS",
+            "reason": "corrige a 'cómo' con tilde",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "¿Cómo funciona?"
+    },
+    {
+      "case_id": "B2",
+      "category": "orthography",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 5.116,
+        "total_s": 5.115,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.107,
+        "eval_s": 4.999,
+        "prompt_eval_count": 580,
+        "eval_count": 128,
+        "eval_tok_s": 25.6,
+        "prompt_tok_s": 5413.63
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 3,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"Como\",\n      \"reason\": \"La palabra 'cómo' debe llevar tilde en la 'o' para indicar interrogación indirecta o duda.\"\n    }\n  ],\n  \"suggestion\": \"¿Cómo funciona?\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_COMO",
+            "status": "PASS",
+            "reason": "corrige a 'cómo' con tilde",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "¿Cómo funciona?"
+    },
+    {
+      "case_id": "B3",
+      "category": "orthography",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 6.605,
+        "total_s": 6.603,
+        "load_s": 0.002,
+        "prompt_eval_s": 1.672,
+        "eval_s": 4.92,
+        "prompt_eval_count": 581,
+        "eval_count": 130,
+        "eval_tok_s": 26.42,
+        "prompt_tok_s": 347.46
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 3,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"hola ,María\",\n      \"reason\": \"Falta un espacio después de la coma y el nombre propio debe ir con mayúscula inicial.\"\n    }\n  ],\n  \"suggestion\": \"Hola, María\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_COMMA_SPACING",
+            "status": "PASS",
+            "reason": "espaciado de coma correcto",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola, María"
+    },
+    {
+      "case_id": "B3",
+      "category": "orthography",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 5.21,
+        "total_s": 5.209,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.106,
+        "eval_s": 5.092,
+        "prompt_eval_count": 581,
+        "eval_count": 130,
+        "eval_tok_s": 25.53,
+        "prompt_tok_s": 5474.73
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 3,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"hola ,María\",\n      \"reason\": \"Falta un espacio después de la coma y el nombre propio debe ir con mayúscula inicial.\"\n    }\n  ],\n  \"suggestion\": \"Hola, María\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_COMMA_SPACING",
+            "status": "PASS",
+            "reason": "espaciado de coma correcto",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola, María"
+    },
+    {
+      "case_id": "B3",
+      "category": "orthography",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 5.343,
+        "total_s": 5.342,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.105,
+        "eval_s": 5.227,
+        "prompt_eval_count": 581,
+        "eval_count": 130,
+        "eval_tok_s": 24.87,
+        "prompt_tok_s": 5552.48
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 3,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"hola ,María\",\n      \"reason\": \"Falta un espacio después de la coma y el nombre propio debe ir con mayúscula inicial.\"\n    }\n  ],\n  \"suggestion\": \"Hola, María\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_COMMA_SPACING",
+            "status": "PASS",
+            "reason": "espaciado de coma correcto",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola, María"
+    },
+    {
+      "case_id": "B4",
+      "category": "orthography",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 8.613,
+        "total_s": 8.612,
+        "load_s": 0.002,
+        "prompt_eval_s": 1.71,
+        "eval_s": 6.89,
+        "prompt_eval_count": 580,
+        "eval_count": 172,
+        "eval_tok_s": 24.96,
+        "prompt_tok_s": 339.24
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 3,\n  \"predictability\": 2,\n  \"orthography\": 1,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"no fue posible\",\n      \"reason\": \"Falta la tilde en 'fue'.\"\n    },\n    {\n      \"category\": \"utilidad\",\n      \"term\": \"no fue posible\",\n      \"reason\": \"La frase es demasiado vaga; no indica qué acción falló ni ofrece una solución clara al usuario.\"\n    }\n  ],\n  \"suggestion\": \"No se pudo realizar la acción\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_DOUBLE_SPACE",
+            "status": "PASS",
+            "reason": "sin dobles espacios",
+            "critical": false
+          },
+          {
+            "check": "NO_NOFUE",
+            "status": "PASS",
+            "reason": "sin corrupción 'nofue'",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "No se pudo realizar la acción"
+    },
+    {
+      "case_id": "B4",
+      "category": "orthography",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 6.994,
+        "total_s": 6.993,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.103,
+        "eval_s": 6.88,
+        "prompt_eval_count": 580,
+        "eval_count": 172,
+        "eval_tok_s": 25.0,
+        "prompt_tok_s": 5640.38
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 3,\n  \"predictability\": 2,\n  \"orthography\": 1,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"no fue posible\",\n      \"reason\": \"Falta la tilde en 'fue'.\"\n    },\n    {\n      \"category\": \"utilidad\",\n      \"term\": \"no fue posible\",\n      \"reason\": \"La frase es demasiado vaga; no indica qué acción falló ni ofrece una solución clara al usuario.\"\n    }\n  ],\n  \"suggestion\": \"No se pudo realizar la acción\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_DOUBLE_SPACE",
+            "status": "PASS",
+            "reason": "sin dobles espacios",
+            "critical": false
+          },
+          {
+            "check": "NO_NOFUE",
+            "status": "PASS",
+            "reason": "sin corrupción 'nofue'",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "No se pudo realizar la acción"
+    },
+    {
+      "case_id": "B4",
+      "category": "orthography",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 6.851,
+        "total_s": 6.849,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.105,
+        "eval_s": 6.734,
+        "prompt_eval_count": 580,
+        "eval_count": 172,
+        "eval_tok_s": 25.54,
+        "prompt_tok_s": 5498.67
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 3,\n  \"predictability\": 2,\n  \"orthography\": 1,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"no fue posible\",\n      \"reason\": \"Falta la tilde en 'fue'.\"\n    },\n    {\n      \"category\": \"utilidad\",\n      \"term\": \"no fue posible\",\n      \"reason\": \"La frase es demasiado vaga; no indica qué acción falló ni ofrece una solución clara al usuario.\"\n    }\n  ],\n  \"suggestion\": \"No se pudo realizar la acción\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "ORTHOGRAPHY_DOUBLE_SPACE",
+            "status": "PASS",
+            "reason": "sin dobles espacios",
+            "critical": false
+          },
+          {
+            "check": "NO_NOFUE",
+            "status": "PASS",
+            "reason": "sin corrupción 'nofue'",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "No se pudo realizar la acción"
+    },
+    {
+      "case_id": "C1",
+      "category": "glossary",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 4.682,
+        "total_s": 4.68,
+        "load_s": 0.002,
+        "prompt_eval_s": 1.761,
+        "eval_s": 2.91,
+        "prompt_eval_count": 581,
+        "eval_count": 75,
+        "eval_tok_s": 25.77,
+        "prompt_tok_s": 330.01
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Ingresa tus credenciales\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GLOSSARY_CREDENCIALES",
+            "status": "FAIL",
+            "reason": "conserva jerga 'credenciales' en la suggestion",
+            "critical": false
+          }
+        ],
+        "passed": 3,
+        "total": 4,
+        "case_status": "FAIL",
+        "critical_failures": []
+      },
+      "suggestion": "Ingresa tus credenciales"
+    },
+    {
+      "case_id": "C1",
+      "category": "glossary",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 3.062,
+        "total_s": 3.061,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.109,
+        "eval_s": 2.941,
+        "prompt_eval_count": 581,
+        "eval_count": 75,
+        "eval_tok_s": 25.51,
+        "prompt_tok_s": 5338.36
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Ingresa tus credenciales\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GLOSSARY_CREDENCIALES",
+            "status": "FAIL",
+            "reason": "conserva jerga 'credenciales' en la suggestion",
+            "critical": false
+          }
+        ],
+        "passed": 3,
+        "total": 4,
+        "case_status": "FAIL",
+        "critical_failures": []
+      },
+      "suggestion": "Ingresa tus credenciales"
+    },
+    {
+      "case_id": "C1",
+      "category": "glossary",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 3.14,
+        "total_s": 3.139,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.123,
+        "eval_s": 3.005,
+        "prompt_eval_count": 581,
+        "eval_count": 75,
+        "eval_tok_s": 24.96,
+        "prompt_tok_s": 4707.46
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Ingresa tus credenciales\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GLOSSARY_CREDENCIALES",
+            "status": "FAIL",
+            "reason": "conserva jerga 'credenciales' en la suggestion",
+            "critical": false
+          }
+        ],
+        "passed": 3,
+        "total": 4,
+        "case_status": "FAIL",
+        "critical_failures": []
+      },
+      "suggestion": "Ingresa tus credenciales"
+    },
+    {
+      "case_id": "C2",
+      "category": "glossary",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 9.819,
+        "total_s": 9.818,
+        "load_s": 0.002,
+        "prompt_eval_s": 1.823,
+        "eval_s": 7.984,
+        "prompt_eval_count": 583,
+        "eval_count": 185,
+        "eval_tok_s": 23.17,
+        "prompt_tok_s": 319.78
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 4,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"originación\",\n      \"reason\": \"La palabra 'originación' no es el término estándar en español de México para este contexto. Se prefiere 'origen' o 'creación'. Sin embargo, dado que se debe conservar el significado y evitar cambios innecesarios si el producto ya lo usa internamente, se reporta como una posible inconsistencia terminológica pero no como un error crítico de ortografía.\"\n    }\n  ],\n  \"suggestion\": \"Proceder con la origen\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GLOSSARY_ORIGINACION",
+            "status": "PASS",
+            "reason": "elimina jerga 'originación'",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Proceder con la origen"
+    },
+    {
+      "case_id": "C2",
+      "category": "glossary",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 9.134,
+        "total_s": 9.132,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.108,
+        "eval_s": 9.014,
+        "prompt_eval_count": 583,
+        "eval_count": 185,
+        "eval_tok_s": 20.52,
+        "prompt_tok_s": 5395.15
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 4,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"originación\",\n      \"reason\": \"La palabra 'originación' no es el término estándar en español de México para este contexto. Se prefiere 'origen' o 'creación'. Sin embargo, dado que se debe conservar el significado y evitar cambios innecesarios si el producto ya lo usa internamente, se reporta como una posible inconsistencia terminológica pero no como un error crítico de ortografía.\"\n    }\n  ],\n  \"suggestion\": \"Proceder con la origen\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GLOSSARY_ORIGINACION",
+            "status": "PASS",
+            "reason": "elimina jerga 'originación'",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Proceder con la origen"
+    },
+    {
+      "case_id": "C2",
+      "category": "glossary",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 7.915,
+        "total_s": 7.914,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.105,
+        "eval_s": 7.801,
+        "prompt_eval_count": 583,
+        "eval_count": 185,
+        "eval_tok_s": 23.71,
+        "prompt_tok_s": 5565.79
+      },
+      "raw": "{\n  \"clarity\": 4,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 4,\n  \"jargon\": false,\n  \"issues\": [\n    {\n      \"category\": \"ortografia\",\n      \"term\": \"originación\",\n      \"reason\": \"La palabra 'originación' no es el término estándar en español de México para este contexto. Se prefiere 'origen' o 'creación'. Sin embargo, dado que se debe conservar el significado y evitar cambios innecesarios si el producto ya lo usa internamente, se reporta como una posible inconsistencia terminológica pero no como un error crítico de ortografía.\"\n    }\n  ],\n  \"suggestion\": \"Proceder con la origen\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "GLOSSARY_ORIGINACION",
+            "status": "PASS",
+            "reason": "elimina jerga 'originación'",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Proceder con la origen"
+    },
+    {
+      "case_id": "D1",
+      "category": "protected_content",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 6.022,
+        "total_s": 6.021,
+        "load_s": 0.002,
+        "prompt_eval_s": 1.995,
+        "eval_s": 4.016,
+        "prompt_eval_count": 608,
+        "eval_count": 101,
+        "eval_tok_s": 25.15,
+        "prompt_tok_s": 304.79
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}."
+    },
+    {
+      "case_id": "D1",
+      "category": "protected_content",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 4.013,
+        "total_s": 4.012,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.109,
+        "eval_s": 3.893,
+        "prompt_eval_count": 608,
+        "eval_count": 101,
+        "eval_tok_s": 25.94,
+        "prompt_tok_s": 5599.87
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}."
+    },
+    {
+      "case_id": "D1",
+      "category": "protected_content",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 5.137,
+        "total_s": 5.136,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.104,
+        "eval_s": 5.021,
+        "prompt_eval_count": 608,
+        "eval_count": 101,
+        "eval_tok_s": 20.12,
+        "prompt_tok_s": 5820.35
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}."
+    },
+    {
+      "case_id": "D2",
+      "category": "protected_content",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 5.848,
+        "total_s": 5.847,
+        "load_s": 0.002,
+        "prompt_eval_s": 1.917,
+        "eval_s": 3.919,
+        "prompt_eval_count": 606,
+        "eval_count": 100,
+        "eval_tok_s": 25.52,
+        "prompt_tok_s": 316.06
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Consulta el detalle en https://bancoazteca.com.mx/estado-cuenta o escríbenos a soporte@bancoazteca.com.mx\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Consulta el detalle en https://bancoazteca.com.mx/estado-cuenta o escríbenos a soporte@bancoazteca.com.mx"
+    },
+    {
+      "case_id": "D2",
+      "category": "protected_content",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 3.832,
+        "total_s": 3.831,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.105,
+        "eval_s": 3.717,
+        "prompt_eval_count": 606,
+        "eval_count": 100,
+        "eval_tok_s": 26.9,
+        "prompt_tok_s": 5779.08
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Consulta el detalle en https://bancoazteca.com.mx/estado-cuenta o escríbenos a soporte@bancoazteca.com.mx\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Consulta el detalle en https://bancoazteca.com.mx/estado-cuenta o escríbenos a soporte@bancoazteca.com.mx"
+    },
+    {
+      "case_id": "D2",
+      "category": "protected_content",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 3.76,
+        "total_s": 3.759,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.103,
+        "eval_s": 3.65,
+        "prompt_eval_count": 606,
+        "eval_count": 100,
+        "eval_tok_s": 27.4,
+        "prompt_tok_s": 5909.31
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Consulta el detalle en https://bancoazteca.com.mx/estado-cuenta o escríbenos a soporte@bancoazteca.com.mx\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Consulta el detalle en https://bancoazteca.com.mx/estado-cuenta o escríbenos a soporte@bancoazteca.com.mx"
+    },
+    {
+      "case_id": "E1",
+      "category": "multiline",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 6.35,
+        "total_s": 6.349,
+        "load_s": 0.001,
+        "prompt_eval_s": 1.989,
+        "eval_s": 4.353,
+        "prompt_eval_count": 621,
+        "eval_count": 117,
+        "eval_tok_s": 26.88,
+        "prompt_tok_s": 312.23
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 4,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Hola María, seguimos contigo. 👋\\n\\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\\n\\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (3 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_APPBANCO",
+            "status": "PASS",
+            "reason": "sin corrupción 'AppBanco'",
+            "critical": false
+          },
+          {
+            "check": "NO_NOFUE",
+            "status": "PASS",
+            "reason": "sin corrupción 'nofue'",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 7,
+        "total": 7,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca."
+    },
+    {
+      "case_id": "E1",
+      "category": "multiline",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 4.461,
+        "total_s": 4.461,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.107,
+        "eval_s": 4.347,
+        "prompt_eval_count": 621,
+        "eval_count": 117,
+        "eval_tok_s": 26.91,
+        "prompt_tok_s": 5821.97
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 4,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Hola María, seguimos contigo. 👋\\n\\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\\n\\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (3 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_APPBANCO",
+            "status": "PASS",
+            "reason": "sin corrupción 'AppBanco'",
+            "critical": false
+          },
+          {
+            "check": "NO_NOFUE",
+            "status": "PASS",
+            "reason": "sin corrupción 'nofue'",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 7,
+        "total": 7,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca."
+    },
+    {
+      "case_id": "E1",
+      "category": "multiline",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 4.432,
+        "total_s": 4.431,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.103,
+        "eval_s": 4.322,
+        "prompt_eval_count": 621,
+        "eval_count": 117,
+        "eval_tok_s": 27.07,
+        "prompt_tok_s": 6011.44
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 4,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Hola María, seguimos contigo. 👋\\n\\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\\n\\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (3 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_APPBANCO",
+            "status": "PASS",
+            "reason": "sin corrupción 'AppBanco'",
+            "critical": false
+          },
+          {
+            "check": "NO_NOFUE",
+            "status": "PASS",
+            "reason": "sin corrupción 'nofue'",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 7,
+        "total": 7,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca."
+    },
+    {
+      "case_id": "F1",
+      "category": "semantic_fidelity",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 4.893,
+        "total_s": 4.892,
+        "load_s": 0.001,
+        "prompt_eval_s": 2.174,
+        "eval_s": 2.714,
+        "prompt_eval_count": 581,
+        "eval_count": 74,
+        "eval_tok_s": 27.27,
+        "prompt_tok_s": 267.24
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Tu solicitud quedó registrada.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Tu solicitud quedó registrada."
+    },
+    {
+      "case_id": "F1",
+      "category": "semantic_fidelity",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 2.813,
+        "total_s": 2.812,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.107,
+        "eval_s": 2.699,
+        "prompt_eval_count": 581,
+        "eval_count": 74,
+        "eval_tok_s": 27.42,
+        "prompt_tok_s": 5437.17
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Tu solicitud quedó registrada.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Tu solicitud quedó registrada."
+    },
+    {
+      "case_id": "F1",
+      "category": "semantic_fidelity",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 2.855,
+        "total_s": 2.854,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.107,
+        "eval_s": 2.74,
+        "prompt_eval_count": 581,
+        "eval_count": 74,
+        "eval_tok_s": 27.01,
+        "prompt_tok_s": 5413.56
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Tu solicitud quedó registrada.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 4,
+        "total": 4,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Tu solicitud quedó registrada."
+    },
+    {
+      "case_id": "F2",
+      "category": "semantic_fidelity",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 5.027,
+        "total_s": 5.026,
+        "load_s": 0.001,
+        "prompt_eval_s": 2.274,
+        "eval_s": 2.746,
+        "prompt_eval_count": 582,
+        "eval_count": 75,
+        "eval_tok_s": 27.31,
+        "prompt_tok_s": 255.96
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"El incremento no fue aprobado.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          },
+          {
+            "check": "NO_NOFUE",
+            "status": "PASS",
+            "reason": "sin corrupción 'nofue'",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "El incremento no fue aprobado."
+    },
+    {
+      "case_id": "F2",
+      "category": "semantic_fidelity",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 2.872,
+        "total_s": 2.872,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.103,
+        "eval_s": 2.762,
+        "prompt_eval_count": 582,
+        "eval_count": 75,
+        "eval_tok_s": 27.15,
+        "prompt_tok_s": 5673.23
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"El incremento no fue aprobado.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          },
+          {
+            "check": "NO_NOFUE",
+            "status": "PASS",
+            "reason": "sin corrupción 'nofue'",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "El incremento no fue aprobado."
+    },
+    {
+      "case_id": "F2",
+      "category": "semantic_fidelity",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 2.974,
+        "total_s": 2.973,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.108,
+        "eval_s": 2.858,
+        "prompt_eval_count": 582,
+        "eval_count": 75,
+        "eval_tok_s": 26.24,
+        "prompt_tok_s": 5372.67
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"El incremento no fue aprobado.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          },
+          {
+            "check": "NO_NOFUE",
+            "status": "PASS",
+            "reason": "sin corrupción 'nofue'",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "El incremento no fue aprobado."
+    },
+    {
+      "case_id": "G1",
+      "category": "source_boundary",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 5.506,
+        "total_s": 5.505,
+        "load_s": 0.001,
+        "prompt_eval_s": 2.362,
+        "eval_s": 3.137,
+        "prompt_eval_count": 593,
+        "eval_count": 86,
+        "eval_tok_s": 27.42,
+        "prompt_tok_s": 251.05
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Revisa tu App Banco Azteca porque hay errores en los datos que capturaste.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "NO_APPBANCO",
+            "status": "PASS",
+            "reason": "sin corrupción 'AppBanco'",
+            "critical": false
+          },
+          {
+            "check": "NO_HAYERRORES",
+            "status": "PASS",
+            "reason": "sin corrupción 'hayerrores'",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Revisa tu App Banco Azteca porque hay errores en los datos que capturaste."
+    },
+    {
+      "case_id": "G1",
+      "category": "source_boundary",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 3.373,
+        "total_s": 3.372,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.104,
+        "eval_s": 3.261,
+        "prompt_eval_count": 593,
+        "eval_count": 86,
+        "eval_tok_s": 26.37,
+        "prompt_tok_s": 5712.74
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Revisa tu App Banco Azteca porque hay errores en los datos que capturaste.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "NO_APPBANCO",
+            "status": "PASS",
+            "reason": "sin corrupción 'AppBanco'",
+            "critical": false
+          },
+          {
+            "check": "NO_HAYERRORES",
+            "status": "PASS",
+            "reason": "sin corrupción 'hayerrores'",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Revisa tu App Banco Azteca porque hay errores en los datos que capturaste."
+    },
+    {
+      "case_id": "G1",
+      "category": "source_boundary",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 3.387,
+        "total_s": 3.386,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.125,
+        "eval_s": 3.254,
+        "prompt_eval_count": 593,
+        "eval_count": 86,
+        "eval_tok_s": 26.43,
+        "prompt_tok_s": 4727.7
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Revisa tu App Banco Azteca porque hay errores en los datos que capturaste.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "NO_APPBANCO",
+            "status": "PASS",
+            "reason": "sin corrupción 'AppBanco'",
+            "critical": false
+          },
+          {
+            "check": "NO_HAYERRORES",
+            "status": "PASS",
+            "reason": "sin corrupción 'hayerrores'",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Revisa tu App Banco Azteca porque hay errores en los datos que capturaste."
+    },
+    {
+      "case_id": "H1",
+      "category": "long_ux_content",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 9.182,
+        "total_s": 9.181,
+        "load_s": 0.001,
+        "prompt_eval_s": 2.517,
+        "eval_s": 6.656,
+        "prompt_eval_count": 673,
+        "eval_count": 168,
+        "eval_tok_s": 25.24,
+        "prompt_tok_s": 267.39
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Hola {{Nombre}}, tu visita domiciliaria está programada para el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\\n\\nUn asesor acudirá al domicilio que registraste. Ten a la mano tu identificación oficial vigente y un comprobante de domicilio con antigüedad no mayor a tres meses.\\n\\nSi no hay errores en tus datos, el proceso tarda alrededor de 20 minutos.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (3 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_HAYERRORES",
+            "status": "PASS",
+            "reason": "sin corrupción 'hayerrores'",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 7,
+        "total": 7,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola {{Nombre}}, tu visita domiciliaria está programada para el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\n\nUn asesor acudirá al domicilio que registraste. Ten a la mano tu identificación oficial vigente y un comprobante de domicilio con antigüedad no mayor a tres meses.\n\nSi no hay errores en tus datos, el proceso tarda alrededor de 20 minutos."
+    },
+    {
+      "case_id": "H1",
+      "category": "long_ux_content",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 7.619,
+        "total_s": 7.618,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.151,
+        "eval_s": 7.458,
+        "prompt_eval_count": 673,
+        "eval_count": 168,
+        "eval_tok_s": 22.53,
+        "prompt_tok_s": 4444.74
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Hola {{Nombre}}, tu visita domiciliaria está programada para el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\\n\\nUn asesor acudirá al domicilio que registraste. Ten a la mano tu identificación oficial vigente y un comprobante de domicilio con antigüedad no mayor a tres meses.\\n\\nSi no hay errores en tus datos, el proceso tarda alrededor de 20 minutos.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (3 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_HAYERRORES",
+            "status": "PASS",
+            "reason": "sin corrupción 'hayerrores'",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 7,
+        "total": 7,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola {{Nombre}}, tu visita domiciliaria está programada para el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\n\nUn asesor acudirá al domicilio que registraste. Ten a la mano tu identificación oficial vigente y un comprobante de domicilio con antigüedad no mayor a tres meses.\n\nSi no hay errores en tus datos, el proceso tarda alrededor de 20 minutos."
+    },
+    {
+      "case_id": "H1",
+      "category": "long_ux_content",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 7.288,
+        "total_s": 7.286,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.122,
+        "eval_s": 7.153,
+        "prompt_eval_count": 673,
+        "eval_count": 168,
+        "eval_tok_s": 23.49,
+        "prompt_tok_s": 5496.66
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 5,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Hola {{Nombre}}, tu visita domiciliaria está programada para el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\\n\\nUn asesor acudirá al domicilio que registraste. Ten a la mano tu identificación oficial vigente y un comprobante de domicilio con antigüedad no mayor a tres meses.\\n\\nSi no hay errores en tus datos, el proceso tarda alrededor de 20 minutos.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "PROTECTED_PLACEHOLDERS_PRESERVED",
+            "status": "PASS",
+            "reason": "placeholders/URLs/emails preservados byte-a-byte",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (3 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_HAYERRORES",
+            "status": "PASS",
+            "reason": "sin corrupción 'hayerrores'",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 7,
+        "total": 7,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Hola {{Nombre}}, tu visita domiciliaria está programada para el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\n\nUn asesor acudirá al domicilio que registraste. Ten a la mano tu identificación oficial vigente y un comprobante de domicilio con antigüedad no mayor a tres meses.\n\nSi no hay errores en tus datos, el proceso tarda alrededor de 20 minutos."
+    },
+    {
+      "case_id": "H2",
+      "category": "long_ux_content",
+      "rep": 1,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 8.395,
+        "total_s": 8.394,
+        "load_s": 0.001,
+        "prompt_eval_s": 2.72,
+        "eval_s": 5.661,
+        "prompt_eval_count": 642,
+        "eval_count": 136,
+        "eval_tok_s": 24.02,
+        "prompt_tok_s": 236.0
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 4,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Escribe el monto que quieres solicitar. El monto mínimo es de 3,000 pesos y el máximo depende de tu historial de pagos con nosotros.\\n\\nSi el monto que capturaste supera tu límite disponible, te mostraremos el máximo al que puedes acceder hoy. Este dato no afecta tu historial crediticio.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (2 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Escribe el monto que quieres solicitar. El monto mínimo es de 3,000 pesos y el máximo depende de tu historial de pagos con nosotros.\n\nSi el monto que capturaste supera tu límite disponible, te mostraremos el máximo al que puedes acceder hoy. Este dato no afecta tu historial crediticio."
+    },
+    {
+      "case_id": "H2",
+      "category": "long_ux_content",
+      "rep": 2,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 5.951,
+        "total_s": 5.949,
+        "load_s": 0.002,
+        "prompt_eval_s": 0.128,
+        "eval_s": 5.809,
+        "prompt_eval_count": 642,
+        "eval_count": 136,
+        "eval_tok_s": 23.41,
+        "prompt_tok_s": 5003.59
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 4,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Escribe el monto que quieres solicitar. El monto mínimo es de 3,000 pesos y el máximo depende de tu historial de pagos con nosotros.\\n\\nSi el monto que capturaste supera tu límite disponible, te mostraremos el máximo al que puedes acceder hoy. Este dato no afecta tu historial crediticio.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (2 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Escribe el monto que quieres solicitar. El monto mínimo es de 3,000 pesos y el máximo depende de tu historial de pagos con nosotros.\n\nSi el monto que capturaste supera tu límite disponible, te mostraremos el máximo al que puedes acceder hoy. Este dato no afecta tu historial crediticio."
+    },
+    {
+      "case_id": "H2",
+      "category": "long_ux_content",
+      "rep": 3,
+      "request_error": null,
+      "metrics": {
+        "wall_s": 7.201,
+        "total_s": 7.2,
+        "load_s": 0.001,
+        "prompt_eval_s": 0.189,
+        "eval_s": 7.002,
+        "prompt_eval_count": 642,
+        "eval_count": 136,
+        "eval_tok_s": 19.42,
+        "prompt_tok_s": 3395.98
+      },
+      "raw": "{\n  \"clarity\": 5,\n  \"concision\": 4,\n  \"utility\": 5,\n  \"predictability\": 5,\n  \"orthography\": 5,\n  \"jargon\": false,\n  \"issues\": [],\n  \"suggestion\": \"Escribe el monto que quieres solicitar. El monto mínimo es de 3,000 pesos y el máximo depende de tu historial de pagos con nosotros.\\n\\nSi el monto que capturaste supera tu límite disponible, te mostraremos el máximo al que puedes acceder hoy. Este dato no afecta tu historial crediticio.\"\n}",
+      "validation": {
+        "json_ok": true,
+        "json_error": null,
+        "checks": [
+          {
+            "check": "JSON_VALID",
+            "status": "PASS",
+            "reason": "contrato JSON completo y tipado correcto",
+            "critical": false
+          },
+          {
+            "check": "SPANISH_OUTPUT",
+            "status": "PASS",
+            "reason": "sin contaminación en inglés",
+            "critical": false
+          },
+          {
+            "check": "NO_EMPTY_SUGGESTION",
+            "status": "PASS",
+            "reason": "suggestion no vacía",
+            "critical": false
+          },
+          {
+            "check": "MULTILINE_SAFE",
+            "status": "PASS",
+            "reason": "estructura multilínea preservada (2 párrafos)",
+            "critical": false
+          },
+          {
+            "check": "NO_INVENTED_ACTION",
+            "status": "PASS",
+            "reason": "sin acciones de producto inventadas",
+            "critical": false
+          }
+        ],
+        "passed": 5,
+        "total": 5,
+        "case_status": "PASS",
+        "critical_failures": []
+      },
+      "suggestion": "Escribe el monto que quieres solicitar. El monto mínimo es de 3,000 pesos y el máximo depende de tu historial de pagos con nosotros.\n\nSi el monto que capturaste supera tu límite disponible, te mostraremos el máximo al que puedes acceder hoy. Este dato no afecta tu historial crediticio."
+    }
+  ],
+  "summary": {
+    "requests": 48,
+    "request_errors": 0,
+    "wall_s": {
+      "n": 48,
+      "mean": 5.174,
+      "p50": 4.966,
+      "min": 2.813,
+      "max": 9.819,
+      "p95": 9.134,
+      "p95_basis": "percentil empírico sobre n=48"
+    },
+    "total_s": {
+      "n": 48,
+      "mean": 5.173,
+      "p50": 4.965,
+      "min": 2.812,
+      "max": 9.818,
+      "p95": 9.132,
+      "p95_basis": "percentil empírico sobre n=48"
+    },
+    "load_s": {
+      "n": 48,
+      "mean": 0.002,
+      "p50": 0.002,
+      "min": 0.001,
+      "max": 0.002,
+      "p95": 0.002,
+      "p95_basis": "percentil empírico sobre n=48"
+    },
+    "eval_tok_s": {
+      "n": 48,
+      "mean": 25.246,
+      "p50": 25.525,
+      "min": 19.42,
+      "max": 27.42,
+      "p95": 27.4,
+      "p95_basis": "percentil empírico sobre n=48"
+    },
+    "checks_passed": 225,
+    "checks_total": 231,
+    "cases_pass": 42,
+    "json_ok": 48,
+    "critical_failures": []
+  },
+  "finished_at": "2026-08-29T00:23:56"
+}
