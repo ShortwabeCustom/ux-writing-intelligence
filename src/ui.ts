@@ -5,6 +5,13 @@ import type { AnalysisRoute } from './analysis-routing';
 import { resolveAnalysisTransport } from './analysis-routing';
 import type { AnalysisTransportKind } from './analysis-transport';
 import { describeBlockedRoute, resolveEngineDisplay } from './engine-display';
+import type { ScreenAuditCandidate, ScreenAuditPreflight } from './screen-audit-contracts';
+import {
+  describeCounts,
+  readyCandidates,
+  skippedCandidates,
+  toDisplay,
+} from './screen-audit-presentation';
 import type {
   AnalyzeError,
   AnalyzeResponse,
@@ -43,6 +50,7 @@ import {
 } from './loading-feedback';
 import type { IssueDisplay, MetricDisplay } from './result-presentation';
 import { getResultPresentation, hasSuggestionChange } from './result-presentation';
+import { getSelectionPresentation } from './selection-presentation';
 import type {
   MainToUiMessage,
   PluginMessageEnvelope,
@@ -75,6 +83,15 @@ const selectionContextLabel = getElement<HTMLElement>('selection-context-label')
 const nodeName = getElement<HTMLElement>('node-name');
 const selectedText = getElement<HTMLElement>('selected-text');
 const readyStatus = getElement<HTMLElement>('ready-status');
+const screenPreflightPanel = getElement<HTMLElement>('screen-preflight');
+const screenName = getElement<HTMLElement>('screen-name');
+const screenReadyCount = getElement<HTMLElement>('screen-ready-count');
+const screenSkippedCount = getElement<HTMLElement>('screen-skipped-count');
+const screenDetected = getElement<HTMLElement>('screen-detected');
+const screenDetectedList = getElement<HTMLElement>('screen-detected-list');
+const screenSkipped = getElement<HTMLElement>('screen-skipped');
+const screenSkippedList = getElement<HTMLElement>('screen-skipped-list');
+const screenError = getElement<HTMLElement>('screen-error');
 const engineRow = getElement<HTMLElement>('engine-row');
 const engineName = getElement<HTMLElement>('engine-name');
 const engineDetail = getElement<HTMLElement>('engine-detail');
@@ -166,6 +183,9 @@ let localRuntimeState: LocalRuntimeStatusPayload = {
 /** ¿El último fallo admite la acción explícita hacia la nube? Lo decide el
  *  hilo principal; la UI nunca lo infiere por su cuenta. */
 let cloudRetryAvailable = false;
+/** Preflight vigente. `null` mientras no haya un frame seleccionado o cuando
+ *  el descubrimiento anterior quedó obsoleto. */
+let screenPreflight: ScreenAuditPreflight | null = null;
 let settingsState: SettingsState = 'loading';
 let stableSettingsState: StableSettingsState = 'unconfigured';
 let settingsErrorCode: SettingsErrorCode | null = null;
@@ -240,6 +260,15 @@ function canAnalyze(): boolean {
  * decisión vive en `resolveEngineDisplay`, que es pura y está probada.
  */
 function renderEngineRow(): void {
+  // En una pantalla no hay análisis todavía, así que anunciar un motor sería
+  // prometer algo que esta fase no hace.
+  if (currentSelectionState.status === 'frame') {
+    engineRow.hidden = true;
+    return;
+  }
+
+  engineRow.hidden = false;
+
   const display = resolveEngineDisplay({
     activeTransport: getAnalysisProvenance(analysisState),
     route: currentRoute(),
@@ -321,6 +350,90 @@ function renderApiKeyIndicator(): void {
   renderAnalyzeAvailability();
 }
 
+/**
+ * Preflight de Screen Audit.
+ *
+ * Copia deliberada: se dice «listos para auditar», nunca «resueltos» ni «no
+ * necesitan IA». En esta fase solo se sabe qué es estructuralmente apto; la
+ * calidad de la redacción no se ha evaluado todavía.
+ */
+function renderScreenPreflight(): void {
+  const selection = currentSelectionState;
+  screenPreflightPanel.hidden = selection.status !== 'frame';
+
+  if (selection.status !== 'frame') {
+    return;
+  }
+
+  screenName.textContent = selection.nodeName;
+
+  if (screenPreflight === null) {
+    screenReadyCount.textContent = 'Leyendo el contenido de la pantalla…';
+    screenSkippedCount.textContent = '';
+    screenDetected.hidden = true;
+    screenSkipped.hidden = true;
+    return;
+  }
+
+  // Un frame SÍ soportado que no contiene textos es un estado distinto de una
+  // raíz no soportada, y no debe confundirse con ella.
+  if (screenPreflight.detectedCount === 0) {
+    screenReadyCount.textContent = 'Esta pantalla no contiene textos.';
+    screenSkippedCount.textContent = '';
+    screenDetected.hidden = true;
+    screenSkipped.hidden = true;
+    return;
+  }
+
+  const counts = describeCounts(screenPreflight);
+  screenReadyCount.textContent = counts.ready;
+  screenSkippedCount.textContent = screenPreflight.skippedCount > 0
+    ? counts.skipped
+    : '';
+
+  const ready = readyCandidates(screenPreflight);
+  const skipped = skippedCandidates(screenPreflight);
+
+  screenDetected.hidden = ready.length === 0;
+  screenSkipped.hidden = skipped.length === 0;
+  renderCandidateList(screenDetectedList, ready, false);
+  renderCandidateList(screenSkippedList, skipped, true);
+}
+
+function renderCandidateList(
+  container: HTMLElement,
+  candidates: ScreenAuditCandidate[],
+  showReason: boolean,
+): void {
+  container.replaceChildren();
+
+  for (const candidate of candidates) {
+    const display = toDisplay(candidate);
+    const item = document.createElement('article');
+    item.className = 'screen-item';
+
+    const layer = document.createElement('span');
+    layer.className = 'screen-item-layer';
+    layer.textContent = display.layerName;
+    item.appendChild(layer);
+
+    // Recorte VISUAL. La fuente permanece intacta en el contrato.
+    const preview = document.createElement('span');
+    preview.className = 'screen-item-preview';
+    preview.textContent = display.preview;
+    item.appendChild(preview);
+
+    if (showReason && display.reason.length > 0) {
+      const reason = document.createElement('span');
+      reason.className = 'screen-item-reason';
+      reason.textContent = display.reason;
+      item.appendChild(reason);
+    }
+
+    container.appendChild(item);
+  }
+}
+
 function renderSelectionState(state: SelectionSnapshot): void {
   currentSelectionState = state;
   applyState = reduceApplyState(applyState, { type: 'SELECTION_CHANGED' });
@@ -328,38 +441,23 @@ function renderSelectionState(state: SelectionSnapshot): void {
   statePanel.dataset.state = state.status;
   setReadyContentVisible(false);
 
+  // La copia vive en un módulo puro para poder probarla: en FASE 9.1.1 se
+  // descubrió un texto factualmente falso que nadie podía verificar sin abrir
+  // Figma.
+  const copy = getSelectionPresentation(state);
+  eyebrow.textContent = copy.eyebrow;
+  title.textContent = copy.title;
+  description.textContent = copy.description;
+
   switch (state.status) {
     case 'no-selection':
-      eyebrow.textContent = 'Sin selección';
-      title.textContent = 'Selecciona un texto';
-      description.textContent =
-        'Selecciona una capa de texto en Figma para comenzar el análisis.';
-      break;
-
     case 'multiple-selection':
-      eyebrow.textContent = `${state.count} capas seleccionadas`;
-      title.textContent = 'Selecciona una sola capa';
-      description.textContent =
-        'Para analizar el contenido, selecciona únicamente una capa de texto.';
-      break;
-
     case 'invalid-selection':
-      eyebrow.textContent = state.nodeName;
-      title.textContent = 'Esta capa no contiene texto';
-      description.textContent =
-        'Selecciona directamente una capa de texto para continuar.';
-      break;
-
     case 'empty-text':
-      eyebrow.textContent = state.nodeName;
-      title.textContent = 'Este texto está vacío';
-      description.textContent = 'Agrega contenido a la capa de texto antes de analizarla.';
+    case 'frame':
       break;
 
     case 'ready':
-      eyebrow.textContent = 'Capa de texto';
-      title.textContent = 'Texto seleccionado';
-      description.textContent = 'Contenido detectado en la selección actual.';
       nodeName.textContent = state.nodeName;
       selectedText.textContent = state.text.length > 0 ? state.text : 'El texto está vacío.';
       selectedText.title = state.text;
@@ -376,6 +474,7 @@ function renderSelectionState(state: SelectionSnapshot): void {
       assertNever(state);
   }
 
+  renderScreenPreflight();
   renderAnalysis();
 }
 
@@ -843,6 +942,22 @@ function handleMainMessage(message: MainToUiMessage): void {
       break;
     case 'SETTINGS_ERROR':
       showSettingsError(message.payload.code);
+      break;
+    case 'SCREEN_PREFLIGHT_READY':
+      screenPreflight = message.payload.preflight;
+      screenError.hidden = true;
+      renderScreenPreflight();
+      break;
+    case 'SCREEN_PREFLIGHT_INVALIDATED':
+      // Un descubrimiento obsoleto no puede pintarse contra otra selección.
+      screenPreflight = null;
+      screenError.hidden = true;
+      renderScreenPreflight();
+      break;
+    case 'SCREEN_PREFLIGHT_ERROR':
+      screenPreflight = null;
+      screenError.hidden = false;
+      renderScreenPreflight();
       break;
     case 'ANALYSIS_MODE_STATUS':
       renderAnalysisMode(message.payload.mode);

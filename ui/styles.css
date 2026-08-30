@@ -1141,3 +1141,123 @@ input:focus-visible {
 }
 
 .analysis-loading-engine:empty { display: none; }
+
+/* Preflight de Screen Audit (FASE 9.1). Usa los tokens de Figma, igual que el
+   resto del plugin: los literales de reserva solo actúan si el host no los
+   inyecta. */
+.screen-preflight {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--figma-color-border, #e6e6e6);
+  border-radius: 8px;
+  background: var(--figma-color-bg-secondary, #f5f5f5);
+}
+
+.screen-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.screen-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--figma-color-icon-brand, #0d99ff);
+}
+
+.screen-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.screen-label {
+  margin: 0;
+  font-size: 11px;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.screen-name {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--figma-color-text, #1a1a1a);
+  overflow-wrap: anywhere;
+}
+
+.screen-count {
+  margin: 0;
+  font-size: 12px;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.screen-count-ready {
+  font-weight: 600;
+  color: var(--figma-color-text, #1a1a1a);
+}
+
+.screen-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.screen-details {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.screen-details summary {
+  cursor: pointer;
+  color: var(--figma-color-text-brand, #0d99ff);
+  font-size: 12px;
+}
+
+.screen-details[hidden] { display: none; }
+
+.screen-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.screen-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--figma-color-bg, #ffffff);
+}
+
+.screen-item-layer {
+  font-size: 10px;
+  color: var(--figma-color-text-secondary, #737373);
+  overflow-wrap: anywhere;
+}
+
+.screen-item-preview {
+  font-size: 12px;
+  color: var(--figma-color-text, #1a1a1a);
+  overflow-wrap: anywhere;
+}
+
+.screen-item-reason {
+  font-size: 11px;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.screen-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--figma-color-text-danger, #dc3412);
+}

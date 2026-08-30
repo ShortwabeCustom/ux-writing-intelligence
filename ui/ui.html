@@ -52,6 +52,38 @@
 
           <p id="ready-status" class="ready-status" hidden>Texto listo</p>
 
+          <section id="screen-preflight" class="screen-preflight" hidden>
+            <div class="screen-heading">
+              <span class="screen-dot" aria-hidden="true"></span>
+              <span class="screen-eyebrow">Pantalla</span>
+            </div>
+
+            <p class="screen-label">Pantalla seleccionada</p>
+            <h3 id="screen-name" class="screen-name"></h3>
+
+            <p id="screen-ready-count" class="screen-count screen-count-ready"></p>
+            <p id="screen-skipped-count" class="screen-count"></p>
+
+            <button id="audit-screen-button" class="primary-button" type="button" disabled>
+              Auditar pantalla
+            </button>
+            <p class="screen-note">La auditoría se habilitará en la siguiente etapa.</p>
+
+            <details id="screen-detected" class="screen-details">
+              <summary>Ver textos detectados</summary>
+              <div id="screen-detected-list" class="screen-list"></div>
+            </details>
+
+            <details id="screen-skipped" class="screen-details">
+              <summary>Ver textos omitidos</summary>
+              <div id="screen-skipped-list" class="screen-list"></div>
+            </details>
+
+            <p id="screen-error" class="screen-error" role="alert" hidden>
+              No pudimos leer el contenido de esta pantalla.
+            </p>
+          </section>
+
           <div id="engine-row" class="engine-row" data-engine="unknown">
             <span class="engine-dot" aria-hidden="true"></span>
             <div class="engine-copy">

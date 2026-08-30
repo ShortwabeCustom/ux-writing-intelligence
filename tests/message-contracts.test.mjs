@@ -72,7 +72,29 @@ const UI_TO_MAIN_SAMPLES = {
   APPLY_SUGGESTION: { requestId: 'analysis-1' },
 };
 
+const VALID_PREFLIGHT = {
+  frameId: 'f1',
+  frameName: 'Domicilio',
+  revision: 0,
+  detectedCount: 1,
+  eligibleCount: 1,
+  skippedCount: 0,
+  candidates: [{
+    nodeId: 'n1',
+    text: 'Continuar',
+    layerName: 'CTA',
+    parentName: 'Footer',
+    order: 0,
+    status: 'ready',
+    skipReason: null,
+    context: 'Pantalla: Domicilio. Capa: CTA. Contenedor: Footer.',
+  }],
+};
+
 const MAIN_TO_UI_SAMPLES = {
+  SCREEN_PREFLIGHT_READY: { payload: { preflight: VALID_PREFLIGHT } },
+  SCREEN_PREFLIGHT_INVALIDATED: { payload: { revision: 3 } },
+  SCREEN_PREFLIGHT_ERROR: { payload: { code: 'DISCOVERY_FAILED' } },
   ANALYSIS_MODE_STATUS: { payload: { mode: 'auto' } },
   LOCAL_RUNTIME_STATUS: { payload: { state: 'ready', modelLabel: 'Qwen 3.5' } },
   SELECTION_CHANGED: {
@@ -159,6 +181,14 @@ test('los validadores siguen rechazando lo que no es válido', () => {
   );
   assert.equal(
     core.isMainToUiMessage({ type: 'LOCAL_RUNTIME_STATUS', payload: { state: 'x', modelLabel: null } }),
+    false,
+  );
+  assert.equal(
+    core.isMainToUiMessage({ type: 'SCREEN_PREFLIGHT_READY', payload: { preflight: {} } }),
+    false,
+  );
+  assert.equal(
+    core.isMainToUiMessage({ type: 'SCREEN_PREFLIGHT_ERROR', payload: { code: 'OTRO' } }),
     false,
   );
 });

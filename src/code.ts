@@ -49,6 +49,8 @@ import {
   isUiToMainMessage,
 } from './shared/messages';
 import { getSelectionState } from './selection';
+import type { ScreenNodeLike } from './screen-audit-discovery';
+import { buildPreflight } from './screen-audit-discovery';
 
 figma.showUI(__html__, {
   width: 360,
@@ -67,6 +69,9 @@ let invalidatedApplyRequest: {
 } | null = null;
 let applyInFlightRequestId: string | null = null;
 let currentSelectionSnapshot = createSelectionSnapshot();
+/** Revisión propia del preflight de Screen Audit. Independiente de la de Text
+ *  Audit para que ninguna de las dos herede la obsolescencia de la otra. */
+let screenPreflightRevision = 0;
 const pluginFetch = fetch as unknown as FetchPort;
 
 /**
@@ -175,7 +180,65 @@ function handleSelectionChange(): void {
   selectionRevision += 1;
   activeRequestToken += 1;
   currentSelectionSnapshot = createSelectionSnapshot();
+  invalidateScreenPreflight();
   sendSelectionState();
+  sendScreenPreflightIfFrameSelected();
+}
+
+/**
+ * Invalida el preflight vigente.
+ *
+ * Un descubrimiento obsoleto no puede pintarse contra una selección nueva:
+ * mostraría textos que ya no están en pantalla.
+ */
+function invalidateScreenPreflight(): void {
+  screenPreflightRevision += 1;
+  sendMessage({
+    type: 'SCREEN_PREFLIGHT_INVALIDATED',
+    payload: { revision: screenPreflightRevision },
+  });
+}
+
+/**
+ * Descubrimiento de Screen Audit (FASE 9.1).
+ *
+ * SOLO LECTURA y SIN RED. No analiza nada: no llama al runtime local ni a la
+ * nube. No requiere API Key ni motor local disponible. No escribe en
+ * clientStorage. No registra el contenido de ningún texto.
+ */
+function sendScreenPreflightIfFrameSelected(): void {
+  if (currentSelectionSnapshot.status !== 'frame') {
+    return;
+  }
+
+  const node = figma.currentPage.selection[0];
+
+  if (node?.type !== 'FRAME' || node.id !== currentSelectionSnapshot.nodeId) {
+    return;
+  }
+
+  const revision = screenPreflightRevision;
+
+  try {
+    const preflight = buildPreflight(
+      node as unknown as ScreenNodeLike,
+      revision,
+    );
+
+    // La selección pudo cambiar mientras se recorría el árbol.
+    if (revision !== screenPreflightRevision) {
+      return;
+    }
+
+    sendMessage({ type: 'SCREEN_PREFLIGHT_READY', payload: { preflight } });
+  } catch {
+    // Fallo interno real del recorrido. Nunca se usa para estados ordinarios
+    // de selección, que tienen su propia representación.
+    sendMessage({
+      type: 'SCREEN_PREFLIGHT_ERROR',
+      payload: { code: 'DISCOVERY_FAILED' },
+    });
+  }
 }
 
 function invalidateApplySession(
@@ -668,6 +731,7 @@ async function handleUiMessage(message: UiToMainMessage): Promise<void> {
       isUiReady = true;
       currentSelectionSnapshot = createSelectionSnapshot();
       sendSelectionState();
+      sendScreenPreflightIfFrameSelected();
       await sendApiKeyStatus();
       await sendAnalysisModeStatus();
       await sendLocalRuntimeStatus();

@@ -17,6 +17,7 @@ import {
   isRecord,
 } from '../analyze-contracts';
 import { isApplyError, isApplySuccessPayload } from '../apply-contracts';
+import { isScreenAuditPreflight } from '../screen-audit-contracts';
 import type {
   LocalRuntimeStatusPayload,
   MainToUiMessage,
@@ -50,6 +51,9 @@ export function isSelectionSnapshot(value: unknown): value is SelectionSnapshot 
       return typeof value.nodeId === 'string'
         && typeof value.nodeName === 'string'
         && typeof value.text === 'string';
+    case 'frame':
+      return typeof value.nodeId === 'string'
+        && typeof value.nodeName === 'string';
     default:
       return false;
   }
@@ -78,6 +82,17 @@ export function isMainToUiMessage(value: unknown): value is MainToUiMessage {
   }
 
   switch (value.type) {
+    case 'SCREEN_PREFLIGHT_READY':
+      return isRecord(value.payload)
+        && isScreenAuditPreflight(value.payload.preflight);
+    case 'SCREEN_PREFLIGHT_INVALIDATED':
+      return isRecord(value.payload)
+        && typeof value.payload.revision === 'number'
+        && Number.isSafeInteger(value.payload.revision)
+        && value.payload.revision >= 0;
+    case 'SCREEN_PREFLIGHT_ERROR':
+      return isRecord(value.payload)
+        && value.payload.code === 'DISCOVERY_FAILED';
     case 'SELECTION_CHANGED':
       return isSelectionSnapshot(value.payload);
     case 'API_KEY_STATUS':

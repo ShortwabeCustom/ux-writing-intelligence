@@ -20,6 +20,17 @@ export function getSelectionState(
     return { status: 'no-selection' };
   }
 
+  // FASE 9.1: FRAME es la única raíz autorizada de Screen Audit. Grupos,
+  // secciones, componentes e instancias quedan fuera EN LA RAÍZ; sus textos
+  // internos sí se descubren cuando cuelgan de un frame seleccionado.
+  if (node.type === 'FRAME') {
+    return {
+      status: 'frame',
+      nodeId: node.id,
+      nodeName: node.name,
+    };
+  }
+
   if (node.type !== 'TEXT') {
     return {
       status: 'invalid-selection',

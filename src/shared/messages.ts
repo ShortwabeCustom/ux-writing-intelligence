@@ -2,6 +2,8 @@ import type { AnalyzeError, AnalyzeResponse } from '../analyze-contracts';
 import type { AnalysisMode } from '../analysis-mode';
 import { isAnalysisMode } from '../analysis-mode';
 import type { AnalysisTransportKind } from '../analysis-transport';
+import type { ScreenAuditPreflight } from '../screen-audit-contracts';
+import { isScreenAuditPreflight } from '../screen-audit-contracts';
 import type { ApplyError, ApplySuccessPayload } from '../apply-contracts';
 
 export type SelectionState =
@@ -28,6 +30,11 @@ export type SelectionState =
       nodeId: string;
       nodeName: string;
       text: string;
+    }
+  | {
+      status: 'frame';
+      nodeId: string;
+      nodeName: string;
     };
 
 export type SelectionSnapshot = SelectionState & {
@@ -45,7 +52,27 @@ export type LocalRuntimeStatusPayload = {
   modelLabel: string | null;
 };
 
+export type ScreenPreflightErrorCode = 'DISCOVERY_FAILED';
+
 export type MainToUiMessage =
+  | {
+      type: 'SCREEN_PREFLIGHT_READY';
+      payload: {
+        preflight: ScreenAuditPreflight;
+      };
+    }
+  | {
+      type: 'SCREEN_PREFLIGHT_INVALIDATED';
+      payload: {
+        revision: number;
+      };
+    }
+  | {
+      type: 'SCREEN_PREFLIGHT_ERROR';
+      payload: {
+        code: ScreenPreflightErrorCode;
+      };
+    }
   | {
       type: 'ANALYSIS_MODE_STATUS';
       payload: {

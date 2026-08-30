@@ -130,13 +130,27 @@ test('Selection states preserve Phase 1 behavior', () => {
     { type: 'FRAME', id: '1', name: 'Frame' },
     { type: 'RECTANGLE', id: '2', name: 'Rectangle' },
   ]), { status: 'multiple-selection', count: 2 });
+  // FASE 9.1 cambia esto a propósito: un FRAME dejó de ser «selección
+  // inválida» para convertirse en la raíz de Screen Audit. Es el contrato de
+  // selección de la fase, no una regresión.
   assert.deepEqual(core.getSelectionState([
     { type: 'FRAME', id: '1', name: 'Checkout' },
   ]), {
-    status: 'invalid-selection',
-    nodeType: 'FRAME',
+    status: 'frame',
+    nodeId: '1',
     nodeName: 'Checkout',
   });
+
+  // Las demás raíces siguen sin soportarse en esta fase.
+  for (const type of ['GROUP', 'SECTION', 'COMPONENT', 'INSTANCE', 'RECTANGLE']) {
+    assert.deepEqual(core.getSelectionState([
+      { type, id: '9', name: 'Contenedor' },
+    ]), {
+      status: 'invalid-selection',
+      nodeType: type,
+      nodeName: 'Contenedor',
+    }, `${type} no debe ser raíz de Screen Audit`);
+  }
   assert.deepEqual(core.getSelectionState([
     { type: 'TEXT', id: '3', name: 'Button label', characters: 'Continuar' },
   ]), {
