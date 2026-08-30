@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Arnés de UI</title>
+    <style>
+      html, body { margin: 0; padding: 0; background: #2c2c2c; }
+      iframe { width: 400px; height: 700px; border: 0; display: block; }
+    </style>
+  </head>
+  <body>
+    <!--
+      La UI real se carga en un iframe porque así es como la ejecuta Figma:
+      la interfaz usa `parent.postMessage` y `window.onmessage`. Con este
+      montaje el arnés ocupa exactamente el lugar del hilo principal, sin que
+      la UI tenga que modificarse para ser probada.
+    -->
+    <iframe id="plugin-ui" src="/ui.html"></iframe>
+
+    <script>
+      (function () {
+        const frame = document.getElementById('plugin-ui');
+
+        /** Mensajes que la UI envía hacia el hilo principal. */
+        const received = [];
+
+        window.addEventListener('message', function (event) {
+          const message = event.data && event.data.pluginMessage;
+          if (message !== undefined && message !== null) {
+            received.push(message);
+          }
+        });
+
+        window.__bridge = {
+          /** Envía un mensaje MAIN -> UI, con el mismo sobre que usa Figma. */
+          send: function (message) {
+            frame.contentWindow.postMessage({ pluginMessage: message }, '*');
+          },
+          received: received,
+          /** Mensajes recibidos de un tipo concreto. */
+          receivedOfType: function (type) {
+            return received.filter(function (m) { return m.type === type; });
+          },
+          reset: function () { received.length = 0; },
+          /** Acceso al documento de la UI para las aserciones. */
+          doc: function () { return frame.contentDocument; },
+        };
+      }());
+    </script>
+  </body>
+</html>

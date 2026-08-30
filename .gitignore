@@ -2,3 +2,9 @@ node_modules/
 dist/
 .DS_Store
 *.log
+
+# Artefactos de Playwright: se regeneran, no se versionan.
+test-results/
+playwright-report/
+blob-report/
+.playwright/
