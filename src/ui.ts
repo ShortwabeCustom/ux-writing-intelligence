@@ -463,9 +463,13 @@ function renderScreenAudit(): void {
   screenAuditProgressFill.style.width = `${Math.round(progressRatio(session) * 100)}%`;
 
   const current = session.items[session.currentIndex];
-  screenAuditCurrent.textContent = session.status === 'running' && current !== undefined
-    ? `Analizando «${previewText(current.candidate.text)}»…`
-    : '';
+  screenAuditCurrent.textContent = current === undefined
+    ? ''
+    : session.status === 'running'
+      ? `Analizando «${previewText(current.candidate.text)}»…`
+      : session.status === 'paused' && current.status === 'error'
+        ? `Candidato actual: «${previewText(current.candidate.text)}»`
+        : '';
 
   renderAuditResults(session);
   renderAuditPause(session);
@@ -475,7 +479,9 @@ function renderAuditResults(session: ScreenAuditSession): void {
   screenAuditResults.replaceChildren();
 
   for (const item of session.items) {
-    if (item.status !== 'success' && item.status !== 'changed') {
+    if (item.status !== 'success'
+        && item.status !== 'changed'
+        && item.status !== 'error') {
       continue;
     }
 
@@ -515,7 +521,9 @@ function buildAuditItem(item: ScreenAuditItem): HTMLElement {
   const meta = document.createElement('span');
   meta.className = 'audit-item-meta';
 
-  if (item.status === 'changed') {
+  if (item.status === 'error') {
+    meta.textContent = `No se pudo analizar · ${describeItemProvenance(item)}`;
+  } else if (item.status === 'changed') {
     meta.textContent = describeItemProvenance(item);
   } else if (item.result !== null) {
     const presentation = getResultPresentation(item.result);

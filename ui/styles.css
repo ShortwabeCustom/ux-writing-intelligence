@@ -1338,3 +1338,7 @@ input:focus-visible {
 .audit-item[data-status="changed"] .audit-item-meta {
   color: var(--figma-color-text-warning, #a07800);
 }
+
+.audit-item[data-status="error"] .audit-item-meta {
+  color: var(--figma-color-text-danger, #dc3412);
+}

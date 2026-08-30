@@ -179,8 +179,27 @@ test('13 BLOQUEANTE: los resultados locales siguen siendo locales tras pasar a l
   await plugin.ui.locator('#screen-audit-continue-cloud').click();
   await plugin.expectMessages('CONTINUE_SCREEN_AUDIT_CLOUD', 1);
 
-  // El hilo principal responde con la sesión ya reanudada en la nube.
-  session = { ...session, status: 'running', executionTransport: 'cloud', failed: 0 };
+  // El hilo principal responde primero con el candidato fallido reintentándose
+  // en la nube. Todavía no es éxito y el resultado local previo no se repinta.
+  session = {
+    ...session,
+    status: 'running',
+    executionTransport: 'cloud',
+    failed: 0,
+    cloudContinuationAvailable: false,
+    items: session.items.map((item, index) => index === 1
+      ? { ...item, status: 'pending' as const, transport: null, error: null }
+      : item),
+  };
+  await plugin.send(auditUpdate(session));
+
+  await expect(plugin.ui.locator('#screen-audit-current'))
+    .toContainText(AUDIT_CANDIDATES[1].text);
+  await expect(plugin.ui.locator('#screen-audit-engine'))
+    .toHaveText('Procesamiento mediante servicio en la nube');
+  await expect(plugin.ui.locator('.audit-item-meta').first()).toContainText('Local');
+
+  // Después, el actual y los pendientes se resuelven en la nube.
   session = withResult(session, 1, 'cloud');
   session = withResult(session, 2, 'cloud');
   await plugin.send(auditUpdate(session));
@@ -231,9 +250,23 @@ test('18 y 19 BLOQUEANTE: un fallo local pausa y no avanza al siguiente', async 
 
   await expect(plugin.ui.locator('#screen-audit-paused')).toBeVisible();
   await expect(plugin.ui.locator('#screen-audit-title')).toHaveText('Auditoría en pausa');
-  // Solo el primero se resolvió: la auditoría no siguió sola.
-  await expect(results(plugin)).toHaveCount(1);
-  await expect(plugin.ui.locator('#screen-audit-current')).toHaveText('');
+  await expect(plugin.ui.locator('#screen-audit-progress')).toHaveText('1 de 3 analizados');
+
+  // El primero conserva su resultado y el segundo conserva el contexto del
+  // fallo. El tercero sigue pendiente: no aparece ni se anuncia como actual.
+  await expect(results(plugin)).toHaveCount(2);
+  await expect(results(plugin).nth(0)).toContainText(AUDIT_CANDIDATES[0].layerName);
+  await expect(results(plugin).nth(0).locator('.audit-item-meta')).toContainText('Local');
+  await expect(results(plugin).nth(1)).toContainText(AUDIT_CANDIDATES[1].layerName);
+  await expect(results(plugin).nth(1)).toContainText('No se pudo analizar');
+  await expect(results(plugin).nth(1).locator('.audit-item-meta')).toContainText('Local');
+  await expect(results(plugin).filter({ hasText: AUDIT_CANDIDATES[2].text })).toHaveCount(0);
+  await expect(plugin.ui.locator('#screen-audit-current'))
+    .toContainText(AUDIT_CANDIDATES[1].text);
+
+  await expect(plugin.ui.locator('#screen-audit-retry-local')).toBeVisible();
+  await expect(plugin.ui.locator('#screen-audit-continue-cloud')).toBeVisible();
+  await expect(plugin.ui.locator('#screen-audit-title')).not.toHaveText('Auditoría completada');
 });
 
 test('20: continuar en la nube se ofrece con su aviso y envía la acción', async ({ plugin }) => {
@@ -254,13 +287,19 @@ test('20: continuar en la nube se ofrece con su aviso y envía la acción', asyn
 test('21 BLOQUEANTE: en Solo local un fallo NUNCA ofrece la nube', async ({ plugin }) => {
   await readyToAudit(plugin, 'local');
   let session = auditSession();
+  session = withResult(session, 0, 'local');
   // El hilo principal nunca marca la continuación como disponible en este modo.
-  session = withFailure(session, 0, false);
+  session = withFailure(session, 1, false);
   await plugin.send(auditUpdate(session));
 
   await expect(plugin.ui.locator('#screen-audit-paused')).toBeVisible();
   await expect(plugin.ui.locator('#screen-audit-cloud-block')).toBeHidden();
   await expect(plugin.ui.locator('#screen-audit-retry-local')).toBeVisible();
+  await expect(results(plugin)).toHaveCount(2);
+  await expect(results(plugin).nth(1)).toContainText('No se pudo analizar');
+  await expect(results(plugin).nth(1).locator('.audit-item-meta')).toContainText('Local');
+  await expect(plugin.ui.locator('#screen-audit-current'))
+    .toContainText(AUDIT_CANDIDATES[1].text);
 });
 
 // --- 16, 22..25 — invalidación, bloqueo y lenguaje ----------------------------
