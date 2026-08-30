@@ -1,0 +1,19 @@
+{
+  "compared": 20,
+  "critical_failures": [],
+  "critical_failure_count": 0,
+  "score_delta_mean": 0.0,
+  "score_delta_max": 0.0,
+  "metric_delta_mean": {
+    "clarity": 0.0,
+    "concision": 0.0,
+    "utility": 0.0,
+    "predictability": 0.0
+  },
+  "orthography_agreement": "20/20",
+  "jargon_agreement": "20/20",
+  "issue_category_agreement": "20/20",
+  "noop_agreement": "20/20",
+  "total_a_seconds": 80.084,
+  "total_b_seconds": 83.98
+}
