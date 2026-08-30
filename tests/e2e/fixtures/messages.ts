@@ -187,3 +187,149 @@ export function preflight(
 
   return { type: 'SCREEN_PREFLIGHT_READY', payload: { preflight: resolved } };
 }
+
+
+// --- Ejecución de Screen Audit (FASE 9.2B) -----------------------------------
+
+import type { ScreenAuditItem, ScreenAuditSession } from '../../../src/screen-audit-session';
+import type { AnalysisTransportKind } from '../../../src/analysis-transport';
+
+function auditCandidate(index: number, text: string, layerName: string) {
+  return {
+    nodeId: `n${index}`,
+    text,
+    layerName,
+    parentName: 'Body',
+    order: index,
+    status: 'ready' as const,
+    skipReason: null,
+    context: `Pantalla: Domicilio. Capa: ${layerName}.`,
+  };
+}
+
+export const AUDIT_CANDIDATES = [
+  auditCandidate(0, 'Tu visita ha sido confirmada', 'Título'),
+  auditCandidate(1, 'Continuar', 'CTA'),
+  auditCandidate(2, 'Cancelar', 'CTA secundario'),
+];
+
+function itemFor(index: number): ScreenAuditItem {
+  return {
+    candidate: AUDIT_CANDIDATES[index]!,
+    status: 'pending',
+    transport: null,
+    result: null,
+    error: null,
+  };
+}
+
+/** Sesión base: recién arrancada, sin nada resuelto. */
+export function auditSession(
+  overrides: Partial<ScreenAuditSession> = {},
+): ScreenAuditSession {
+  return {
+    sessionId: 'screen-1',
+    frameId: 'f1',
+    frameName: 'Domicilio',
+    selectionRevision: FRAME_SELECTION.revision,
+    status: 'running',
+    total: AUDIT_CANDIDATES.length,
+    completed: 0,
+    changed: 0,
+    failed: 0,
+    currentIndex: 0,
+    executionTransport: 'local',
+    cloudContinuationAvailable: false,
+    items: AUDIT_CANDIDATES.map((_, index) => itemFor(index)),
+    ...overrides,
+  };
+}
+
+/** Aplica un resultado a un elemento, como haría el hilo principal. */
+export function withResult(
+  session: ScreenAuditSession,
+  index: number,
+  transport: AnalysisTransportKind,
+  score = 96,
+): ScreenAuditSession {
+  const candidate = AUDIT_CANDIDATES[index]!;
+  const items = session.items.map((item, position) => (
+    position === index
+      ? {
+          ...item,
+          status: 'success' as const,
+          transport,
+          result: { ...GOOD_RESULT, text: candidate.text, suggestion: candidate.text, score },
+        }
+      : item
+  ));
+
+  const completed = session.completed + 1;
+  const currentIndex = index + 1;
+
+  return {
+    ...session,
+    items,
+    completed,
+    currentIndex,
+    status: currentIndex >= session.total ? 'completed' : 'running',
+  };
+}
+
+export function withChanged(
+  session: ScreenAuditSession,
+  index: number,
+): ScreenAuditSession {
+  const items = session.items.map((item, position) => (
+    position === index ? { ...item, status: 'changed' as const } : item
+  ));
+  const currentIndex = index + 1;
+
+  return {
+    ...session,
+    items,
+    changed: session.changed + 1,
+    currentIndex,
+    status: currentIndex >= session.total ? 'completed' : 'running',
+  };
+}
+
+export function withFailure(
+  session: ScreenAuditSession,
+  index: number,
+  cloudContinuationAvailable: boolean,
+): ScreenAuditSession {
+  const items = session.items.map((item, position) => (
+    position === index
+      ? {
+          ...item,
+          status: 'error' as const,
+          transport: 'local' as const,
+          error: { code: 'LOCAL_RUNTIME_UNAVAILABLE' as const },
+        }
+      : item
+  ));
+
+  return {
+    ...session,
+    items,
+    status: 'paused',
+    failed: 1,
+    currentIndex: index,
+    cloudContinuationAvailable,
+  };
+}
+
+export function auditUpdate(session: ScreenAuditSession): MainToUiMessage {
+  return { type: 'SCREEN_AUDIT_UPDATED', payload: { session } };
+}
+
+/** Preflight coherente con la sesión de ejecución. */
+export function auditPreflight(): MainToUiMessage {
+  return preflight({
+    detectedCount: AUDIT_CANDIDATES.length,
+    eligibleCount: AUDIT_CANDIDATES.length,
+    skippedCount: 0,
+    candidates: AUDIT_CANDIDATES,
+  });
+}

@@ -7,11 +7,19 @@ import type { AnalysisTransportKind } from './analysis-transport';
 import { describeBlockedRoute, resolveEngineDisplay } from './engine-display';
 import type { ScreenAuditCandidate, ScreenAuditPreflight } from './screen-audit-contracts';
 import {
+  describeAuditTitle,
+  describeChanged,
   describeCounts,
+  describeExecutionTransport,
+  describeItemProvenance,
+  describeProgress,
+  previewText,
+  progressRatio,
   readyCandidates,
   skippedCandidates,
   toDisplay,
 } from './screen-audit-presentation';
+import type { ScreenAuditItem, ScreenAuditSession } from './screen-audit-session';
 import type {
   AnalyzeError,
   AnalyzeResponse,
@@ -92,6 +100,22 @@ const screenDetectedList = getElement<HTMLElement>('screen-detected-list');
 const screenSkipped = getElement<HTMLElement>('screen-skipped');
 const screenSkippedList = getElement<HTMLElement>('screen-skipped-list');
 const screenError = getElement<HTMLElement>('screen-error');
+const auditScreenButton = getElement<HTMLButtonElement>('audit-screen-button');
+const screenAuditPanel = getElement<HTMLElement>('screen-audit');
+const screenAuditTitle = getElement<HTMLElement>('screen-audit-title');
+const screenAuditFrame = getElement<HTMLElement>('screen-audit-frame');
+const screenAuditProgress = getElement<HTMLElement>('screen-audit-progress');
+const screenAuditChanged = getElement<HTMLElement>('screen-audit-changed');
+const screenAuditEngine = getElement<HTMLElement>('screen-audit-engine');
+const screenAuditProgressFill = getElement<HTMLElement>('screen-audit-progress-fill');
+const screenAuditCurrent = getElement<HTMLElement>('screen-audit-current');
+const screenAuditResults = getElement<HTMLElement>('screen-audit-results');
+const screenAuditPaused = getElement<HTMLElement>('screen-audit-paused');
+const screenAuditPausedTitle = getElement<HTMLElement>('screen-audit-paused-title');
+const screenAuditPausedMessage = getElement<HTMLElement>('screen-audit-paused-message');
+const screenAuditRetryLocal = getElement<HTMLButtonElement>('screen-audit-retry-local');
+const screenAuditCloudBlock = getElement<HTMLElement>('screen-audit-cloud-block');
+const screenAuditContinueCloud = getElement<HTMLButtonElement>('screen-audit-continue-cloud');
 const engineRow = getElement<HTMLElement>('engine-row');
 const engineName = getElement<HTMLElement>('engine-name');
 const engineDetail = getElement<HTMLElement>('engine-detail');
@@ -186,6 +210,8 @@ let cloudRetryAvailable = false;
 /** Preflight vigente. `null` mientras no haya un frame seleccionado o cuando
  *  el descubrimiento anterior quedó obsoleto. */
 let screenPreflight: ScreenAuditPreflight | null = null;
+/** Auditoría en curso. Solo en memoria: nada se persiste. */
+let screenAuditSession: ScreenAuditSession | null = null;
 let settingsState: SettingsState = 'loading';
 let stableSettingsState: StableSettingsState = 'unconfigured';
 let settingsErrorCode: SettingsErrorCode | null = null;
@@ -359,11 +385,22 @@ function renderApiKeyIndicator(): void {
  */
 function renderScreenPreflight(): void {
   const selection = currentSelectionState;
-  screenPreflightPanel.hidden = selection.status !== 'frame';
+  const auditing = screenAuditSession !== null;
 
-  if (selection.status !== 'frame') {
+  renderScreenAudit();
+
+  // Durante la auditoría manda el panel de ejecución: mostrar el preflight a
+  // la vez repetiría los mismos conteos con otro significado.
+  screenPreflightPanel.hidden = selection.status !== 'frame' || auditing;
+
+  if (selection.status !== 'frame' || auditing) {
     return;
   }
+
+  // El CTA se habilita solo si HAY una ruta de análisis inicial. El preflight
+  // en sí sigue funcionando sin motor y sin clave.
+  auditScreenButton.disabled = currentRoute().status !== 'ready'
+    || (screenPreflight?.eligibleCount ?? 0) === 0;
 
   screenName.textContent = selection.nodeName;
 
@@ -398,6 +435,115 @@ function renderScreenPreflight(): void {
   screenSkipped.hidden = skipped.length === 0;
   renderCandidateList(screenDetectedList, ready, false);
   renderCandidateList(screenSkippedList, skipped, true);
+}
+
+/**
+ * Auditoría en curso.
+ *
+ * La interfaz es un renderizador puro de la sesión que envía el hilo
+ * principal. No deduce procedencia, ni progreso, ni estado: los recibe.
+ */
+function renderScreenAudit(): void {
+  const session = screenAuditSession;
+  screenAuditPanel.hidden = session === null;
+
+  if (session === null) {
+    return;
+  }
+
+  screenAuditTitle.textContent = describeAuditTitle(session);
+  screenAuditFrame.textContent = session.frameName;
+  screenAuditProgress.textContent = describeProgress(session);
+
+  const changed = describeChanged(session);
+  screenAuditChanged.textContent = changed;
+  screenAuditChanged.hidden = changed.length === 0;
+
+  screenAuditEngine.textContent = describeExecutionTransport(session.executionTransport);
+  screenAuditProgressFill.style.width = `${Math.round(progressRatio(session) * 100)}%`;
+
+  const current = session.items[session.currentIndex];
+  screenAuditCurrent.textContent = session.status === 'running' && current !== undefined
+    ? `Analizando «${previewText(current.candidate.text)}»…`
+    : '';
+
+  renderAuditResults(session);
+  renderAuditPause(session);
+}
+
+function renderAuditResults(session: ScreenAuditSession): void {
+  screenAuditResults.replaceChildren();
+
+  for (const item of session.items) {
+    if (item.status !== 'success' && item.status !== 'changed') {
+      continue;
+    }
+
+    screenAuditResults.appendChild(buildAuditItem(item));
+  }
+}
+
+function buildAuditItem(item: ScreenAuditItem): HTMLElement {
+  const article = document.createElement('article');
+  article.className = 'audit-item';
+  article.dataset['status'] = item.status;
+
+  const header = document.createElement('div');
+  header.className = 'audit-item-header';
+
+  const layer = document.createElement('span');
+  layer.className = 'audit-item-layer';
+  layer.textContent = item.candidate.layerName;
+  header.appendChild(layer);
+
+  if (item.status === 'success' && item.result !== null) {
+    const score = document.createElement('span');
+    score.className = 'audit-item-score';
+    // Sin puntuación global de pantalla: promediar textos distintos no
+    // significaría nada y requiere su propia definición de producto.
+    score.textContent = `${item.result.score}/100`;
+    header.appendChild(score);
+  }
+
+  article.appendChild(header);
+
+  const preview = document.createElement('span');
+  preview.className = 'audit-item-preview';
+  preview.textContent = previewText(item.candidate.text);
+  article.appendChild(preview);
+
+  const meta = document.createElement('span');
+  meta.className = 'audit-item-meta';
+
+  if (item.status === 'changed') {
+    meta.textContent = describeItemProvenance(item);
+  } else if (item.result !== null) {
+    const presentation = getResultPresentation(item.result);
+    meta.textContent = `${presentation.severityLabel} · ${describeItemProvenance(item)}`;
+  }
+
+  article.appendChild(meta);
+  return article;
+}
+
+function renderAuditPause(session: ScreenAuditSession): void {
+  screenAuditPaused.hidden = session.status !== 'paused';
+
+  if (session.status !== 'paused') {
+    return;
+  }
+
+  const failed = session.items[session.currentIndex];
+  const presentation = failed?.error === undefined || failed.error === null
+    ? null
+    : getAnalyzeErrorPresentation(failed.error);
+
+  screenAuditPausedTitle.textContent = presentation?.title ?? 'La auditoría se detuvo';
+  screenAuditPausedMessage.textContent = presentation?.description
+    ?? 'No pudimos completar el análisis de este texto.';
+
+  // En Solo local nunca se ofrece la nube, aunque haya clave configurada.
+  screenAuditCloudBlock.hidden = !session.cloudContinuationAvailable;
 }
 
 function renderCandidateList(
@@ -943,13 +1089,24 @@ function handleMainMessage(message: MainToUiMessage): void {
     case 'SETTINGS_ERROR':
       showSettingsError(message.payload.code);
       break;
+    case 'SCREEN_AUDIT_UPDATED':
+      screenAuditSession = message.payload.session;
+      renderScreenPreflight();
+      break;
+    case 'SCREEN_AUDIT_INVALIDATED':
+      // Una auditoría obsoleta no puede seguir pintándose contra otra pantalla.
+      screenAuditSession = null;
+      renderScreenPreflight();
+      break;
     case 'SCREEN_PREFLIGHT_READY':
+      screenAuditSession = null;
       screenPreflight = message.payload.preflight;
       screenError.hidden = true;
       renderScreenPreflight();
       break;
     case 'SCREEN_PREFLIGHT_INVALIDATED':
       // Un descubrimiento obsoleto no puede pintarse contra otra selección.
+      screenAuditSession = null;
       screenPreflight = null;
       screenError.hidden = true;
       renderScreenPreflight();
@@ -1108,6 +1265,39 @@ applySuggestionButton.addEventListener('click', requestApplySuggestion);
 // hilo principal nunca lo recibía.
 engineRetry.addEventListener('click', (): void => {
   postToMain({ type: 'CHECK_LOCAL_RUNTIME' });
+});
+
+auditScreenButton.addEventListener('click', (): void => {
+  if (currentSelectionState.status !== 'frame' || auditScreenButton.disabled) {
+    return;
+  }
+
+  postToMain({
+    type: 'START_SCREEN_AUDIT',
+    selectionRevision: currentSelectionState.revision,
+  });
+});
+
+screenAuditRetryLocal.addEventListener('click', (): void => {
+  if (screenAuditSession === null) {
+    return;
+  }
+
+  postToMain({
+    type: 'RETRY_SCREEN_AUDIT_LOCAL',
+    sessionId: screenAuditSession.sessionId,
+  });
+});
+
+screenAuditContinueCloud.addEventListener('click', (): void => {
+  if (screenAuditSession === null) {
+    return;
+  }
+
+  postToMain({
+    type: 'CONTINUE_SCREEN_AUDIT_CLOUD',
+    sessionId: screenAuditSession.sessionId,
+  });
 });
 
 settingsCheckLocalButton.addEventListener('click', (): void => {

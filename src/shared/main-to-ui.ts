@@ -18,6 +18,7 @@ import {
 } from '../analyze-contracts';
 import { isApplyError, isApplySuccessPayload } from '../apply-contracts';
 import { isScreenAuditPreflight } from '../screen-audit-contracts';
+import { isScreenAuditSession } from '../screen-audit-session';
 import type {
   LocalRuntimeStatusPayload,
   MainToUiMessage,
@@ -82,6 +83,12 @@ export function isMainToUiMessage(value: unknown): value is MainToUiMessage {
   }
 
   switch (value.type) {
+    case 'SCREEN_AUDIT_UPDATED':
+      return isRecord(value.payload)
+        && isScreenAuditSession(value.payload.session);
+    case 'SCREEN_AUDIT_INVALIDATED':
+      return isRecord(value.payload)
+        && typeof value.payload.sessionId === 'string';
     case 'SCREEN_PREFLIGHT_READY':
       return isRecord(value.payload)
         && isScreenAuditPreflight(value.payload.preflight);

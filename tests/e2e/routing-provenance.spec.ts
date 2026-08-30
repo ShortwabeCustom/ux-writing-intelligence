@@ -117,6 +117,8 @@ test('el aviso de privacidad acompaña siempre a la acción de nube', async ({ p
   await plugin.send(analysisStarted('local'));
   await plugin.send(analysisFailed('LOCAL_ANALYSIS_TIMEOUT', true));
 
-  await expect(plugin.ui.locator('.cloud-retry-note'))
+  // Se acota al bloque de Text Audit: FASE 9.2B añadió otra nota equivalente
+  // dentro del panel de auditoría de pantalla.
+  await expect(plugin.ui.locator('#cloud-retry-block .cloud-retry-note'))
     .toHaveText('El contenido se enviará al servicio en la nube para realizar el análisis.');
 });

@@ -26,6 +26,7 @@ const bundle = await build({
     contents: [
       "export * from './src/shared/messages.ts';",
       "export * from './src/shared/main-to-ui.ts';",
+      "export * from './src/screen-audit-session.ts';",
       "export * from './src/analyze-contracts.ts';",
     ].join('\n'),
     resolveDir: workspace,
@@ -68,6 +69,9 @@ const UI_TO_MAIN_SAMPLES = {
   SET_ANALYSIS_MODE: { mode: 'local' },
   ANALYZE_REQUEST: { selectionRevision: 0 },
   RETRY_LOCAL_ANALYSIS: { selectionRevision: 0 },
+  START_SCREEN_AUDIT: { selectionRevision: 0 },
+  RETRY_SCREEN_AUDIT_LOCAL: { sessionId: 'screen-1' },
+  CONTINUE_SCREEN_AUDIT_CLOUD: { sessionId: 'screen-1' },
   USE_CLOUD_FOR_CURRENT_ANALYSIS: { selectionRevision: 0 },
   APPLY_SUGGESTION: { requestId: 'analysis-1' },
 };
@@ -91,7 +95,31 @@ const VALID_PREFLIGHT = {
   }],
 };
 
+const VALID_SESSION = {
+  sessionId: 'screen-1',
+  frameId: 'f1',
+  frameName: 'Domicilio',
+  selectionRevision: 2,
+  status: 'running',
+  total: 1,
+  completed: 0,
+  changed: 0,
+  failed: 0,
+  currentIndex: 0,
+  executionTransport: 'local',
+  cloudContinuationAvailable: false,
+  items: [{
+    candidate: VALID_PREFLIGHT.candidates[0],
+    status: 'pending',
+    transport: null,
+    result: null,
+    error: null,
+  }],
+};
+
 const MAIN_TO_UI_SAMPLES = {
+  SCREEN_AUDIT_UPDATED: { payload: { session: VALID_SESSION } },
+  SCREEN_AUDIT_INVALIDATED: { payload: { sessionId: 'screen-1' } },
   SCREEN_PREFLIGHT_READY: { payload: { preflight: VALID_PREFLIGHT } },
   SCREEN_PREFLIGHT_INVALIDATED: { payload: { revision: 3 } },
   SCREEN_PREFLIGHT_ERROR: { payload: { code: 'DISCOVERY_FAILED' } },
@@ -189,6 +217,21 @@ test('los validadores siguen rechazando lo que no es válido', () => {
   );
   assert.equal(
     core.isMainToUiMessage({ type: 'SCREEN_PREFLIGHT_ERROR', payload: { code: 'OTRO' } }),
+    false,
+  );
+  assert.equal(
+    core.isMainToUiMessage({ type: 'SCREEN_AUDIT_UPDATED', payload: { session: {} } }),
+    false,
+  );
+  assert.equal(
+    core.isMainToUiMessage({
+      type: 'SCREEN_AUDIT_UPDATED',
+      payload: { session: { ...VALID_SESSION, status: 'inventado' } },
+    }),
+    false,
+  );
+  assert.equal(
+    core.isUiToMainMessage({ type: 'RETRY_SCREEN_AUDIT_LOCAL', sessionId: '' }),
     false,
   );
 });

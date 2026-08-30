@@ -1261,3 +1261,80 @@ input:focus-visible {
   font-size: 12px;
   color: var(--figma-color-text-danger, #dc3412);
 }
+
+/* Ejecución de Screen Audit (FASE 9.2B). */
+.screen-audit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--figma-color-border, #e6e6e6);
+  border-radius: 8px;
+  background: var(--figma-color-bg-secondary, #f5f5f5);
+}
+
+/* La barra refleja elementos completados, nunca tiempo transcurrido: una
+   estimación temporal seria imposible de sostener cuando la regeneración
+   semántica duplica la latencia de un texto impredecible. */
+.audit-track {
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--figma-color-bg, #ffffff);
+  margin: 2px 0 4px;
+}
+
+.audit-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 2px;
+  background: var(--figma-color-bg-brand, #0d99ff);
+  transition: width 160ms ease-out;
+}
+
+.audit-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--figma-color-bg, #ffffff);
+}
+
+.audit-item-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.audit-item-layer {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--figma-color-text, #1a1a1a);
+  overflow-wrap: anywhere;
+}
+
+.audit-item-score {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--figma-color-text, #1a1a1a);
+  white-space: nowrap;
+}
+
+.audit-item-preview {
+  font-size: 11px;
+  color: var(--figma-color-text-secondary, #737373);
+  overflow-wrap: anywhere;
+}
+
+.audit-item-meta {
+  font-size: 10px;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.audit-item[data-status="changed"] .audit-item-meta {
+  color: var(--figma-color-text-warning, #a07800);
+}

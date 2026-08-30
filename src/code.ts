@@ -51,6 +51,12 @@ import {
 import { getSelectionState } from './selection';
 import type { ScreenNodeLike } from './screen-audit-discovery';
 import { buildPreflight } from './screen-audit-discovery';
+import type { ScreenAuditSession } from './screen-audit-session';
+import {
+  createSession,
+  isRunnable,
+  reduceScreenAuditSession,
+} from './screen-audit-session';
 
 figma.showUI(__html__, {
   width: 360,
@@ -72,6 +78,11 @@ let currentSelectionSnapshot = createSelectionSnapshot();
 /** Revisión propia del preflight de Screen Audit. Independiente de la de Text
  *  Audit para que ninguna de las dos herede la obsolescencia de la otra. */
 let screenPreflightRevision = 0;
+/** Preflight vigente. Es la fuente de los candidatos que audita 9.2B. */
+let currentPreflight: ReturnType<typeof buildPreflight> | null = null;
+/** Sesión de auditoría en curso. Solo en memoria: nada se persiste. */
+let screenAuditSession: ScreenAuditSession | null = null;
+let screenAuditCounter = 0;
 const pluginFetch = fetch as unknown as FetchPort;
 
 /**
@@ -193,10 +204,31 @@ function handleSelectionChange(): void {
  */
 function invalidateScreenPreflight(): void {
   screenPreflightRevision += 1;
+  currentPreflight = null;
+  invalidateScreenAudit();
   sendMessage({
     type: 'SCREEN_PREFLIGHT_INVALIDATED',
     payload: { revision: screenPreflightRevision },
   });
+}
+
+/**
+ * Mata la auditoría en curso.
+ *
+ * Cualquier respuesta que llegue después queda huérfana: el bucle comprueba la
+ * identidad de sesión tras cada espera y la descarta. Un resultado de una
+ * pantalla no puede pintarse sobre otra.
+ */
+function invalidateScreenAudit(): void {
+  if (screenAuditSession === null) {
+    return;
+  }
+
+  const sessionId = screenAuditSession.sessionId;
+  screenAuditSession = reduceScreenAuditSession(
+    screenAuditSession, { type: 'INVALIDATED' });
+  screenAuditSession = null;
+  sendMessage({ type: 'SCREEN_AUDIT_INVALIDATED', payload: { sessionId } });
 }
 
 /**
@@ -230,6 +262,7 @@ function sendScreenPreflightIfFrameSelected(): void {
       return;
     }
 
+    currentPreflight = preflight;
     sendMessage({ type: 'SCREEN_PREFLIGHT_READY', payload: { preflight } });
   } catch {
     // Fallo interno real del recorrido. Nunca se usa para estados ordinarios
@@ -725,6 +758,218 @@ async function handleApplyRequest(requestId: string): Promise<void> {
   }
 }
 
+
+// =============================================================================
+// Screen Audit — ejecución secuencial progresiva (FASE 9.2B)
+//
+// Estrategia elegida por medición en FASE 9.2A. Un candidato, UNA petición de
+// las que ya existen, y el resultado a la vista en cuanto llega.
+//
+// Sin lotes: agrupar perdía textos en silencio. Sin paralelismo: Ollama encola
+// y no aporta nada. La secuencialidad estricta no es una política que haya que
+// vigilar, es la forma del bucle: un solo `await` en curso a la vez.
+// =============================================================================
+
+function publishScreenAudit(): void {
+  if (screenAuditSession !== null) {
+    sendMessage({
+      type: 'SCREEN_AUDIT_UPDATED',
+      payload: { session: screenAuditSession },
+    });
+  }
+}
+
+function applyScreenAuditEvent(sessionId: string, event: Parameters<typeof reduceScreenAuditSession>[1]): boolean {
+  if (screenAuditSession === null || screenAuditSession.sessionId !== sessionId) {
+    return false;
+  }
+
+  screenAuditSession = reduceScreenAuditSession(screenAuditSession, event);
+  publishScreenAudit();
+  return true;
+}
+
+/**
+ * Revalida el nodo justo antes de enviarlo.
+ *
+ * Una auditoría puede durar más de un minuto y el documento puede cambiar
+ * mientras tanto. Analizar una fuente obsoleta produciría un veredicto sobre
+ * un texto que ya no existe.
+ */
+async function revalidateCandidate(nodeId: string, expected: string): Promise<boolean> {
+  try {
+    const node = await figma.getNodeByIdAsync(nodeId);
+    return node !== null
+      && node.type === 'TEXT'
+      && (node as TextNode).characters === expected;
+  } catch {
+    return false;
+  }
+}
+
+async function runScreenAudit(sessionId: string): Promise<void> {
+  // Un único bucle con espera: por construcción no puede haber dos peticiones
+  // de Screen Audit en vuelo.
+  while (
+    screenAuditSession !== null
+    && screenAuditSession.sessionId === sessionId
+    && isRunnable(screenAuditSession)
+  ) {
+    const index = screenAuditSession.currentIndex;
+    const item = screenAuditSession.items[index];
+    const transport = screenAuditSession.executionTransport;
+
+    if (item === undefined || transport === null) {
+      return;
+    }
+
+    const candidate = item.candidate;
+
+    if (!await revalidateCandidate(candidate.nodeId, candidate.text)) {
+      // Obsolescencia del documento: se marca y se continúa con seguridad.
+      // No se analiza la fuente vieja ni se toca el texto nuevo.
+      if (!applyScreenAuditEvent(sessionId, { type: 'ITEM_CHANGED', index })) {
+        return;
+      }
+      continue;
+    }
+
+    if (!applyScreenAuditEvent(sessionId, { type: 'ITEM_STARTED', index })) {
+      return;
+    }
+
+    let apiKey: string | null = null;
+
+    if (transportRequiresApiKey(transport)) {
+      try {
+        apiKey = await getApiKey(figma.clientStorage);
+      } catch {
+        apiKey = null;
+      }
+
+      if (apiKey === null) {
+        applyScreenAuditEvent(sessionId, {
+          type: 'ITEM_FAILED',
+          index,
+          error: { code: 'MISSING_API_KEY' },
+          transport,
+          cloudContinuationAvailable: false,
+        });
+        return;
+      }
+    }
+
+    const client = selectAnalysisTransport(pluginFetch, transport, apiKey);
+
+    try {
+      const result = await client.analyze({
+        // FUENTE EXACTA: el texto y el contexto son los que preparó el
+        // preflight de 9.1, carácter por carácter.
+        text: candidate.text,
+        context: candidate.context,
+        locale: 'es-MX',
+      });
+
+      if (!applyScreenAuditEvent(sessionId, {
+        type: 'ITEM_SUCCEEDED', index, result, transport,
+      })) {
+        return;
+      }
+    } catch (error: unknown) {
+      const code = error instanceof AnalyzeApiError
+        ? error.details.code
+        : 'UNKNOWN_ERROR';
+
+      // FALLO POSTERIOR AL POST. El texto ya salió hacia el transporte
+      // elegido. Aquí NO se reencamina: se pausa. Continuar en la nube exige
+      // que la persona lo pida.
+      const cloudContinuationAvailable = transport === 'local'
+        && await canOfferCloudRetry(await readAnalysisMode(), transport);
+
+      applyScreenAuditEvent(sessionId, {
+        type: 'ITEM_FAILED',
+        index,
+        error: { code },
+        transport,
+        cloudContinuationAvailable,
+      });
+      return;
+    }
+  }
+
+  if (screenAuditSession !== null
+      && screenAuditSession.sessionId === sessionId
+      && screenAuditSession.status === 'running') {
+    applyScreenAuditEvent(sessionId, { type: 'COMPLETED' });
+  }
+}
+
+async function handleStartScreenAudit(selectionRevisionFromUi: number): Promise<void> {
+  if (currentSelectionSnapshot.status !== 'frame'
+      || currentSelectionSnapshot.revision !== selectionRevisionFromUi
+      || currentPreflight === null) {
+    return;
+  }
+
+  // Se captura el preflight ANTES de las esperas. Resolver la ruta es
+  // asíncrono, y un cambio de selección en ese intervalo lo invalidaría: sin
+  // esta captura, la referencia quedaría en `null` al usarla.
+  const preflight = currentPreflight;
+  const startRevision = screenPreflightRevision;
+
+  // Se resuelve UNA ruta inicial con la política de enrutamiento que ya
+  // existe. No hay una segunda política para Screen Audit.
+  const mode = await readAnalysisMode();
+  const route = await resolveRoute(mode);
+
+  // La selección pudo cambiar mientras se resolvía la ruta. Auditar entonces
+  // sería auditar una pantalla que la persona ya no tiene delante.
+  if (route.status === 'blocked'
+      || startRevision !== screenPreflightRevision
+      || currentPreflight !== preflight) {
+    return;
+  }
+
+  const candidates = preflight.candidates.filter(
+    (candidate) => candidate.status === 'ready',
+  );
+
+  screenAuditCounter += 1;
+  screenAuditSession = createSession({
+    sessionId: `screen-${screenAuditCounter}`,
+    frameId: preflight.frameId,
+    frameName: preflight.frameName,
+    selectionRevision: currentSelectionSnapshot.revision,
+    candidates,
+    transport: route.transport,
+  });
+
+  publishScreenAudit();
+  await runScreenAudit(screenAuditSession.sessionId);
+}
+
+async function handleResumeScreenAudit(
+  sessionId: string,
+  transport: AnalysisTransportKind,
+): Promise<void> {
+  if (screenAuditSession === null
+      || screenAuditSession.sessionId !== sessionId
+      || screenAuditSession.status !== 'paused') {
+    return;
+  }
+
+  // En Solo local no existe continuación en la nube, ni pedida a mano.
+  if (transport === 'cloud' && await readAnalysisMode() === 'local') {
+    return;
+  }
+
+  if (!applyScreenAuditEvent(sessionId, { type: 'RESUMED', transport })) {
+    return;
+  }
+
+  await runScreenAudit(sessionId);
+}
+
 async function handleUiMessage(message: UiToMainMessage): Promise<void> {
   switch (message.type) {
     case 'UI_READY':
@@ -757,6 +1002,18 @@ async function handleUiMessage(message: UiToMainMessage): Promise<void> {
       if (message.mode !== 'cloud') {
         await sendLocalRuntimeStatus();
       }
+      break;
+
+    case 'START_SCREEN_AUDIT':
+      await handleStartScreenAudit(message.selectionRevision);
+      break;
+
+    case 'RETRY_SCREEN_AUDIT_LOCAL':
+      await handleResumeScreenAudit(message.sessionId, 'local');
+      break;
+
+    case 'CONTINUE_SCREEN_AUDIT_CLOUD':
+      await handleResumeScreenAudit(message.sessionId, 'cloud');
       break;
 
     case 'RETRY_LOCAL_ANALYSIS':

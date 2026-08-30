@@ -4,6 +4,7 @@ import { isAnalysisMode } from '../analysis-mode';
 import type { AnalysisTransportKind } from '../analysis-transport';
 import type { ScreenAuditPreflight } from '../screen-audit-contracts';
 import { isScreenAuditPreflight } from '../screen-audit-contracts';
+import type { ScreenAuditSession } from '../screen-audit-session';
 import type { ApplyError, ApplySuccessPayload } from '../apply-contracts';
 
 export type SelectionState =
@@ -55,6 +56,26 @@ export type LocalRuntimeStatusPayload = {
 export type ScreenPreflightErrorCode = 'DISCOVERY_FAILED';
 
 export type MainToUiMessage =
+  | {
+      /**
+       * Instantánea completa de la auditoría en curso.
+       *
+       * Se envía la sesión entera en cada cambio en lugar de diferencias: la
+       * interfaz queda como un renderizador puro y no puede desincronizarse
+       * del hilo principal, que es justo la clase de defecto que costó tres
+       * correcciones en 8.5.x.
+       */
+      type: 'SCREEN_AUDIT_UPDATED';
+      payload: {
+        session: ScreenAuditSession;
+      };
+    }
+  | {
+      type: 'SCREEN_AUDIT_INVALIDATED';
+      payload: {
+        sessionId: string;
+      };
+    }
   | {
       type: 'SCREEN_PREFLIGHT_READY';
       payload: {
@@ -163,6 +184,18 @@ export type UiToMainMessage =
       mode: AnalysisMode;
     }
   | {
+      type: 'START_SCREEN_AUDIT';
+      selectionRevision: number;
+    }
+  | {
+      type: 'RETRY_SCREEN_AUDIT_LOCAL';
+      sessionId: string;
+    }
+  | {
+      type: 'CONTINUE_SCREEN_AUDIT_CLOUD';
+      sessionId: string;
+    }
+  | {
       type: 'RETRY_LOCAL_ANALYSIS';
       selectionRevision: number;
     }
@@ -221,6 +254,13 @@ export function isUiToMainMessage(value: unknown): value is UiToMainMessage {
     // Cada intento de recuperación lleva su transporte fijo. No comparten el
     // flujo genérico de análisis: era justo esa reutilización la que permitía
     // que «Reintentar» acabara en la nube al caducar la caché de salud.
+    case 'RETRY_SCREEN_AUDIT_LOCAL':
+    case 'CONTINUE_SCREEN_AUDIT_CLOUD':
+      return 'sessionId' in value
+        && typeof value.sessionId === 'string'
+        && value.sessionId.length > 0;
+
+    case 'START_SCREEN_AUDIT':
     case 'RETRY_LOCAL_ANALYSIS':
     case 'USE_CLOUD_FOR_CURRENT_ANALYSIS':
       return 'selectionRevision' in value

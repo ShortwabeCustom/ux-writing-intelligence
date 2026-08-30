@@ -94,21 +94,38 @@ test('09 y 10: los omitidos muestran motivos en lenguaje de producto', async ({ 
   expect(text).not.toMatch(/numeric_only|protected_only|hidden|TextNode|node/u);
 });
 
-test('15 y 16: el botón de auditar está deshabilitado y no dispara nada', async ({ plugin }) => {
-  await selectFrame(plugin);
+test('15: el CTA se habilita cuando hay una ruta de análisis inicial', async ({ plugin }) => {
+  // FASE 9.2B lo vuelve funcional a propósito: en 9.1 estaba deshabilitado
+  // porque no había motor de ejecución.
+  await plugin.send(analysisMode('auto'));
+  await plugin.send(runtimeStatus('ready'));
+  await plugin.send(selection(FRAME_SELECTION));
+  await plugin.send(preflight());
 
-  const cta = plugin.ui.locator('#audit-screen-button');
-  await expect(cta).toBeDisabled();
-  await expect(plugin.ui.locator('.screen-note'))
-    .toHaveText('La auditoría se habilitará en la siguiente etapa.');
+  await expect(plugin.ui.locator('#audit-screen-button')).toBeEnabled();
+});
 
-  const before = (await plugin.received()).length;
-  await cta.click({ force: true }).catch(() => {});
+test('16: sin ruta de análisis el CTA queda deshabilitado', async ({ plugin }) => {
+  await plugin.send(analysisMode('local'));
+  await plugin.send(runtimeStatus('unavailable', null));
+  await plugin.send(selection(FRAME_SELECTION));
+  await plugin.send(preflight());
 
-  await plugin.expectMessages('ANALYZE_REQUEST', 0);
+  await expect(plugin.ui.locator('#audit-screen-button')).toBeDisabled();
+  // Pero el preflight sigue mostrándose: no depende de ningún motor.
+  await expect(plugin.ui.locator('#screen-ready-count'))
+    .toHaveText('2 textos listos para auditar');
+});
 
-  const after = await plugin.received();
-  expect(after.length).toBe(before);
+test('16b: una pantalla sin candidatos listos no habilita el CTA', async ({ plugin }) => {
+  await plugin.send(analysisMode('auto'));
+  await plugin.send(runtimeStatus('ready'));
+  await plugin.send(selection(FRAME_SELECTION));
+  await plugin.send(preflight({
+    detectedCount: 0, eligibleCount: 0, skippedCount: 0, candidates: [],
+  }));
+
+  await expect(plugin.ui.locator('#audit-screen-button')).toBeDisabled();
 });
 
 test('17: el motor local apagado NO oculta el preflight', async ({ plugin }) => {

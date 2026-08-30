@@ -8,9 +8,9 @@ Auditar el contenido de una pantalla completa en vez de una capa de texto a la
 vez: seleccionar un frame y obtener una revisión de UX Writing de todo lo que
 contiene.
 
-## 2. Qué implementan 9.0 y 9.1
+## 2. Qué implementan 9.0, 9.1 y 9.2B
 
-**Solo el descubrimiento y el preflight determinista.**
+**9.0 y 9.1: descubrimiento y preflight determinista.**
 
 1. Contratos tipados de Screen Audit.
 2. Reconocimiento de la selección de frame.
@@ -21,25 +21,66 @@ contiene.
 7. Interfaz de preflight.
 8. Pruebas.
 
-## 3. Qué NO implementan, a propósito
+**9.2B: ejecución secuencial progresiva.** «Auditar pantalla» ya funciona.
 
-Sin llamadas al modelo. Sin llamadas al runtime local ni a la nube para Screen
-Audit. Sin cola, sin concurrencia, sin barra de progreso, sin cancelación, sin
-caché, sin deduplicación en ejecución, sin lista de resultados, sin navegación
-a nodos, sin puntuación de pantalla, sin Apply masivo.
+## 3. Qué NO se implementa, a propósito
 
-**El botón «Auditar pantalla» está deshabilitado.** Un CTA que parece
-funcionar y no hace nada es peor que uno claramente inactivo.
+Sin lotes. Sin paralelismo. Sin `/v1/analyze/screen`. Sin caché persistente.
+Sin puntuación global de pantalla. Sin navegación a nodos. Sin cancelación. Sin
+Apply, ni Apply masivo, ni mutación del documento. Sin filtrado de hallazgos.
+Sin sesiones persistentes.
 
-### Por qué se para aquí
+---
 
-Medido en FASE 8.5.6: cada análisis cuesta 4,9 s en caliente y la regeneración
-semántica puede llegar a 13,4 s. Veinte textos en secuencia son **2,2 minutos**,
-o 2,7 con regeneración.
+## 3.1 Estrategia de ejecución, y por qué
 
-**El cuello de botella es la inferencia, no el código.** Enviar cada texto al
-modelo sin pensarlo sería construir algo inutilizable. Primero hay que saber
-qué contiene realmente una pantalla y qué merece la pena auditar.
+FASE 9.2A midió cinco estrategias sobre una pantalla de 20 candidatos. La
+decisión no se tomó por intuición.
+
+### Secuencial progresiva — elegida
+
+Un candidato, **una petición de las que ya existen** (`POST /v1/analyze/text`),
+y el resultado a la vista en cuanto llega.
+
+| | Medido |
+|---|---:|
+| Total, 20 candidatos | 104,0 s |
+| **Primer resultado útil** | **5,1 s** |
+| Reducción de llamadas | 0 % |
+
+No acelera nada. **Convierte una espera de 104 segundos en un primer resultado
+a los 5,1**: veinte veces antes, sin tocar ninguna garantía.
+
+### Lotes — rechazados por pérdida de textos
+
+| Lote | Total | vs secuencial | TTFR | Textos perdidos |
+|---:|---:|---:|---:|---:|
+| 2 | 107,9 s | +3,7 % | 11,5 s | **1 de 20** |
+| 4 | 85,5 s | −17,8 % | 20,5 s | **3 de 20** |
+| 6 | 96,7 s | −7,0 % | 28,6 s | 0 |
+
+Con lotes de 2 y 4 el modelo **devolvió menos elementos de los que recibió**.
+Cuatro candidatos desaparecieron, entre ellos dos mensajes de error.
+
+Para una herramienta de auditoría, **omitir textos en silencio es peor que ser
+lenta**. Y el mejor ahorro, un 17,8 %, ni siquiera alcanzaba el 30 % exigido.
+
+Además: un control demostró que el análisis individual es **exactamente
+reproducible** (delta 0,0 entre corridas). Por tanto la discrepancia de lote en
+el veredicto de «no requiere cambios» —3 a 5 de cada 20— es atribuible al
+formato: el modelo cambia su juicio sobre un texto según con qué otros venga
+acompañado.
+
+### Concurrencia — rechazada por no aportar nada
+
+Dos peticiones simultáneas: 28,54 s contra 28,32 s en serie. Ollama sirve un
+modelo cargado de una en una y encola internamente.
+
+### Reutilización exacta — sin efecto todavía
+
+Ratio medido dentro de una pantalla: **0**. El único texto duplicado aparecía
+en dos contenedores distintos, y la identidad conservadora se niega a
+reutilizar con razón. **No se afirma que una caché mejore la primera corrida.**
 
 ---
 
@@ -216,7 +257,67 @@ Su responsabilidad futura podría incluir decidir cuándo el juicio del modelo
 es realmente necesario, reducir invocaciones innecesarias apoyándose en las
 capas deterministas del runtime, y decisiones seguras de reutilización.
 
-**No hay una sola línea de 9.2 en esta fase.**
+---
+
+## 13.1 Enrutamiento con alcance de auditoría
+
+La ruta se resuelve **una vez**, al pulsar «Auditar pantalla», con la política
+de enrutamiento que ya existe. No hay una segunda política para Screen Audit.
+
+Una vez que empezó la primera petición, **el transporte queda fijo** hasta que
+la auditoría termine, se invalide, o la persona elija otra cosa. Cambiar de
+modo a mitad de auditoría no la reencamina: afecta a la siguiente.
+
+### Fallo local después del envío
+
+Extiende el principio ya validado para Text Audit. Si un candidato falla tras
+haber empezado su POST local:
+
+- **cero peticiones automáticas a la nube**;
+- la auditoría **se pausa**, no salta al siguiente;
+- se ofrece «Reintentar local» y, si el modo lo permite, «Continuar en la
+  nube».
+
+Se pausa en vez de continuar porque en una pantalla larga **un resultado
+ausente pasaría inadvertido**. La persona debe ver que la ejecución se detuvo.
+
+En **Solo local** nunca se ofrece la nube, aunque haya clave configurada.
+
+### Procedencia por elemento
+
+Cada resultado guarda el transporte que **de verdad** lo produjo. Si la
+auditoría empieza en local y continúa en la nube por decisión explícita, los
+resultados ya cerrados **siguen diciendo Local**. Ni la salud del motor ni el
+modo de análisis son procedencia.
+
+### Obsolescencia
+
+Una auditoría puede durar más de un minuto y el documento puede cambiar
+mientras tanto. Antes de **cada** envío se revalida el nodo: si desapareció o
+su texto cambió, no se analiza la fuente vieja ni se toca la nueva. Se marca
+como cambiado y se continúa.
+
+Un texto cambiado **no cuenta como analizado**: el resumen dice «14 analizados
+· 1 cambió durante la auditoría».
+
+Si la selección cambia, la auditoría se invalida y cualquier respuesta que
+llegue después se descarta.
+
+### Progreso verdadero
+
+El progreso es un **conteo de elementos completados**, nunca una estimación
+temporal. La regeneración semántica puede duplicar la latencia de un texto y no
+se sabe de antemano cuál la disparará: cualquier porcentaje basado en tiempo
+sería una invención.
+
+### Sin puntuación global
+
+No se promedia. Promediar textos distintos no significaría nada y requiere su
+propia definición de producto.
+
+---
+
+**No hay una sola línea de 9.3 en esta fase.**
 
 ---
 

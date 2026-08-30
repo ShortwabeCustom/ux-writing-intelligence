@@ -84,6 +84,48 @@
             </p>
           </section>
 
+          <section id="screen-audit" class="screen-audit" hidden>
+            <div class="screen-heading">
+              <span class="screen-dot" aria-hidden="true"></span>
+              <span class="screen-eyebrow">Pantalla</span>
+            </div>
+
+            <h3 id="screen-audit-title" class="screen-name"></h3>
+            <p id="screen-audit-frame" class="screen-label"></p>
+
+            <p id="screen-audit-progress" class="screen-count screen-count-ready"
+               aria-live="polite"></p>
+            <p id="screen-audit-changed" class="screen-count" hidden></p>
+            <p id="screen-audit-engine" class="screen-note"></p>
+
+            <div id="screen-audit-progress-track" class="audit-track" aria-hidden="true">
+              <span id="screen-audit-progress-fill" class="audit-fill"></span>
+            </div>
+
+            <p id="screen-audit-current" class="screen-note" aria-live="polite"></p>
+
+            <div id="screen-audit-results" class="screen-list"></div>
+
+            <section id="screen-audit-paused" class="analysis-error" role="alert" hidden>
+              <div class="feedback-heading">
+                <span class="feedback-icon" aria-hidden="true">!</span>
+                <h3 id="screen-audit-paused-title"></h3>
+              </div>
+              <p id="screen-audit-paused-message"></p>
+              <button id="screen-audit-retry-local" class="secondary-button" type="button">
+                Reintentar local
+              </button>
+              <div id="screen-audit-cloud-block" class="cloud-retry-block" hidden>
+                <button id="screen-audit-continue-cloud" class="secondary-button" type="button">
+                  Continuar en la nube
+                </button>
+                <p class="cloud-retry-note">
+                  Los textos pendientes se enviarán al servicio en la nube.
+                </p>
+              </div>
+            </section>
+          </section>
+
           <div id="engine-row" class="engine-row" data-engine="unknown">
             <span class="engine-dot" aria-hidden="true"></span>
             <div class="engine-copy">
