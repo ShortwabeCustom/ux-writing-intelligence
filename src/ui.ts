@@ -31,6 +31,7 @@ import {
   getReviewCounts,
   getReviewNavigation,
   normalizeActiveCandidateId,
+  navigableReviewItems,
   reviewableItems,
 } from './screen-audit-review';
 import type {
@@ -130,6 +131,7 @@ const screenAuditFilters = getElement<HTMLElement>('screen-audit-filters');
 const screenAuditActivePosition = getElement<HTMLElement>('screen-audit-active-position');
 const screenAuditPrevious = getElement<HTMLButtonElement>('screen-audit-previous');
 const screenAuditNext = getElement<HTMLButtonElement>('screen-audit-next');
+const screenAuditReaudit = getElement<HTMLButtonElement>('screen-audit-reaudit');
 const screenAuditFrameUnavailable = getElement<HTMLElement>('screen-audit-frame-unavailable');
 const screenAuditResults = getElement<HTMLElement>('screen-audit-results');
 const screenAuditPaused = getElement<HTMLElement>('screen-audit-paused');
@@ -161,6 +163,7 @@ const analysisLoadingPanel = getElement<HTMLElement>('analysis-loading');
 const analysisLoadingMessage = getElement<HTMLElement>('analysis-loading-message');
 const analysisLoadingEngine = getElement<HTMLElement>('analysis-loading-engine');
 const analysisResultPanel = getElement<HTMLElement>('analysis-result');
+const textAuditStale = getElement<HTMLElement>('text-audit-stale');
 const analysisErrorPanel = getElement<HTMLElement>('analysis-error');
 const analysisErrorTitle = getElement<HTMLElement>('analysis-error-title');
 const analysisErrorMessage = getElement<HTMLElement>('analysis-error-message');
@@ -246,6 +249,7 @@ let settingsErrorCode: SettingsErrorCode | null = null;
 let pendingApiKey: string | null = null;
 let analysisState: AnalysisUiState = INITIAL_ANALYSIS_STATE;
 let applyState: ApplyUiState = INITIAL_APPLY_STATE;
+let restoredTextAuditIsStale = false;
 const analysisLoadingFeedback = createAnalysisLoadingFeedback({
   onExtended: (): void => {
     if (analysisState.status === 'loading') {
@@ -525,7 +529,21 @@ function synchronizeReviewState(session: ScreenAuditSession): void {
       null,
     );
     screenAuditReviewCompleted = true;
+    publishScreenReviewState();
   }
+}
+
+function publishScreenReviewState(): void {
+  const session = screenAuditSession;
+  if (session === null || session.status !== 'completed') {
+    return;
+  }
+  postToMain({
+    type: 'UPDATE_SCREEN_AUDIT_REVIEW_STATE',
+    auditSessionId: session.sessionId,
+    filter: screenAuditReviewFilter,
+    activeCandidateId: screenAuditActiveCandidateId,
+  });
 }
 
 function renderAuditResults(session: ScreenAuditSession): void {
@@ -536,6 +554,7 @@ function renderAuditResults(session: ScreenAuditSession): void {
   const visibleItems = completed
     ? filterReviewItems(items, screenAuditReviewFilter, screenAuditNavigationStates)
     : items;
+  const navigableItems = navigableReviewItems(visibleItems, screenAuditNavigationStates);
 
   screenAuditReview.hidden = !completed;
   screenAuditFrameUnavailable.hidden = !auditedFrameUnavailable;
@@ -560,11 +579,15 @@ function renderAuditResults(session: ScreenAuditSession): void {
       button.disabled = auditedFrameUnavailable;
     }
 
+    const previousActiveCandidateId = screenAuditActiveCandidateId;
     screenAuditActiveCandidateId = normalizeActiveCandidateId(
-      visibleItems,
+      navigableItems,
       screenAuditActiveCandidateId,
     );
-    const navigation = getReviewNavigation(visibleItems, screenAuditActiveCandidateId);
+    if (screenAuditActiveCandidateId !== previousActiveCandidateId) {
+      publishScreenReviewState();
+    }
+    const navigation = getReviewNavigation(navigableItems, screenAuditActiveCandidateId);
     const subset = screenAuditReviewFilter === 'attention'
       ? 'con atención'
       : screenAuditReviewFilter === 'good'
@@ -572,9 +595,12 @@ function renderAuditResults(session: ScreenAuditSession): void {
         : 'resultados';
     screenAuditActivePosition.textContent = navigation.index < 0
       ? 'No hay resultados en este filtro.'
-      : `Resultado seleccionado · ${navigation.index + 1} de ${visibleItems.length} ${subset}`;
+      : `Resultado seleccionado · ${navigation.index + 1} de ${navigableItems.length} ${subset}`;
     screenAuditPrevious.disabled = auditedFrameUnavailable || !navigation.hasPrevious;
     screenAuditNext.disabled = auditedFrameUnavailable || !navigation.hasNext;
+    screenAuditReaudit.hidden = currentSelectionState.status !== 'frame'
+      || currentSelectionState.nodeId !== session.frameId;
+    screenAuditReaudit.disabled = auditedFrameUnavailable || currentRoute().status !== 'ready';
   }
 
   for (const item of visibleItems) {
@@ -592,7 +618,8 @@ function buildAuditItem(item: ScreenAuditItem): HTMLButtonElement {
   article.dataset['active'] = String(isActive);
   article.setAttribute('aria-pressed', String(isActive));
   article.setAttribute('aria-label', `Ver en pantalla: ${item.candidate.layerName}`);
-  article.disabled = auditedFrameUnavailable;
+  const navigationState = screenAuditNavigationStates[item.candidate.nodeId] ?? 'current';
+  article.disabled = auditedFrameUnavailable || navigationState === 'deleted';
   article.addEventListener('click', (): void => {
     navigateToAuditCandidate(item.candidate.nodeId);
   });
@@ -635,7 +662,6 @@ function buildAuditItem(item: ScreenAuditItem): HTMLButtonElement {
 
   article.appendChild(meta);
 
-  const navigationState = screenAuditNavigationStates[item.candidate.nodeId] ?? 'current';
   const navigationMessage = describeNavigationState(navigationState);
   if (navigationMessage.length > 0) {
     const stale = document.createElement('span');
@@ -658,6 +684,7 @@ function navigateToAuditCandidate(candidateId: string): void {
   }
 
   screenAuditActiveCandidateId = candidateId;
+  publishScreenReviewState();
   renderAuditResults(session);
   postToMain({
     type: 'SCREEN_AUDIT_NAVIGATE_TO_ITEM',
@@ -677,8 +704,9 @@ function navigateRelative(offset: -1 | 1): void {
     screenAuditReviewFilter,
     screenAuditNavigationStates,
   );
-  const { index } = getReviewNavigation(visibleItems, screenAuditActiveCandidateId);
-  const target = visibleItems[index + offset];
+  const navigableItems = navigableReviewItems(visibleItems, screenAuditNavigationStates);
+  const { index } = getReviewNavigation(navigableItems, screenAuditActiveCandidateId);
+  const target = navigableItems[index + offset];
   if (target !== undefined) {
     navigateToAuditCandidate(target.candidate.nodeId);
   }
@@ -741,6 +769,7 @@ function renderCandidateList(
 
 function renderSelectionState(state: SelectionSnapshot): void {
   currentSelectionState = state;
+  restoredTextAuditIsStale = false;
   applyState = reduceApplyState(applyState, { type: 'SELECTION_CHANGED' });
   updateAnalysisState({ type: 'SELECTION_CHANGED' });
   statePanel.dataset.state = state.status;
@@ -828,6 +857,7 @@ function renderAnalysis(): void {
   analysisLoadingPanel.hidden = true;
   analysisResultPanel.hidden = true;
   analysisErrorPanel.hidden = true;
+  textAuditStale.hidden = true;
 
   switch (analysisState.status) {
     case 'idle':
@@ -845,6 +875,7 @@ function renderAnalysis(): void {
       break;
     case 'success':
       renderAnalysisResult(analysisState.result);
+      textAuditStale.hidden = !restoredTextAuditIsStale;
       analysisResultPanel.hidden = false;
       break;
     case 'error':
@@ -869,7 +900,8 @@ function renderAnalysis(): void {
 
 function renderApplyState(): void {
   const resultHasSuggestionChange = analysisState.status === 'success'
-    && hasSuggestionChange(analysisState.result);
+    && hasSuggestionChange(analysisState.result)
+    && !restoredTextAuditIsStale;
   const isApplying = applyState.status === 'applying';
   applySuggestionButton.disabled = !resultHasSuggestionChange || !canRequestApply(applyState);
   applySuggestionButton.hidden = !resultHasSuggestionChange;
@@ -1248,6 +1280,28 @@ function handleMainMessage(message: MainToUiMessage): void {
     case 'SETTINGS_ERROR':
       showSettingsError(message.payload.code);
       break;
+    case 'SCREEN_AUDIT_RESTORED':
+      screenAuditSession = message.payload.snapshot.session;
+      screenPreflight = null;
+      screenAuditReviewSessionId = message.payload.snapshot.session.sessionId;
+      screenAuditReviewCompleted = true;
+      screenAuditReviewFilter = message.payload.snapshot.review.filter;
+      screenAuditActiveCandidateId = message.payload.snapshot.review.activeCandidateId;
+      screenAuditNavigationStates = {
+        ...message.payload.snapshot.review.navigationStates,
+      };
+      auditedFrameUnavailable = false;
+      renderScreenPreflight();
+      break;
+    case 'TEXT_AUDIT_RESTORED':
+      restoredTextAuditIsStale = message.payload.state === 'changed';
+      updateAnalysisState({
+        type: 'ANALYSIS_RESTORED',
+        requestId: message.payload.snapshot.requestId,
+        result: message.payload.snapshot.result,
+        transport: message.payload.snapshot.transport,
+      });
+      break;
     case 'SCREEN_AUDIT_UPDATED':
       screenAuditSession = message.payload.session;
       renderScreenPreflight();
@@ -1295,6 +1349,7 @@ function handleMainMessage(message: MainToUiMessage): void {
       renderAnalysisMode(message.payload.mode);
       break;
     case 'ANALYSIS_STARTED':
+      restoredTextAuditIsStale = false;
       updateAnalysisState({
         type: 'ANALYSIS_STARTED',
         requestId: message.requestId,
@@ -1302,6 +1357,7 @@ function handleMainMessage(message: MainToUiMessage): void {
       });
       break;
     case 'ANALYSIS_SUCCEEDED':
+      restoredTextAuditIsStale = false;
       cloudRetryAvailable = false;
       updateAnalysisState({
         type: 'ANALYSIS_SUCCEEDED',
@@ -1502,18 +1558,29 @@ screenAuditFilters.addEventListener('click', (event: MouseEvent): void => {
       filter,
       screenAuditNavigationStates,
     );
+    const navigable = navigableReviewItems(visible, screenAuditNavigationStates);
     // Filter changes update UI selection only. Canvas movement remains tied
     // to explicit card/Previous/Next actions.
     screenAuditActiveCandidateId = normalizeActiveCandidateId(
-      visible,
+      navigable,
       screenAuditActiveCandidateId,
     );
+    publishScreenReviewState();
     renderAuditResults(screenAuditSession);
   }
 });
 
 screenAuditPrevious.addEventListener('click', (): void => navigateRelative(-1));
 screenAuditNext.addEventListener('click', (): void => navigateRelative(1));
+screenAuditReaudit.addEventListener('click', (): void => {
+  if (currentSelectionState.status !== 'frame' || screenAuditReaudit.disabled) {
+    return;
+  }
+  postToMain({
+    type: 'START_SCREEN_AUDIT',
+    selectionRevision: currentSelectionState.revision,
+  });
+});
 
 settingsCheckLocalButton.addEventListener('click', (): void => {
   postToMain({ type: 'CHECK_LOCAL_RUNTIME' });

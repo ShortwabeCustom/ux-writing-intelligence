@@ -120,6 +120,9 @@
                 <button id="screen-audit-previous" class="secondary-button" type="button">Anterior</button>
                 <button id="screen-audit-next" class="secondary-button" type="button">Siguiente</button>
               </div>
+              <button id="screen-audit-reaudit" class="secondary-button" type="button">
+                Volver a auditar pantalla
+              </button>
             </section>
 
             <p id="screen-audit-frame-unavailable" class="screen-error" role="alert" hidden>
@@ -214,6 +217,9 @@
           </section>
 
           <section id="analysis-result" class="analysis-result" aria-live="polite" hidden>
+            <p id="text-audit-stale" class="analysis-stale" role="status" hidden>
+              Este texto cambió desde el análisis.
+            </p>
             <div class="score-summary">
               <span class="result-label">UX Writing Score</span>
               <div class="score-summary-row">

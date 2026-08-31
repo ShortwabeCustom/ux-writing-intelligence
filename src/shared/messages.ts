@@ -6,6 +6,10 @@ import type { ScreenAuditPreflight } from '../screen-audit-contracts';
 import { isScreenAuditPreflight } from '../screen-audit-contracts';
 import type { ScreenAuditSession } from '../screen-audit-session';
 import type { ScreenAuditNavigationState } from '../screen-audit-review';
+import type {
+  ScreenAuditSnapshot,
+  TextAuditSnapshot,
+} from '../audit-session-store';
 import type { ApplyError, ApplySuccessPayload } from '../apply-contracts';
 
 export type SelectionState =
@@ -57,6 +61,17 @@ export type LocalRuntimeStatusPayload = {
 export type ScreenPreflightErrorCode = 'DISCOVERY_FAILED';
 
 export type MainToUiMessage =
+  | {
+      type: 'SCREEN_AUDIT_RESTORED';
+      payload: { snapshot: ScreenAuditSnapshot };
+    }
+  | {
+      type: 'TEXT_AUDIT_RESTORED';
+      payload: {
+        snapshot: TextAuditSnapshot;
+        state: 'current' | 'changed';
+      };
+    }
   | {
       type: 'SCREEN_AUDIT_NAVIGATION_RESULT';
       payload: {
@@ -214,6 +229,12 @@ export type UiToMainMessage =
       candidateId: string;
     }
   | {
+      type: 'UPDATE_SCREEN_AUDIT_REVIEW_STATE';
+      auditSessionId: string;
+      filter: 'all' | 'attention' | 'good';
+      activeCandidateId: string | null;
+    }
+  | {
       type: 'RETRY_LOCAL_ANALYSIS';
       selectionRevision: number;
     }
@@ -285,6 +306,15 @@ export function isUiToMainMessage(value: unknown): value is UiToMainMessage {
         && 'candidateId' in value
         && typeof value.candidateId === 'string'
         && value.candidateId.length > 0;
+
+    case 'UPDATE_SCREEN_AUDIT_REVIEW_STATE':
+      return 'auditSessionId' in value
+        && typeof value.auditSessionId === 'string'
+        && value.auditSessionId.length > 0
+        && 'filter' in value
+        && (value.filter === 'all' || value.filter === 'attention' || value.filter === 'good')
+        && 'activeCandidateId' in value
+        && (typeof value.activeCandidateId === 'string' || value.activeCandidateId === null);
 
     case 'START_SCREEN_AUDIT':
     case 'RETRY_LOCAL_ANALYSIS':

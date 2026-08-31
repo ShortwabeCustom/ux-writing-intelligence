@@ -9,6 +9,7 @@ import { test, expect } from './fixtures/plugin-fixture';
 import {
   AUDIT_CANDIDATES, FRAME_SELECTION, analysisMode, apiKeyStatus,
   auditPreflight, auditSession, auditUpdate, runtimeStatus, selection,
+  TEXT_SELECTION, RESULT_WITH_CHANGE,
   withChanged, withFailure, withResult,
 } from './fixtures/messages';
 
@@ -493,4 +494,107 @@ test('32: Frame eliminado muestra estado claro y deshabilita navegación', async
   await expect(plugin.ui.locator('#screen-audit-frame-unavailable')).toBeVisible();
   await expect(plugin.ui.locator('#screen-audit-next')).toBeDisabled();
   await expect(results(plugin).first()).toBeDisabled();
+});
+
+function restoredScreenMessage(
+  filter: 'all' | 'attention' | 'good' = 'attention',
+  activeCandidateId: string | null = AUDIT_CANDIDATES[2].nodeId,
+  navigationStates: Record<string, 'current' | 'changed_since_audit' | 'deleted'> = {},
+) {
+  const session = completedMixedSession();
+  return {
+    type: 'SCREEN_AUDIT_RESTORED',
+    payload: {
+      snapshot: {
+        frameId: session.frameId,
+        frameName: session.frameName,
+        session,
+        completedAt: 100,
+        review: { filter, activeCandidateId, navigationStates },
+      },
+    },
+  } as const;
+}
+
+test('33: Screen restore recupera resultados, filtro y activo sin loading ni navegación', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(restoredScreenMessage());
+
+  await expect(panel(plugin)).toBeVisible();
+  await expect(results(plugin)).toHaveCount(2);
+  await expect(plugin.ui.locator('[data-filter="attention"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[2].nodeId}"]`))
+    .toHaveAttribute('data-active', 'true');
+  await expect(plugin.ui.locator('#analysis-loading')).toBeHidden();
+  await plugin.expectMessages('SCREEN_AUDIT_NAVIGATE_TO_ITEM', 0);
+});
+
+test('34: Screen restore presenta changed/deleted y aplica fallback activo seguro', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(restoredScreenMessage('attention', AUDIT_CANDIDATES[2].nodeId, {
+    [AUDIT_CANDIDATES[1].nodeId]: 'changed_since_audit',
+    [AUDIT_CANDIDATES[2].nodeId]: 'deleted',
+  }));
+
+  const changed = plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[1].nodeId}"]`);
+  const deleted = plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[2].nodeId}"]`);
+  await expect(changed).toContainText('Este texto cambió desde la auditoría.');
+  await expect(changed).toHaveAttribute('data-active', 'true');
+  await expect(deleted).toContainText('Este texto ya no está disponible.');
+  await expect(deleted).toBeDisabled();
+  await plugin.expectMessages('SCREEN_AUDIT_NAVIGATE_TO_ITEM', 0);
+});
+
+function restoredTextMessage(state: 'current' | 'changed', score = 97) {
+  return {
+    type: 'TEXT_AUDIT_RESTORED',
+    payload: {
+      snapshot: {
+        nodeId: TEXT_SELECTION.nodeId,
+        nodeName: TEXT_SELECTION.nodeName,
+        originalText: RESULT_WITH_CHANGE.text,
+        requestId: 'analysis-restored',
+        result: { ...RESULT_WITH_CHANGE, score },
+        transport: 'cloud',
+        completedAt: 200,
+      },
+      state,
+    },
+  } as const;
+}
+
+test('35: Text Audit restore muestra resultado y provenance sin loading', async ({ plugin }) => {
+  await plugin.send(selection(TEXT_SELECTION));
+  await plugin.send(restoredTextMessage('current'));
+
+  await expect(plugin.ui.locator('#analysis-result')).toBeVisible();
+  await expect(plugin.ui.locator('#analysis-score')).toHaveText('97');
+  await expect(plugin.ui.locator('#analysis-loading')).toBeHidden();
+  await expect(plugin.ui.locator('#engine-row')).toContainText('Nube');
+  await expect(plugin.ui.locator('#text-audit-stale')).toBeHidden();
+});
+
+test('36: Text Audit stale conserva histórico, avisa y bloquea Apply', async ({ plugin }) => {
+  await plugin.send(selection({ ...TEXT_SELECTION, text: 'Texto actualizado' }));
+  await plugin.send(restoredTextMessage('changed'));
+
+  await expect(plugin.ui.locator('#analysis-score')).toHaveText('97');
+  await expect(plugin.ui.locator('#text-audit-stale'))
+    .toHaveText('Este texto cambió desde el análisis.');
+  await expect(plugin.ui.locator('#apply-suggestion-button')).toBeHidden();
+  await expect(plugin.ui.locator('#analyze-again-button')).toHaveText('Analizar de nuevo');
+});
+
+test('37: Screen y Text restaurados permanecen separados y sin score global', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(restoredScreenMessage('all', AUDIT_CANDIDATES[1].nodeId));
+  await plugin.send(selection(TEXT_SELECTION));
+  await plugin.send(restoredTextMessage('current', 97));
+
+  await expect(panel(plugin)).toBeVisible();
+  await expect(plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[1].nodeId}"]`))
+    .toContainText('72/100');
+  await expect(plugin.ui.locator('#analysis-score')).toHaveText('97');
+  const screenText = await panel(plugin).textContent();
+  expect(screenText).not.toMatch(/score global|screen score|quality score/iu);
 });

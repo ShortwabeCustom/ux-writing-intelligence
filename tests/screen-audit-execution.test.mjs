@@ -170,6 +170,12 @@ async function createPlugin({
       (r) => r.url === LOCAL_ANALYZE || String(r.url).includes(`${CLOUD_HOST}/v1/analyze`)),
     localAnalyze: () => requests.filter((r) => r.url === LOCAL_ANALYZE),
     cloudAnalyze: () => requests.filter((r) => String(r.url).includes(CLOUD_HOST)),
+    selectionSnapshot: () => [...messages].reverse()
+      .find((m) => m.type === 'SELECTION_CHANGED')?.payload,
+    restoredScreens: () => messages.filter((m) => m.type === 'SCREEN_AUDIT_RESTORED')
+      .map((m) => m.payload.snapshot),
+    restoredTexts: () => messages.filter((m) => m.type === 'TEXT_AUDIT_RESTORED')
+      .map((m) => m.payload),
   };
 }
 
@@ -577,6 +583,213 @@ test('19g: nodo fuera del Frame se rechaza y Frame eliminado inutiliza sesión',
     auditSessionId: session.sessionId, candidateId: 'n2',
   });
   assert.equal(plugin.messages.at(-1).type, 'SCREEN_AUDIT_FRAME_UNAVAILABLE');
+});
+
+test('19h: múltiples Frames restauran snapshots independientes sin análisis', async () => {
+  const plugin = await createPlugin({ count: 2, frameName: 'Domicilio' });
+  const frameA = plugin.nodeById.get('frame-1');
+  await plugin.startAudit();
+  const sessionA = plugin.session();
+  await plugin.send({
+    type: 'UPDATE_SCREEN_AUDIT_REVIEW_STATE',
+    auditSessionId: sessionA.sessionId, filter: 'all', activeCandidateId: 'n2',
+  });
+
+  const nodeB = textNode('b1', 'Pantalla B');
+  const frameB = frameOf('Domicilio', [nodeB], 'frame-b');
+  plugin.nodeById.set(frameB.id, frameB);
+  plugin.nodeById.set(nodeB.id, nodeB);
+  await plugin.changeSelection([frameB]);
+  await plugin.startAudit();
+  const sessionB = plugin.session();
+  const requestsAfterAudits = plugin.analyzeRequests().length;
+
+  await plugin.changeSelection([frameA]);
+  let restored = plugin.restoredScreens().at(-1);
+  assert.equal(restored.frameId, 'frame-1');
+  assert.equal(restored.session.sessionId, sessionA.sessionId);
+  assert.equal(restored.review.filter, 'all');
+  assert.equal(restored.review.activeCandidateId, 'n2');
+  assert.equal(plugin.analyzeRequests().length, requestsAfterAudits);
+
+  await plugin.changeSelection([frameB]);
+  restored = plugin.restoredScreens().at(-1);
+  assert.equal(restored.frameId, 'frame-b');
+  assert.equal(restored.session.sessionId, sessionB.sessionId);
+  assert.equal(plugin.analyzeRequests().length, requestsAfterAudits);
+});
+
+test('19i: múltiples Text Audits se restauran por nodeId sin red', async () => {
+  const plugin = await createPlugin({ count: 2 });
+  const textA = plugin.nodeById.get('n1');
+  const textB = plugin.nodeById.get('n2');
+
+  await plugin.changeSelection([textA]);
+  await plugin.send({
+    type: 'ANALYZE_REQUEST', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  await plugin.changeSelection([textB]);
+  await plugin.send({
+    type: 'ANALYZE_REQUEST', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  const requestsAfterAnalyses = plugin.analyzeRequests().length;
+
+  await plugin.changeSelection([textA]);
+  assert.equal(plugin.restoredTexts().at(-1).snapshot.nodeId, 'n1');
+  assert.equal(plugin.restoredTexts().at(-1).state, 'current');
+  assert.equal(plugin.analyzeRequests().length, requestsAfterAnalyses);
+
+  await plugin.changeSelection([textB]);
+  assert.equal(plugin.restoredTexts().at(-1).snapshot.nodeId, 'n2');
+  assert.equal(plugin.analyzeRequests().length, requestsAfterAnalyses);
+});
+
+test('19j: Text Audit modificado restaura histórico stale y no analiza', async () => {
+  const plugin = await createPlugin({ count: 2 });
+  const textA = plugin.nodeById.get('n1');
+  const textB = plugin.nodeById.get('n2');
+  await plugin.changeSelection([textA]);
+  await plugin.send({
+    type: 'ANALYZE_REQUEST', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  const beforeRestore = plugin.analyzeRequests().length;
+  textA.characters = 'Contenido actualizado';
+  await plugin.changeSelection([textB]);
+  await plugin.changeSelection([textA]);
+
+  assert.equal(plugin.restoredTexts().at(-1).state, 'changed');
+  assert.equal(plugin.restoredTexts().at(-1).snapshot.result.text, 'Continuar');
+  assert.equal(plugin.analyzeRequests().length, beforeRestore);
+});
+
+test('19k: restore reconcilia changed, deleted, moved y renames sin red', async () => {
+  const plugin = await createPlugin({ count: 3 });
+  const frameA = plugin.nodeById.get('frame-1');
+  await plugin.startAudit();
+  const beforeRestore = plugin.analyzeRequests().length;
+
+  plugin.nodeById.get('n1').characters = 'Cambió';
+  plugin.nodeById.get('n1').name = 'Título renombrado';
+  plugin.nodeById.get('n2').removed = true;
+  plugin.nodeById.delete('n2');
+  plugin.nodeById.get('n3').parent = frameOf('Otra', [], 'frame-other');
+  frameA.name = 'Frame renombrado';
+
+  const outside = frameOf('Salida', [], 'frame-outside');
+  plugin.nodeById.set(outside.id, outside);
+  await plugin.changeSelection([outside]);
+  await plugin.changeSelection([frameA]);
+
+  const restored = plugin.restoredScreens().at(-1);
+  assert.equal(restored.frameName, 'Frame renombrado');
+  assert.equal(restored.session.items[0].candidate.layerName, 'Título renombrado');
+  assert.equal(restored.review.navigationStates.n1, 'changed_since_audit');
+  assert.equal(restored.review.navigationStates.n2, 'deleted');
+  assert.equal(restored.review.navigationStates.n3, 'deleted');
+  assert.equal(plugin.analyzeRequests().length, beforeRestore);
+});
+
+test('19l: Screen histórico y Text individual coexisten sin mezclar scores', async () => {
+  const plugin = await createPlugin({
+    count: 1,
+    analyze: (body) => jsonResponse(200, {
+      ...resultFor(body.text),
+      score: body.text === 'Texto actualizado' ? 97 : 60,
+    }),
+  });
+  const frameA = plugin.nodeById.get('frame-1');
+  const candidate = plugin.nodeById.get('n1');
+  await plugin.startAudit();
+  assert.equal(plugin.session().items[0].result.score, 60);
+
+  candidate.characters = 'Texto actualizado';
+  await plugin.changeSelection([candidate]);
+  await plugin.send({
+    type: 'ANALYZE_REQUEST', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  assert.equal(plugin.restoredTexts().length, 0);
+
+  const outside = frameOf('Otra', [], 'frame-outside');
+  plugin.nodeById.set(outside.id, outside);
+  await plugin.changeSelection([outside]);
+  const beforeRestore = plugin.analyzeRequests().length;
+  await plugin.changeSelection([frameA]);
+  const restoredScreen = plugin.restoredScreens().at(-1);
+  assert.equal(restoredScreen.session.items[0].result.score, 60);
+  assert.equal(restoredScreen.review.navigationStates.n1, 'changed_since_audit');
+
+  await plugin.changeSelection([candidate]);
+  const restoredText = plugin.restoredTexts().at(-1);
+  assert.equal(restoredText.snapshot.result.score, 97);
+  assert.equal(restoredText.state, 'current');
+  assert.equal(plugin.analyzeRequests().length, beforeRestore);
+});
+
+test('19m: reauditoría fallida preserva el último Screen snapshot completo', async () => {
+  let calls = 0;
+  const plugin = await createPlugin({
+    count: 1,
+    analyze: (body) => {
+      calls += 1;
+      return calls === 1
+        ? jsonResponse(200, { ...resultFor(body.text), score: 88 })
+        : jsonResponse(503, { code: 'OLLAMA_UNAVAILABLE' });
+    },
+  });
+  const frame = plugin.nodeById.get('frame-1');
+  await plugin.startAudit();
+  const completedId = plugin.session().sessionId;
+
+  const outside = frameOf('Otra', [], 'frame-outside');
+  plugin.nodeById.set(outside.id, outside);
+  await plugin.changeSelection([outside]);
+  await plugin.changeSelection([frame]);
+
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  assert.equal(plugin.session().status, 'paused');
+
+  await plugin.changeSelection([outside]);
+  await plugin.changeSelection([frame]);
+  const restored = plugin.restoredScreens().at(-1);
+  assert.equal(restored.session.sessionId, completedId);
+  assert.equal(restored.session.items[0].result.score, 88);
+});
+
+test('19n: reanálisis Text fallido preserva el último snapshot válido', async () => {
+  let calls = 0;
+  const plugin = await createPlugin({
+    count: 2,
+    analyze: (body) => {
+      calls += 1;
+      return calls === 1
+        ? jsonResponse(200, { ...resultFor(body.text), score: 86 })
+        : jsonResponse(503, { code: 'OLLAMA_UNAVAILABLE' });
+    },
+  });
+  const textA = plugin.nodeById.get('n1');
+  const textB = plugin.nodeById.get('n2');
+  await plugin.changeSelection([textA]);
+  const revision = plugin.selectionSnapshot().revision;
+  await plugin.send({ type: 'ANALYZE_REQUEST', selectionRevision: revision });
+  await plugin.send({ type: 'ANALYZE_REQUEST', selectionRevision: revision });
+
+  await plugin.changeSelection([textB]);
+  const beforeRestore = plugin.analyzeRequests().length;
+  await plugin.changeSelection([textA]);
+  const restored = plugin.restoredTexts().at(-1);
+  assert.equal(restored.snapshot.result.score, 86);
+  assert.equal(plugin.analyzeRequests().length, beforeRestore);
+});
+
+test('19o: el store MAIN sobrevive a un nuevo UI_READY en la misma instancia', async () => {
+  const plugin = await createPlugin({ count: 1 });
+  await plugin.startAudit();
+  const beforeRestore = plugin.analyzeRequests().length;
+  await plugin.send({ type: 'UI_READY' });
+  assert.equal(plugin.restoredScreens().at(-1).frameId, 'frame-1');
+  assert.equal(plugin.analyzeRequests().length, beforeRestore);
 });
 
 // --- 20..22 — obsolescencia del documento ------------------------------------

@@ -159,6 +159,18 @@ test('una nueva petición no hereda la procedencia de la anterior', () => {
   assert.equal(next.transport, null, 'la procedencia vieja se arrastró');
 });
 
+test('un Text Audit restaurado conserva su procedencia sin estado de carga', () => {
+  const restored = core.reduceAnalysisState(core.INITIAL_ANALYSIS_STATE, {
+    type: 'ANALYSIS_RESTORED',
+    requestId: 'analysis-restored',
+    result: RESULT,
+    transport: 'cloud',
+  });
+  assert.equal(restored.status, 'success');
+  assert.equal(restored.transport, 'cloud');
+  assert.equal(restored.result, RESULT);
+});
+
 // --- Guarda de cableado -------------------------------------------------------
 //
 // Las pruebas de arriba cubren la DECISIÓN de procedencia, que ya era correcta

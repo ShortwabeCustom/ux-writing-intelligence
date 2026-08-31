@@ -61,6 +61,21 @@ import {
   belongsToFrame,
   isSelectionInsideAuditedFrame,
 } from './screen-audit-selection';
+import {
+  createAuditSessionStore,
+  getScreenAudit,
+  getTextAudit,
+  reconcileScreenCandidate,
+  reconcileTextAudit,
+  removeFrameAudit,
+  saveScreenAudit,
+  saveTextAudit,
+  updateScreenAuditReview,
+} from './audit-session-store';
+import type {
+  ScreenAuditSnapshot,
+  TextAuditSnapshot,
+} from './audit-session-store';
 
 figma.showUI(__html__, {
   width: 360,
@@ -87,6 +102,8 @@ let currentPreflight: ReturnType<typeof buildPreflight> | null = null;
 /** Sesión de auditoría en curso. Solo en memoria: nada se persiste. */
 let screenAuditSession: ScreenAuditSession | null = null;
 let screenAuditCounter = 0;
+/** Session-scoped, in-memory only. Contains serializable snapshots, never nodes. */
+const auditSessionStore = createAuditSessionStore();
 const pluginFetch = fetch as unknown as FetchPort;
 
 /**
@@ -204,12 +221,175 @@ function handleSelectionChange(): void {
     screenAuditSession.frameId,
   )) {
     sendSelectionState();
+    const selected = figma.currentPage.selection;
+    if (selected.length === 1 && selected[0]?.type === 'TEXT') {
+      restoreTextAudit(selected[0], selectionRevision);
+    }
     return;
   }
 
   invalidateScreenPreflight();
   sendSelectionState();
-  sendScreenPreflightIfFrameSelected();
+  activateStoredContextsForSelection();
+}
+
+function findStoredScreenContextForSelection(): {
+  frame: FrameNode;
+  snapshot: ScreenAuditSnapshot;
+} | null {
+  const selection = figma.currentPage.selection;
+  if (selection.length === 0) {
+    return null;
+  }
+
+  let current: BaseNode | null = selection[0];
+  while (current !== null) {
+    if (current.type === 'FRAME') {
+      const frameId = current.id;
+      const snapshot = getScreenAudit(auditSessionStore, frameId);
+      if (snapshot !== null && selection.every((node) => belongsToFrame(node, frameId))) {
+        return { frame: current, snapshot };
+      }
+    }
+    current = current.parent ?? null;
+  }
+  return null;
+}
+
+function activateStoredContextsForSelection(): void {
+  const revision = selectionRevision;
+  const screenContext = findStoredScreenContextForSelection();
+
+  if (screenContext === null) {
+    sendScreenPreflightIfFrameSelected();
+  } else {
+    void restoreScreenAudit(screenContext.snapshot, revision);
+  }
+
+  const selected = figma.currentPage.selection;
+  if (selected.length === 1 && selected[0]?.type === 'TEXT') {
+    restoreTextAudit(selected[0], revision);
+  }
+
+  void cleanupDeletedFrameAudits();
+}
+
+async function restoreScreenAudit(
+  snapshot: ScreenAuditSnapshot,
+  expectedRevision: number,
+): Promise<void> {
+  let frame: BaseNode | null = null;
+  try {
+    frame = await figma.getNodeByIdAsync(snapshot.frameId);
+  } catch {
+    return;
+  }
+
+  if (expectedRevision !== selectionRevision) {
+    return;
+  }
+  if (frame === null || frame.removed || frame.type !== 'FRAME') {
+    removeFrameAudit(auditSessionStore, snapshot.frameId);
+    return;
+  }
+
+  const navigationStates = { ...snapshot.review.navigationStates };
+  const items = await Promise.all(snapshot.session.items.map(async (item) => {
+    let node: BaseNode | null = null;
+    try {
+      node = await figma.getNodeByIdAsync(item.candidate.nodeId);
+    } catch {
+      node = null;
+    }
+
+    navigationStates[item.candidate.nodeId] = reconcileScreenCandidate(
+      item.candidate.text,
+      node === null ? null : {
+        type: node.type,
+        characters: node.type === 'TEXT' ? node.characters : undefined,
+        belongsToAuditedFrame: belongsToFrame(node, snapshot.frameId),
+      },
+    );
+
+    return node?.type === 'TEXT' && belongsToFrame(node, snapshot.frameId)
+      ? { ...item, candidate: { ...item.candidate, layerName: node.name } }
+      : item;
+  }));
+
+  if (expectedRevision !== selectionRevision) {
+    return;
+  }
+
+  const session: ScreenAuditSession = {
+    ...snapshot.session,
+    frameName: frame.name,
+    items,
+  };
+  const restored: ScreenAuditSnapshot = {
+    ...snapshot,
+    frameName: frame.name,
+    session,
+    review: { ...snapshot.review, navigationStates },
+  };
+  saveScreenAudit(auditSessionStore, restored);
+  screenAuditSession = session;
+  currentPreflight = null;
+  sendMessage({ type: 'SCREEN_AUDIT_RESTORED', payload: { snapshot: restored } });
+}
+
+function restoreTextAudit(node: TextNode, expectedRevision: number): void {
+  const snapshot = getTextAudit(auditSessionStore, node.id);
+  if (snapshot === null || expectedRevision !== selectionRevision) {
+    return;
+  }
+
+  const state = reconcileTextAudit(snapshot, node);
+  if (state === 'deleted') {
+    return;
+  }
+
+  const restored: TextAuditSnapshot = { ...snapshot, nodeName: node.name };
+  saveTextAudit(auditSessionStore, restored);
+
+  if (state === 'current') {
+    activeApplySession = createApplySession({
+      requestId: snapshot.requestId,
+      requestToken: activeRequestToken,
+      selectionRevision,
+      nodeId: node.id,
+      originalText: snapshot.originalText,
+    }, snapshot.result.suggestion);
+    invalidatedApplyRequest = null;
+  }
+
+  sendMessage({
+    type: 'TEXT_AUDIT_RESTORED',
+    payload: { snapshot: restored, state },
+  });
+
+  if (state === 'current') {
+    const preflightError = getApplyPreflightError(node);
+    if (preflightError !== null) {
+      sendMessage({
+        type: 'APPLY_BLOCKED',
+        requestId: snapshot.requestId,
+        error: { code: preflightError },
+      });
+    }
+  }
+}
+
+async function cleanupDeletedFrameAudits(): Promise<void> {
+  for (const frameId of auditSessionStore.screenAudits.keys()) {
+    try {
+      const node = await figma.getNodeByIdAsync(frameId);
+      if (node === null || node.removed || node.type !== 'FRAME') {
+        removeFrameAudit(auditSessionStore, frameId);
+      }
+    } catch {
+      // A transient document lookup failure must not destroy a valid snapshot.
+    }
+  }
 }
 
 /**
@@ -593,6 +773,17 @@ async function handleAnalyzeRequest(
     activeApplySession = createApplySession(context, result.suggestion);
     invalidatedApplyRequest = null;
 
+    const analyzedNode = figma.currentPage.selection[0];
+    saveTextAudit(auditSessionStore, {
+      nodeId: context.nodeId,
+      nodeName: analyzedNode?.type === 'TEXT' ? analyzedNode.name : '',
+      originalText: context.originalText,
+      requestId,
+      result,
+      transport: route.transport,
+      completedAt: Date.now(),
+    });
+
     sendMessage({
       type: 'ANALYSIS_SUCCEEDED',
       requestId,
@@ -795,12 +986,33 @@ function publishScreenAudit(): void {
   }
 }
 
+function persistCompletedScreenAudit(session: ScreenAuditSession): void {
+  if (session.status !== 'completed') {
+    return;
+  }
+
+  saveScreenAudit(auditSessionStore, {
+    frameId: session.frameId,
+    frameName: session.frameName,
+    session,
+    completedAt: Date.now(),
+    review: {
+      filter: 'all',
+      activeCandidateId: null,
+      navigationStates: {},
+    },
+  });
+}
+
 function applyScreenAuditEvent(sessionId: string, event: Parameters<typeof reduceScreenAuditSession>[1]): boolean {
   if (screenAuditSession === null || screenAuditSession.sessionId !== sessionId) {
     return false;
   }
 
   screenAuditSession = reduceScreenAuditSession(screenAuditSession, event);
+  if (screenAuditSession.status === 'completed') {
+    persistCompletedScreenAudit(screenAuditSession);
+  }
   publishScreenAudit();
   return true;
 }
@@ -921,6 +1133,23 @@ async function runScreenAudit(sessionId: string): Promise<void> {
 }
 
 async function handleStartScreenAudit(selectionRevisionFromUi: number): Promise<void> {
+  if (currentSelectionSnapshot.status === 'frame'
+      && currentSelectionSnapshot.revision === selectionRevisionFromUi
+      && (currentPreflight === null
+        || currentPreflight.frameId !== currentSelectionSnapshot.nodeId)) {
+    const selected = figma.currentPage.selection[0];
+    if (selected?.type === 'FRAME') {
+      try {
+        currentPreflight = buildPreflight(
+          selected as unknown as ScreenNodeLike,
+          screenPreflightRevision,
+        );
+      } catch {
+        return;
+      }
+    }
+  }
+
   if (currentSelectionSnapshot.status !== 'frame'
       || currentSelectionSnapshot.revision !== selectionRevisionFromUi
       || currentPreflight === null) {
@@ -959,6 +1188,10 @@ async function handleStartScreenAudit(selectionRevisionFromUi: number): Promise<
     candidates,
     transport: route.transport,
   });
+
+  if (screenAuditSession.status === 'completed') {
+    persistCompletedScreenAudit(screenAuditSession);
+  }
 
   publishScreenAudit();
   await runScreenAudit(screenAuditSession.sessionId);
@@ -1009,6 +1242,7 @@ async function handleScreenAuditNavigation(
 
   if (frame === null || frame.removed || frame.type !== 'FRAME') {
     screenAuditSession = null;
+    removeFrameAudit(auditSessionStore, session.frameId);
     sendMessage({
       type: 'SCREEN_AUDIT_FRAME_UNAVAILABLE',
       payload: { sessionId: auditSessionId },
@@ -1037,6 +1271,7 @@ async function handleScreenAuditNavigation(
 
   if (frame.removed) {
     screenAuditSession = null;
+    removeFrameAudit(auditSessionStore, session.frameId);
     sendMessage({
       type: 'SCREEN_AUDIT_FRAME_UNAVAILABLE',
       payload: { sessionId: auditSessionId },
@@ -1045,6 +1280,7 @@ async function handleScreenAuditNavigation(
   }
 
   if (node === null || node.removed || node.type !== 'TEXT') {
+    recordScreenNavigationState(session, candidateId, 'deleted');
     sendMessage({
       type: 'SCREEN_AUDIT_NAVIGATION_RESULT',
       payload: { sessionId: auditSessionId, candidateId, state: 'deleted' },
@@ -1053,6 +1289,7 @@ async function handleScreenAuditNavigation(
   }
 
   if (!belongsToFrame(node, session.frameId)) {
+    recordScreenNavigationState(session, candidateId, 'deleted');
     sendMessage({
       type: 'SCREEN_AUDIT_NAVIGATION_RESULT',
       payload: { sessionId: auditSessionId, candidateId, state: 'deleted' },
@@ -1065,11 +1302,32 @@ async function handleScreenAuditNavigation(
     ? 'current' as const
     : 'changed_since_audit' as const;
 
+  recordScreenNavigationState(session, candidateId, state);
+
   figma.currentPage.selection = [textNode];
   figma.viewport.scrollAndZoomIntoView([textNode]);
   sendMessage({
     type: 'SCREEN_AUDIT_NAVIGATION_RESULT',
     payload: { sessionId: auditSessionId, candidateId, state },
+  });
+}
+
+function recordScreenNavigationState(
+  session: ScreenAuditSession,
+  candidateId: string,
+  state: 'current' | 'changed_since_audit' | 'deleted',
+): void {
+  const snapshot = getScreenAudit(auditSessionStore, session.frameId);
+  if (snapshot === null || snapshot.session.sessionId !== session.sessionId) {
+    return;
+  }
+  updateScreenAuditReview(auditSessionStore, session.frameId, {
+    ...snapshot.review,
+    activeCandidateId: candidateId,
+    navigationStates: {
+      ...snapshot.review.navigationStates,
+      [candidateId]: state,
+    },
   });
 }
 
@@ -1079,7 +1337,7 @@ async function handleUiMessage(message: UiToMainMessage): Promise<void> {
       isUiReady = true;
       currentSelectionSnapshot = createSelectionSnapshot();
       sendSelectionState();
-      sendScreenPreflightIfFrameSelected();
+      activateStoredContextsForSelection();
       await sendApiKeyStatus();
       await sendAnalysisModeStatus();
       await sendLocalRuntimeStatus();
@@ -1122,6 +1380,23 @@ async function handleUiMessage(message: UiToMainMessage): Promise<void> {
     case 'SCREEN_AUDIT_NAVIGATE_TO_ITEM':
       await handleScreenAuditNavigation(message.auditSessionId, message.candidateId);
       break;
+
+    case 'UPDATE_SCREEN_AUDIT_REVIEW_STATE': {
+      const session = screenAuditSession;
+      const snapshot = session === null
+        ? null
+        : getScreenAudit(auditSessionStore, session.frameId);
+      if (session !== null
+          && session.sessionId === message.auditSessionId
+          && snapshot?.session.sessionId === message.auditSessionId) {
+        updateScreenAuditReview(auditSessionStore, session.frameId, {
+          ...snapshot.review,
+          filter: message.filter,
+          activeCandidateId: message.activeCandidateId,
+        });
+      }
+      break;
+    }
 
     case 'RETRY_LOCAL_ANALYSIS':
       await handleAnalyzeRequest(message.selectionRevision, 'local');

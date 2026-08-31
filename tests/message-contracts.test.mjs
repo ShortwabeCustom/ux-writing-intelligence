@@ -73,6 +73,9 @@ const UI_TO_MAIN_SAMPLES = {
   RETRY_SCREEN_AUDIT_LOCAL: { sessionId: 'screen-1' },
   CONTINUE_SCREEN_AUDIT_CLOUD: { sessionId: 'screen-1' },
   SCREEN_AUDIT_NAVIGATE_TO_ITEM: { auditSessionId: 'screen-1', candidateId: 'n1' },
+  UPDATE_SCREEN_AUDIT_REVIEW_STATE: {
+    auditSessionId: 'screen-1', filter: 'attention', activeCandidateId: 'n1',
+  },
   USE_CLOUD_FOR_CURRENT_ANALYSIS: { selectionRevision: 0 },
   APPLY_SUGGESTION: { requestId: 'analysis-1' },
 };
@@ -119,6 +122,25 @@ const VALID_SESSION = {
 };
 
 const MAIN_TO_UI_SAMPLES = {
+  SCREEN_AUDIT_RESTORED: {
+    payload: {
+      snapshot: {
+        frameId: 'f1', frameName: 'Domicilio',
+        session: { ...VALID_SESSION, status: 'completed' },
+        completedAt: 1,
+        review: { filter: 'all', activeCandidateId: null, navigationStates: {} },
+      },
+    },
+  },
+  TEXT_AUDIT_RESTORED: {
+    payload: {
+      snapshot: {
+        nodeId: 'n1', nodeName: 'CTA', originalText: 'Continuar',
+        requestId: 'a1', result: VALID_RESPONSE, transport: 'local', completedAt: 1,
+      },
+      state: 'current',
+    },
+  },
   SCREEN_AUDIT_NAVIGATION_RESULT: {
     payload: { sessionId: 'screen-1', candidateId: 'n1', state: 'current' },
   },

@@ -83,3 +83,10 @@ test('changed and deleted presentation becomes attention without changing stored
   assert.equal(core.describeNavigationState('deleted'), 'Este texto ya no está disponible.');
   assert.equal(items[0].result.severity, storedSeverity);
 });
+
+test('deleted active result falls back to the first navigable item', () => {
+  const states = { good: 'deleted' };
+  const navigable = core.navigableReviewItems(items, states);
+  assert.deepEqual(navigable.map((entry) => entry.candidate.nodeId), ['medium', 'high']);
+  assert.equal(core.normalizeActiveCandidateId(navigable, 'good'), 'medium');
+});

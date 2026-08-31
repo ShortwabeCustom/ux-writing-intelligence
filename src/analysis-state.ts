@@ -36,6 +36,12 @@ export type AnalysisUiEvent =
   | { type: 'ANALYZE_REQUESTED'; transport: AnalysisTransportProvenance }
   | { type: 'ANALYSIS_STARTED'; requestId: string; transport: AnalysisTransportKind }
   | { type: 'ANALYSIS_SUCCEEDED'; requestId: string; result: AnalyzeResponse }
+  | {
+      type: 'ANALYSIS_RESTORED';
+      requestId: string;
+      result: AnalyzeResponse;
+      transport: AnalysisTransportKind;
+    }
   | { type: 'ANALYSIS_FAILED'; requestId: string | null; error: AnalyzeError }
   | { type: 'ANALYSIS_VALIDATION_FAILED'; error: AnalyzeError }
   | { type: 'SELECTION_CHANGED' }
@@ -74,6 +80,14 @@ export function reduceAnalysisState(
             transport: state.transport,
           }
         : state;
+
+    case 'ANALYSIS_RESTORED':
+      return {
+        status: 'success',
+        requestId: event.requestId,
+        result: event.result,
+        transport: event.transport,
+      };
 
     case 'ANALYSIS_FAILED':
       if (state.status !== 'loading') {

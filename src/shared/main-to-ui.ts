@@ -83,6 +83,39 @@ export function isMainToUiMessage(value: unknown): value is MainToUiMessage {
   }
 
   switch (value.type) {
+    case 'SCREEN_AUDIT_RESTORED':
+      return isRecord(value.payload)
+        && isRecord(value.payload.snapshot)
+        && typeof value.payload.snapshot.frameId === 'string'
+        && typeof value.payload.snapshot.frameName === 'string'
+        && typeof value.payload.snapshot.completedAt === 'number'
+        && isScreenAuditSession(value.payload.snapshot.session)
+        && value.payload.snapshot.session.status === 'completed'
+        && value.payload.snapshot.session.frameId === value.payload.snapshot.frameId
+        && isRecord(value.payload.snapshot.review)
+        && (value.payload.snapshot.review.filter === 'all'
+          || value.payload.snapshot.review.filter === 'attention'
+          || value.payload.snapshot.review.filter === 'good')
+        && (typeof value.payload.snapshot.review.activeCandidateId === 'string'
+          || value.payload.snapshot.review.activeCandidateId === null)
+        && isRecord(value.payload.snapshot.review.navigationStates)
+        && Object.values(value.payload.snapshot.review.navigationStates).every(
+          (state) => state === 'current'
+            || state === 'changed_since_audit'
+            || state === 'deleted',
+        );
+    case 'TEXT_AUDIT_RESTORED':
+      return isRecord(value.payload)
+        && (value.payload.state === 'current' || value.payload.state === 'changed')
+        && isRecord(value.payload.snapshot)
+        && typeof value.payload.snapshot.nodeId === 'string'
+        && typeof value.payload.snapshot.nodeName === 'string'
+        && typeof value.payload.snapshot.originalText === 'string'
+        && typeof value.payload.snapshot.requestId === 'string'
+        && isAnalyzeResponse(value.payload.snapshot.result)
+        && (value.payload.snapshot.transport === 'local'
+          || value.payload.snapshot.transport === 'cloud')
+        && typeof value.payload.snapshot.completedAt === 'number';
     case 'SCREEN_AUDIT_NAVIGATION_RESULT':
       return isRecord(value.payload)
         && typeof value.payload.sessionId === 'string'

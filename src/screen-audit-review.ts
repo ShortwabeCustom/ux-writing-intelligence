@@ -65,6 +65,13 @@ export function filterReviewItems(
   ) === filter);
 }
 
+export function navigableReviewItems(
+  items: readonly ScreenAuditItem[],
+  states: Readonly<Record<string, ScreenAuditNavigationState>> = {},
+): ScreenAuditItem[] {
+  return items.filter((item) => states[item.candidate.nodeId] !== 'deleted');
+}
+
 export function getActiveReviewIndex(
   items: readonly ScreenAuditItem[],
   activeCandidateId: string | null,

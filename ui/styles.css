@@ -1424,6 +1424,15 @@ input:focus-visible {
   flex: 1;
 }
 
+.analysis-stale {
+  margin: 0 0 8px;
+  padding: 8px;
+  border-left: 3px solid var(--figma-color-border-warning-strong, #a07800);
+  background: var(--figma-color-bg-warning-tertiary, #fff6c2);
+  color: var(--figma-color-text-warning, #7a5c00);
+  font-size: 11px;
+}
+
 .audit-item[data-status="changed"] .audit-item-meta {
   color: var(--figma-color-text-warning, #a07800);
 }
