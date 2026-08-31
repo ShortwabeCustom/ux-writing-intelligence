@@ -1,0 +1,107 @@
+{
+  "schema_version": "8.5.1",
+  "notes": "Dataset de riesgos reales de UX Writing Intelligence. Todos los modelos reciben EXACTAMENTE el mismo system prompt y el mismo texto. checks = invariantes deterministas evaluados por validate_output.py",
+  "cases": [
+    {
+      "id": "A1",
+      "category": "high_quality",
+      "cold": true,
+      "text": "Continuar",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "GOOD_TEXT_NO_UNNECESSARY_CHANGE", "NO_INVENTED_ACTION"]
+    },
+    {
+      "id": "A2",
+      "category": "high_quality",
+      "text": "Tu visita ha sido confirmada.",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "GOOD_TEXT_NO_UNNECESSARY_CHANGE", "NO_INVENTED_ACTION"]
+    },
+    {
+      "id": "B1",
+      "category": "orthography",
+      "cold": true,
+      "text": "prestamo",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "ORTHOGRAPHY_PRESTAMO"]
+    },
+    {
+      "id": "B2",
+      "category": "orthography",
+      "text": "¿Como funciona?",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "ORTHOGRAPHY_COMO"]
+    },
+    {
+      "id": "B3",
+      "category": "orthography",
+      "text": "hola ,María",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "ORTHOGRAPHY_COMMA_SPACING"]
+    },
+    {
+      "id": "B4",
+      "category": "orthography",
+      "text": "no  fue posible",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "ORTHOGRAPHY_DOUBLE_SPACE", "NO_NOFUE"]
+    },
+    {
+      "id": "C1",
+      "category": "glossary",
+      "text": "Ingresa tus credenciales",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "GLOSSARY_CREDENCIALES"]
+    },
+    {
+      "id": "C2",
+      "category": "glossary",
+      "text": "Proceder con la originación",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "GLOSSARY_ORIGINACION"]
+    },
+    {
+      "id": "D1",
+      "category": "protected_content",
+      "cold": true,
+      "text": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "PROTECTED_PLACEHOLDERS_PRESERVED", "NO_INVENTED_ACTION"]
+    },
+    {
+      "id": "D2",
+      "category": "protected_content",
+      "text": "Consulta el detalle en https://bancoazteca.com.mx/estado-cuenta o escríbenos a soporte@bancoazteca.com.mx",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "PROTECTED_PLACEHOLDERS_PRESERVED"]
+    },
+    {
+      "id": "E1",
+      "category": "multiline",
+      "cold": true,
+      "text": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "MULTILINE_SAFE", "NO_APPBANCO", "NO_NOFUE", "NO_INVENTED_ACTION"]
+    },
+    {
+      "id": "F1",
+      "category": "semantic_fidelity",
+      "text": "Tu solicitud quedó registrada.",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "NO_INVENTED_ACTION"]
+    },
+    {
+      "id": "F2",
+      "category": "semantic_fidelity",
+      "text": "El incremento no fue aprobado.",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "NO_INVENTED_ACTION", "NO_NOFUE"]
+    },
+    {
+      "id": "G1",
+      "category": "source_boundary",
+      "text": "Revisa tu App Banco Azteca porque hay errores en los datos que capturaste.",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "NO_APPBANCO", "NO_HAYERRORES"]
+    },
+    {
+      "id": "H1",
+      "category": "long_ux_content",
+      "cold": true,
+      "text": "Hola {{Nombre}}, tu visita domiciliaria está programada para el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.\n\nUn asesor acudirá al domicilio que registraste. Ten a la mano tu identificación oficial vigente y un comprobante de domicilio con antigüedad no mayor a tres meses.\n\nSi no hay errores en tus datos, el proceso tarda alrededor de 20 minutos.",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "PROTECTED_PLACEHOLDERS_PRESERVED", "MULTILINE_SAFE", "NO_HAYERRORES", "NO_INVENTED_ACTION"]
+    },
+    {
+      "id": "H2",
+      "category": "long_ux_content",
+      "text": "Escribe el monto que quieres solicitar. El monto mínimo es de 3,000 pesos y el máximo depende de tu historial de pagos con nosotros.\n\nSi el monto que capturaste supera tu límite disponible, te mostraremos el máximo al que puedes acceder hoy. Este dato no afecta tu historial crediticio.",
+      "checks": ["JSON_VALID", "SPANISH_OUTPUT", "NO_EMPTY_SUGGESTION", "MULTILINE_SAFE", "NO_INVENTED_ACTION"]
+    }
+  ]
+}

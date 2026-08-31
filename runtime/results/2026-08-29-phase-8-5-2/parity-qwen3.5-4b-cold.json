@@ -1,0 +1,1997 @@
+{
+  "phase": "8.5.2",
+  "model": "qwen3.5:4b",
+  "suite": "both",
+  "mode": "cold",
+  "reps_per_case": 1,
+  "keep_alive": 0,
+  "options": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 4096
+  },
+  "structured_output": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "clarity": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      },
+      "concision": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      },
+      "utility": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      },
+      "predictability": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5
+      },
+      "jargon": {
+        "type": "boolean"
+      },
+      "reason": {
+        "type": "string"
+      },
+      "suggestion": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "clarity",
+      "concision",
+      "utility",
+      "predictability",
+      "jargon",
+      "reason",
+      "suggestion"
+    ]
+  },
+  "system_prompt_chars": 1953,
+  "started_at": "2026-08-29T01:25:30",
+  "memory": [
+    {
+      "label": "antes de cargar",
+      "ollama_ps": "NAME          ID              SIZE      PROCESSOR    CONTEXT    UNTIL               \nqwen3.5:4b    2a654d98e6fb    3.1 GB    100% GPU     4096       29 minutes from now",
+      "swap": "total = 2048.00M  used = 959.06M  free = 1088.94M  (encrypted)",
+      "ollama_rss_kb": "5060256"
+    }
+  ],
+  "runs": [
+    {
+      "case_id": "orto_01",
+      "category": "orthography",
+      "suite": "parity_contracts",
+      "rep": 1,
+      "request_error": null,
+      "retried": false,
+      "no_op": false,
+      "mandatory_regression": false,
+      "metrics": {
+        "wall_s": 7.329,
+        "total_s": 7.325,
+        "load_s": 2.113,
+        "prompt_eval_s": 1.972,
+        "eval_s": 3.235,
+        "prompt_eval_count": 578,
+        "eval_count": 81,
+        "eval_tok_s": 25.04
+      },
+      "model_json": {
+        "clarity": 5,
+        "concision": 5,
+        "utility": 5,
+        "predictability": 5,
+        "jargon": false,
+        "reason": "El texto es claro, conciso y cumple con todas las reglas de sugerencia.",
+        "suggestion": "prestamo"
+      },
+      "parity": {
+        "structured_ok": true,
+        "structured_reason": "esquema conforme",
+        "raw_suggestion": "prestamo",
+        "deterministic_floor": "préstamo",
+        "floor_changes": [
+          "tilde: 'prestamo' -> 'préstamo'"
+        ],
+        "final_text": "préstamo",
+        "decision": "sugerencia del modelo aceptada; autoridad determinista reimpuesta (1 cambios)",
+        "raw": {
+          "checks": [
+            {
+              "check": "STRUCTURED_OUTPUT",
+              "status": "PASS",
+              "reason": "esquema conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "FAIL",
+              "reason": "defectos: [\"falta tilde: 'prestamo'\"]",
+              "heuristic": false
+            },
+            {
+              "check": "NO_ADDED_CONTENT",
+              "status": "PASS",
+              "reason": "sin contenido añadido",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "final": {
+          "checks": [
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_ADDED_CONTENT",
+              "status": "PASS",
+              "reason": "sin contenido añadido",
+              "heuristic": false
+            },
+            {
+              "check": "EXPECTED_FINAL",
+              "status": "PASS",
+              "reason": "final coincide con la expectativa del producto",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "raw_critical": [],
+        "final_critical": [],
+        "raw_pass": false,
+        "final_pass": true
+      }
+    },
+    {
+      "case_id": "gloss_reg_01",
+      "category": "glossary_authority",
+      "suite": "parity_contracts",
+      "rep": 1,
+      "request_error": null,
+      "retried": false,
+      "no_op": false,
+      "mandatory_regression": true,
+      "metrics": {
+        "wall_s": 7.136,
+        "total_s": 7.134,
+        "load_s": 1.59,
+        "prompt_eval_s": 1.993,
+        "eval_s": 3.548,
+        "prompt_eval_count": 583,
+        "eval_count": 86,
+        "eval_tok_s": 24.24
+      },
+      "model_json": {
+        "clarity": 5,
+        "concision": 5,
+        "utility": 5,
+        "predictability": 5,
+        "jargon": false,
+        "reason": "El texto es claro, conciso y cumple con todas las reglas de sugerencia.",
+        "suggestion": "Proceder con la originación"
+      },
+      "parity": {
+        "structured_ok": true,
+        "structured_reason": "esquema conforme",
+        "raw_suggestion": "Proceder con la originación",
+        "deterministic_floor": "Proceder con la solicitud",
+        "floor_changes": [
+          "glosario: 'originación' -> 'solicitud'"
+        ],
+        "final_text": "Proceder con la solicitud",
+        "decision": "sugerencia del modelo aceptada; autoridad determinista reimpuesta (1 cambios)",
+        "raw": {
+          "checks": [
+            {
+              "check": "STRUCTURED_OUTPUT",
+              "status": "PASS",
+              "reason": "esquema conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "FAIL",
+              "reason": "jerga presente: ['originación']",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "final": {
+          "checks": [
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "EXPECTED_FINAL",
+              "status": "PASS",
+              "reason": "final coincide con la expectativa del producto",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "raw_critical": [],
+        "final_critical": [],
+        "raw_pass": false,
+        "final_pass": true
+      }
+    },
+    {
+      "case_id": "prot_01",
+      "category": "protected_content",
+      "suite": "parity_contracts",
+      "rep": 1,
+      "request_error": null,
+      "retried": false,
+      "no_op": false,
+      "mandatory_regression": false,
+      "metrics": {
+        "wall_s": 8.769,
+        "total_s": 8.767,
+        "load_s": 1.581,
+        "prompt_eval_s": 2.05,
+        "eval_s": 5.132,
+        "prompt_eval_count": 608,
+        "eval_count": 103,
+        "eval_tok_s": 20.07
+      },
+      "model_json": {
+        "clarity": 5,
+        "concision": 5,
+        "utility": 5,
+        "predictability": 5,
+        "jargon": false,
+        "reason": "El texto comunica la fecha y hora con claridad absoluta sin alterar ningún dato ni condición.",
+        "suggestion": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}."
+      },
+      "parity": {
+        "structured_ok": true,
+        "structured_reason": "esquema conforme",
+        "raw_suggestion": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.",
+        "deterministic_floor": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.",
+        "floor_changes": [],
+        "final_text": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.",
+        "decision": "sugerencia del modelo aceptada; sin correcciones adicionales",
+        "raw": {
+          "checks": [
+            {
+              "check": "STRUCTURED_OUTPUT",
+              "status": "PASS",
+              "reason": "esquema conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:confirmed",
+              "status": "PASS",
+              "reason": "estado de confirmación coherente (confirmed=False)",
+              "heuristic": true
+            }
+          ],
+          "critical": []
+        },
+        "final": {
+          "checks": [
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:confirmed",
+              "status": "PASS",
+              "reason": "estado de confirmación coherente (confirmed=False)",
+              "heuristic": true
+            }
+          ],
+          "critical": []
+        },
+        "raw_critical": [],
+        "final_critical": [],
+        "raw_pass": true,
+        "final_pass": true
+      }
+    },
+    {
+      "case_id": "noop_01",
+      "category": "high_quality_no_op",
+      "suite": "parity_contracts",
+      "rep": 1,
+      "request_error": null,
+      "retried": false,
+      "no_op": true,
+      "mandatory_regression": false,
+      "metrics": {
+        "wall_s": 6.774,
+        "total_s": 6.772,
+        "load_s": 1.592,
+        "prompt_eval_s": 1.905,
+        "eval_s": 3.272,
+        "prompt_eval_count": 578,
+        "eval_count": 81,
+        "eval_tok_s": 24.76
+      },
+      "model_json": {
+        "clarity": 5,
+        "concision": 5,
+        "utility": 5,
+        "predictability": 5,
+        "jargon": false,
+        "reason": "El texto es claro, conciso y cumple con todas las reglas de sugerencia.",
+        "suggestion": "Continuar"
+      },
+      "parity": {
+        "structured_ok": true,
+        "structured_reason": "esquema conforme",
+        "raw_suggestion": "Continuar",
+        "deterministic_floor": "Continuar",
+        "floor_changes": [],
+        "final_text": "Continuar",
+        "decision": "sugerencia del modelo aceptada; sin correcciones adicionales",
+        "raw": {
+          "checks": [
+            {
+              "check": "STRUCTURED_OUTPUT",
+              "status": "PASS",
+              "reason": "esquema conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_UNNECESSARY_REWRITE",
+              "status": "PASS",
+              "reason": "texto correcto conservado",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "final": {
+          "checks": [
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_UNNECESSARY_REWRITE",
+              "status": "PASS",
+              "reason": "texto correcto conservado",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "raw_critical": [],
+        "final_critical": [],
+        "raw_pass": true,
+        "final_pass": true
+      }
+    },
+    {
+      "case_id": "state_01",
+      "category": "product_state",
+      "suite": "semantic_stress",
+      "rep": 1,
+      "request_error": null,
+      "retried": false,
+      "no_op": true,
+      "mandatory_regression": false,
+      "metrics": {
+        "wall_s": 7.033,
+        "total_s": 7.031,
+        "load_s": 1.607,
+        "prompt_eval_s": 1.896,
+        "eval_s": 3.524,
+        "prompt_eval_count": 581,
+        "eval_count": 89,
+        "eval_tok_s": 25.25
+      },
+      "model_json": {
+        "clarity": 5,
+        "concision": 5,
+        "utility": 5,
+        "predictability": 5,
+        "jargon": false,
+        "reason": "El mensaje comunica de forma clara, concisa y directa que la acción solicitada ha sido completada exitosamente.",
+        "suggestion": "Tu préstamo fue aprobado."
+      },
+      "parity": {
+        "structured_ok": true,
+        "structured_reason": "esquema conforme",
+        "raw_suggestion": "Tu préstamo fue aprobado.",
+        "deterministic_floor": "Tu préstamo fue aprobado.",
+        "floor_changes": [],
+        "final_text": "Tu préstamo fue aprobado.",
+        "decision": "sugerencia del modelo aceptada; sin correcciones adicionales",
+        "raw": {
+          "checks": [
+            {
+              "check": "STRUCTURED_OUTPUT",
+              "status": "PASS",
+              "reason": "esquema conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:approved",
+              "status": "PASS",
+              "reason": "estado de aprobación coherente (approved=True)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:available",
+              "status": "PASS",
+              "reason": "disponibilidad coherente (available=False)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:status",
+              "status": "PASS",
+              "reason": "estado preservado (approved)",
+              "heuristic": true
+            },
+            {
+              "check": "NO_UNNECESSARY_REWRITE",
+              "status": "PASS",
+              "reason": "texto correcto conservado",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "final": {
+          "checks": [
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:approved",
+              "status": "PASS",
+              "reason": "estado de aprobación coherente (approved=True)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:available",
+              "status": "PASS",
+              "reason": "disponibilidad coherente (available=False)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:status",
+              "status": "PASS",
+              "reason": "estado preservado (approved)",
+              "heuristic": true
+            },
+            {
+              "check": "NO_UNNECESSARY_REWRITE",
+              "status": "PASS",
+              "reason": "texto correcto conservado",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "raw_critical": [],
+        "final_critical": [],
+        "raw_pass": true,
+        "final_pass": true
+      }
+    },
+    {
+      "case_id": "time_01",
+      "category": "time",
+      "suite": "semantic_stress",
+      "rep": 1,
+      "request_error": null,
+      "retried": false,
+      "no_op": true,
+      "mandatory_regression": false,
+      "metrics": {
+        "wall_s": 7.396,
+        "total_s": 7.394,
+        "load_s": 1.608,
+        "prompt_eval_s": 1.9,
+        "eval_s": 3.882,
+        "prompt_eval_count": 586,
+        "eval_count": 91,
+        "eval_tok_s": 23.44
+      },
+      "model_json": {
+        "clarity": 5,
+        "concision": 5,
+        "utility": 5,
+        "predictability": 5,
+        "jargon": false,
+        "reason": "El mensaje comunica con claridad y precisión cuándo ocurrirá la notificación sin alterar el significado original.",
+        "suggestion": "Te avisaremos cuando tu asesor esté en camino."
+      },
+      "parity": {
+        "structured_ok": true,
+        "structured_reason": "esquema conforme",
+        "raw_suggestion": "Te avisaremos cuando tu asesor esté en camino.",
+        "deterministic_floor": "Te avisaremos cuando tu asesor esté en camino.",
+        "floor_changes": [],
+        "final_text": "Te avisaremos cuando tu asesor esté en camino.",
+        "decision": "sugerencia del modelo aceptada; sin correcciones adicionales",
+        "raw": {
+          "checks": [
+            {
+              "check": "STRUCTURED_OUTPUT",
+              "status": "PASS",
+              "reason": "esquema conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:in_transit",
+              "status": "PASS",
+              "reason": "estado de tránsito coherente (in_transit=False)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:conditional",
+              "status": "PASS",
+              "reason": "estructura condicional preservada",
+              "heuristic": true
+            },
+            {
+              "check": "NO_UNNECESSARY_REWRITE",
+              "status": "PASS",
+              "reason": "texto correcto conservado",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "final": {
+          "checks": [
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:in_transit",
+              "status": "PASS",
+              "reason": "estado de tránsito coherente (in_transit=False)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:conditional",
+              "status": "PASS",
+              "reason": "estructura condicional preservada",
+              "heuristic": true
+            },
+            {
+              "check": "NO_UNNECESSARY_REWRITE",
+              "status": "PASS",
+              "reason": "texto correcto conservado",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "raw_critical": [],
+        "final_critical": [],
+        "raw_pass": true,
+        "final_pass": true
+      }
+    },
+    {
+      "case_id": "error_01",
+      "category": "failure_error",
+      "suite": "semantic_stress",
+      "rep": 1,
+      "request_error": null,
+      "retried": false,
+      "no_op": false,
+      "mandatory_regression": false,
+      "metrics": {
+        "wall_s": 7.075,
+        "total_s": 7.073,
+        "load_s": 1.62,
+        "prompt_eval_s": 1.9,
+        "eval_s": 3.549,
+        "prompt_eval_count": 583,
+        "eval_count": 87,
+        "eval_tok_s": 24.51
+      },
+      "model_json": {
+        "clarity": 5,
+        "concision": 5,
+        "utility": 5,
+        "predictability": 5,
+        "jargon": false,
+        "reason": "El mensaje es claro, conciso y cumple con todas las reglas de sugerencia sin cambios.",
+        "suggestion": "Hubo un problema al guardar."
+      },
+      "parity": {
+        "structured_ok": true,
+        "structured_reason": "esquema conforme",
+        "raw_suggestion": "Hubo un problema al guardar.",
+        "deterministic_floor": "Hubo un problema al guardar.",
+        "floor_changes": [],
+        "final_text": "Hubo un problema al guardar.",
+        "decision": "sugerencia del modelo aceptada; sin correcciones adicionales",
+        "raw": {
+          "checks": [
+            {
+              "check": "STRUCTURED_OUTPUT",
+              "status": "PASS",
+              "reason": "esquema conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:cause_stated",
+              "status": "PASS",
+              "reason": "causalidad coherente (cause_stated=False)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:recovery_path",
+              "status": "PASS",
+              "reason": "ruta de recuperación coherente (recovery_path=False)",
+              "heuristic": true
+            }
+          ],
+          "critical": []
+        },
+        "final": {
+          "checks": [
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:cause_stated",
+              "status": "PASS",
+              "reason": "causalidad coherente (cause_stated=False)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:recovery_path",
+              "status": "PASS",
+              "reason": "ruta de recuperación coherente (recovery_path=False)",
+              "heuristic": true
+            }
+          ],
+          "critical": []
+        },
+        "raw_critical": [],
+        "final_critical": [],
+        "raw_pass": true,
+        "final_pass": true
+      }
+    },
+    {
+      "case_id": "gloss_01",
+      "category": "glossary",
+      "suite": "semantic_stress",
+      "rep": 1,
+      "request_error": null,
+      "retried": false,
+      "no_op": false,
+      "mandatory_regression": true,
+      "metrics": {
+        "wall_s": 8.087,
+        "total_s": 8.085,
+        "load_s": 1.601,
+        "prompt_eval_s": 1.947,
+        "eval_s": 4.535,
+        "prompt_eval_count": 583,
+        "eval_count": 86,
+        "eval_tok_s": 18.96
+      },
+      "model_json": {
+        "clarity": 5,
+        "concision": 5,
+        "utility": 5,
+        "predictability": 5,
+        "jargon": false,
+        "reason": "El texto es claro, conciso y cumple con todas las reglas de sugerencia.",
+        "suggestion": "Proceder con la originación"
+      },
+      "parity": {
+        "structured_ok": true,
+        "structured_reason": "esquema conforme",
+        "raw_suggestion": "Proceder con la originación",
+        "deterministic_floor": "Proceder con la solicitud",
+        "floor_changes": [
+          "glosario: 'originación' -> 'solicitud'"
+        ],
+        "final_text": "Proceder con la solicitud",
+        "decision": "sugerencia del modelo aceptada; autoridad determinista reimpuesta (1 cambios)",
+        "raw": {
+          "checks": [
+            {
+              "check": "STRUCTURED_OUTPUT",
+              "status": "PASS",
+              "reason": "esquema conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "FAIL",
+              "reason": "jerga presente: ['originación']",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "final": {
+          "checks": [
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "EXPECTED_FINAL",
+              "status": "PASS",
+              "reason": "final coincide con la expectativa del producto",
+              "heuristic": false
+            }
+          ],
+          "critical": []
+        },
+        "raw_critical": [],
+        "final_critical": [],
+        "raw_pass": false,
+        "final_pass": true
+      }
+    },
+    {
+      "case_id": "long_01",
+      "category": "long_content",
+      "suite": "semantic_stress",
+      "rep": 1,
+      "request_error": null,
+      "retried": false,
+      "no_op": false,
+      "mandatory_regression": false,
+      "metrics": {
+        "wall_s": 10.849,
+        "total_s": 10.847,
+        "load_s": 1.582,
+        "prompt_eval_s": 2.06,
+        "eval_s": 7.201,
+        "prompt_eval_count": 621,
+        "eval_count": 125,
+        "eval_tok_s": 17.36
+      },
+      "model_json": {
+        "clarity": 5,
+        "concision": 5,
+        "utility": 5,
+        "predictability": 5,
+        "jargon": false,
+        "reason": "El texto comunica claramente el motivo del rechazo sin inventar detalles ni cambiar estados.",
+        "suggestion": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca."
+      },
+      "parity": {
+        "structured_ok": true,
+        "structured_reason": "esquema conforme",
+        "raw_suggestion": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.",
+        "deterministic_floor": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.",
+        "floor_changes": [],
+        "final_text": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.",
+        "decision": "sugerencia del modelo aceptada; sin correcciones adicionales",
+        "raw": {
+          "checks": [
+            {
+              "check": "STRUCTURED_OUTPUT",
+              "status": "PASS",
+              "reason": "esquema conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:approved",
+              "status": "PASS",
+              "reason": "estado de aprobación coherente (approved=False)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:negation",
+              "status": "PASS",
+              "reason": "negación preservada",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:modality",
+              "status": "PASS",
+              "reason": "modalidad preservada (permission)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:requirement",
+              "status": "PASS",
+              "reason": "modalidad deóntica coherente (requirement=False)",
+              "heuristic": true
+            }
+          ],
+          "critical": []
+        },
+        "final": {
+          "checks": [
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:approved",
+              "status": "PASS",
+              "reason": "estado de aprobación coherente (approved=False)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:negation",
+              "status": "PASS",
+              "reason": "negación preservada",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:modality",
+              "status": "PASS",
+              "reason": "modalidad preservada (permission)",
+              "heuristic": true
+            },
+            {
+              "check": "FACT:requirement",
+              "status": "PASS",
+              "reason": "modalidad deóntica coherente (requirement=False)",
+              "heuristic": true
+            }
+          ],
+          "critical": []
+        },
+        "raw_critical": [],
+        "final_critical": [],
+        "raw_pass": true,
+        "final_pass": true
+      }
+    },
+    {
+      "case_id": "ph_01",
+      "category": "placeholders",
+      "suite": "semantic_stress",
+      "rep": 1,
+      "request_error": null,
+      "retried": false,
+      "no_op": false,
+      "mandatory_regression": false,
+      "metrics": {
+        "wall_s": 8.568,
+        "total_s": 8.566,
+        "load_s": 1.585,
+        "prompt_eval_s": 1.925,
+        "eval_s": 5.053,
+        "prompt_eval_count": 593,
+        "eval_count": 95,
+        "eval_tok_s": 18.8
+      },
+      "model_json": {
+        "clarity": 5,
+        "concision": 5,
+        "utility": 5,
+        "predictability": 5,
+        "jargon": false,
+        "reason": "El mensaje es claro, conciso y cumple con todas las reglas de sugerencia.",
+        "suggestion": "Hola {{name}}, tu visita es el {{date}} a las {{time}}."
+      },
+      "parity": {
+        "structured_ok": true,
+        "structured_reason": "esquema conforme",
+        "raw_suggestion": "Hola {{name}}, tu visita es el {{date}} a las {{time}}.",
+        "deterministic_floor": "Hola {{name}}, tu visita es el {{date}} a las {{time}}.",
+        "floor_changes": [],
+        "final_text": "Hola {{name}}, tu visita es el {{date}} a las {{time}}.",
+        "decision": "sugerencia del modelo aceptada; sin correcciones adicionales",
+        "raw": {
+          "checks": [
+            {
+              "check": "STRUCTURED_OUTPUT",
+              "status": "PASS",
+              "reason": "esquema conforme",
+              "heuristic": false
+            },
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:confirmed",
+              "status": "PASS",
+              "reason": "estado de confirmación coherente (confirmed=False)",
+              "heuristic": true
+            }
+          ],
+          "critical": []
+        },
+        "final": {
+          "checks": [
+            {
+              "check": "NO_EMPTY",
+              "status": "PASS",
+              "reason": "texto no vacío",
+              "heuristic": false
+            },
+            {
+              "check": "NO_META_LEAKAGE",
+              "status": "PASS",
+              "reason": "sin fuga de meta/control",
+              "heuristic": false
+            },
+            {
+              "check": "LOCALE_ES_MX",
+              "status": "PASS",
+              "reason": "español",
+              "heuristic": false
+            },
+            {
+              "check": "PROTECTED_CONTENT",
+              "status": "PASS",
+              "reason": "placeholders/URLs/emails intactos",
+              "heuristic": false
+            },
+            {
+              "check": "SOURCE_BOUNDARY",
+              "status": "PASS",
+              "reason": "fronteras de token intactas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_INVENTED_ACTION",
+              "status": "PASS",
+              "reason": "sin acciones de producto inventadas",
+              "heuristic": false
+            },
+            {
+              "check": "NO_FORBIDDEN_PHRASE",
+              "status": "PASS",
+              "reason": "sin frases prohibidas",
+              "heuristic": false
+            },
+            {
+              "check": "GLOSSARY_CLEAN",
+              "status": "PASS",
+              "reason": "sin jerga de glosario",
+              "heuristic": false
+            },
+            {
+              "check": "ORTHOGRAPHY_CLEAN",
+              "status": "PASS",
+              "reason": "ortografía conforme",
+              "heuristic": false
+            },
+            {
+              "check": "FACT:confirmed",
+              "status": "PASS",
+              "reason": "estado de confirmación coherente (confirmed=False)",
+              "heuristic": true
+            }
+          ],
+          "critical": []
+        },
+        "raw_critical": [],
+        "final_critical": [],
+        "raw_pass": true,
+        "final_pass": true
+      }
+    }
+  ],
+  "finished_at": "2026-08-29T01:27:20",
+  "summary": {
+    "requests": 10,
+    "request_errors": 0,
+    "retries": 0,
+    "structured_ok": 10,
+    "raw_pass": 7,
+    "final_pass": 10,
+    "raw_critical": [],
+    "final_critical": [],
+    "no_op_cases": 3,
+    "unnecessary_rewrites": 0,
+    "wall_s": {
+      "n": 10,
+      "mean": 7.902,
+      "p50": 7.362,
+      "min": 6.774,
+      "max": 10.849,
+      "p95": null,
+      "p95_basis": "muestra insuficiente (n=10 < 20)"
+    },
+    "load_s": {
+      "n": 10,
+      "mean": 1.648,
+      "p50": 1.597,
+      "min": 1.581,
+      "max": 2.113,
+      "p95": null,
+      "p95_basis": "muestra insuficiente (n=10 < 20)"
+    },
+    "eval_tok_s": {
+      "n": 10,
+      "mean": 22.243,
+      "p50": 23.84,
+      "min": 17.36,
+      "max": 25.25,
+      "p95": null,
+      "p95_basis": "muestra insuficiente (n=10 < 20)"
+    }
+  }
+}

@@ -1,0 +1,116 @@
+{
+ "schema_version": "8.5.2",
+ "suite": "parity_contracts",
+ "notes": "Regresiones de los contratos deterministas que producción ya posee: ortografía, autoridad del glosario, contenido protegido, fronteras de origen, no-op de alta calidad y ausencia de meta-salida.",
+ "cases": [
+  {
+   "id": "orto_01",
+   "category": "orthography",
+   "text": "prestamo",
+   "cold": true,
+   "facts": {},
+   "expected_final": "préstamo",
+   "strict_content": true
+  },
+  {
+   "id": "orto_02",
+   "category": "orthography",
+   "text": "¿Como funciona?",
+   "facts": {},
+   "expected_final": "¿Cómo funciona?",
+   "strict_content": true
+  },
+  {
+   "id": "orto_03",
+   "category": "orthography",
+   "text": "hola ,María",
+   "facts": {},
+   "expected_final": "hola, María",
+   "strict_content": true
+  },
+  {
+   "id": "orto_04",
+   "category": "orthography",
+   "text": "no  fue posible",
+   "facts": {
+    "negation": true
+   },
+   "expected_final": "no fue posible",
+   "strict_content": true
+  },
+  {
+   "id": "orto_05",
+   "category": "orthography",
+   "text": "Revisa tu informacion y tu telefono antes de continuar.",
+   "facts": {},
+   "expected_final": "Revisa tu información y tu teléfono antes de continuar.",
+   "strict_content": true
+  },
+  {
+   "id": "gloss_reg_01",
+   "category": "glossary_authority",
+   "text": "Proceder con la originación",
+   "cold": true,
+   "facts": {},
+   "forbidden": [
+    "\\bla origen\\b",
+    "\\bel origen\\b"
+   ],
+   "mandatory_regression": true,
+   "expected_final": "Proceder con la solicitud"
+  },
+  {
+   "id": "gloss_reg_02",
+   "category": "glossary_authority",
+   "text": "Ingresa tus credenciales para continuar.",
+   "facts": {},
+   "expected_final": "Ingresa tus datos de acceso para continuar."
+  },
+  {
+   "id": "prot_01",
+   "category": "protected_content",
+   "cold": true,
+   "text": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.",
+   "facts": {
+    "confirmed": false
+   }
+  },
+  {
+   "id": "prot_02",
+   "category": "protected_content",
+   "text": "Consulta el detalle en https://bancoazteca.com.mx/estado-cuenta o escríbenos a soporte@bancoazteca.com.mx",
+   "facts": {
+    "action_verb": {
+     "keep": "consulta",
+     "reject": [
+      "confirma"
+     ]
+    }
+   }
+  },
+  {
+   "id": "noop_01",
+   "category": "high_quality_no_op",
+   "text": "Continuar",
+   "no_op": true,
+   "cold": true,
+   "facts": {}
+  },
+  {
+   "id": "noop_02",
+   "category": "high_quality_no_op",
+   "text": "Tu visita ha sido confirmada.",
+   "no_op": true,
+   "facts": {
+    "status": "confirmed",
+    "confirmed": true
+   }
+  },
+  {
+   "id": "bound_p1",
+   "category": "boundary",
+   "text": "Revisa tu App Banco Azteca porque hay errores en los datos.",
+   "facts": {}
+  }
+ ]
+}

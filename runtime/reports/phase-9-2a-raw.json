@@ -1,0 +1,313 @@
+{
+  "model": "qwen3.5:4b",
+  "candidates": 20,
+  "analysis_version": "qwen3.5:4b|single-v1|v2|8.5.6",
+  "s0_sequential": {
+    "5": {
+      "total_seconds": 27.13,
+      "time_to_first_result": 5.118,
+      "time_to_25pct": 5.118,
+      "time_to_50pct": 10.92,
+      "time_to_100pct": 27.13,
+      "llm_calls_minimum": 5,
+      "texts_per_second": 0.184,
+      "avg_seconds_per_candidate": 5.426
+    },
+    "10": {
+      "total_seconds": 51.973,
+      "time_to_first_result": 5.118,
+      "time_to_25pct": 10.92,
+      "time_to_50pct": 27.13,
+      "time_to_100pct": 51.973,
+      "llm_calls_minimum": 10,
+      "texts_per_second": 0.192,
+      "avg_seconds_per_candidate": 5.197
+    },
+    "15": {
+      "total_seconds": 76.901,
+      "time_to_first_result": 5.118,
+      "time_to_25pct": 22.383,
+      "time_to_50pct": 42.17,
+      "time_to_100pct": 76.901,
+      "llm_calls_minimum": 15,
+      "texts_per_second": 0.195,
+      "avg_seconds_per_candidate": 5.127
+    },
+    "20": {
+      "total_seconds": 104.031,
+      "time_to_first_result": 5.118,
+      "time_to_25pct": 27.13,
+      "time_to_50pct": 51.973,
+      "time_to_100pct": 104.031,
+      "llm_calls_minimum": 20,
+      "texts_per_second": 0.192,
+      "avg_seconds_per_candidate": 5.202
+    }
+  },
+  "s0_failures": 0,
+  "s0_rss_mb": {
+    "before": 41.9,
+    "after": 42.8
+  },
+  "s2_reuse": {
+    "candidates": 20,
+    "distinct_texts": 19,
+    "exact_duplicate_texts": 1,
+    "distinct_text_plus_context": 20,
+    "reusable_within_screen": 0,
+    "reuse_ratio_within_screen": 0.0,
+    "analysis_version": "qwen3.5:4b|single-v1|v2|8.5.6",
+    "note": "duplicate_texts cuenta textos identicos; reusable exige ademas el mismo contexto. La diferencia entre ambos es exactamente lo que la identidad conservadora se niega a reutilizar."
+  },
+  "s3_batch": {
+    "1": {
+      "batch_size": 1,
+      "llm_calls": 20,
+      "total_seconds": 129.0,
+      "time_to_first_result": 6.503,
+      "batch_latency": {
+        "n": 20,
+        "p50": 6.246,
+        "min": 5.902,
+        "max": 8.139,
+        "p95": 7.355
+      },
+      "texts_per_second": 0.155,
+      "avg_seconds_per_candidate": 6.45,
+      "contamination_problems": [],
+      "missing_items": 0,
+      "invalid_items": 0
+    },
+    "2": {
+      "batch_size": 2,
+      "llm_calls": 10,
+      "total_seconds": 107.92,
+      "time_to_first_result": 11.45,
+      "batch_latency": {
+        "n": 10,
+        "p50": 11.222,
+        "min": 6.487,
+        "max": 12.916,
+        "p95_note": "n<20: un p95 aqui seria ruido, no dato"
+      },
+      "texts_per_second": 0.185,
+      "avg_seconds_per_candidate": 5.396,
+      "contamination_problems": [
+        "conteo: 2 entradas, 1 salidas",
+        "identificador ausente: c08"
+      ],
+      "missing_items": 1,
+      "invalid_items": 0
+    },
+    "4": {
+      "batch_size": 4,
+      "llm_calls": 5,
+      "total_seconds": 85.497,
+      "time_to_first_result": 20.485,
+      "batch_latency": {
+        "n": 5,
+        "p50": 19.707,
+        "min": 7.28,
+        "max": 20.545,
+        "p95_note": "n<20: un p95 aqui seria ruido, no dato"
+      },
+      "texts_per_second": 0.234,
+      "avg_seconds_per_candidate": 4.275,
+      "contamination_problems": [
+        "conteo: 4 entradas, 1 salidas",
+        "identificador ausente: c12",
+        "identificador ausente: c10",
+        "identificador ausente: c11"
+      ],
+      "missing_items": 3,
+      "invalid_items": 0
+    },
+    "6": {
+      "batch_size": 6,
+      "llm_calls": 4,
+      "total_seconds": 96.719,
+      "time_to_first_result": 28.549,
+      "batch_latency": {
+        "n": 4,
+        "p50": 28.57,
+        "min": 10.922,
+        "max": 28.651,
+        "p95_note": "n<20: un p95 aqui seria ruido, no dato"
+      },
+      "texts_per_second": 0.207,
+      "avg_seconds_per_candidate": 4.836,
+      "contamination_problems": [],
+      "missing_items": 0,
+      "invalid_items": 0
+    }
+  },
+  "quality_single_vs_batch": {
+    "1": {
+      "compared": 20,
+      "critical_failures": [],
+      "critical_failure_count": 0,
+      "score_delta_mean": 3.6,
+      "score_delta_max": 34.0,
+      "metric_delta_mean": {
+        "clarity": 0.2,
+        "concision": 0.15,
+        "utility": 0.35,
+        "predictability": 0.25
+      },
+      "orthography_agreement": "20/20",
+      "jargon_agreement": "20/20",
+      "issue_category_agreement": "20/20",
+      "noop_agreement": "17/20"
+    },
+    "2": {
+      "compared": 19,
+      "critical_failures": [],
+      "critical_failure_count": 0,
+      "score_delta_mean": 4.26,
+      "score_delta_max": 31.0,
+      "metric_delta_mean": {
+        "clarity": 0.21,
+        "concision": 0.37,
+        "utility": 0.37,
+        "predictability": 0.21
+      },
+      "orthography_agreement": "19/19",
+      "jargon_agreement": "19/19",
+      "issue_category_agreement": "19/19",
+      "noop_agreement": "16/19"
+    },
+    "4": {
+      "compared": 17,
+      "critical_failures": [],
+      "critical_failure_count": 0,
+      "score_delta_mean": 1.24,
+      "score_delta_max": 15.0,
+      "metric_delta_mean": {
+        "clarity": 0.06,
+        "concision": 0.18,
+        "utility": 0.06,
+        "predictability": 0.06
+      },
+      "orthography_agreement": "17/17",
+      "jargon_agreement": "17/17",
+      "issue_category_agreement": "17/17",
+      "noop_agreement": "14/17"
+    },
+    "6": {
+      "compared": 20,
+      "critical_failures": [],
+      "critical_failure_count": 0,
+      "score_delta_mean": 1.4,
+      "score_delta_max": 15.0,
+      "metric_delta_mean": {
+        "clarity": 0.05,
+        "concision": 0.3,
+        "utility": 0.1,
+        "predictability": 0.05
+      },
+      "orthography_agreement": "20/20",
+      "jargon_agreement": "20/20",
+      "issue_category_agreement": "20/20",
+      "noop_agreement": "15/20"
+    }
+  },
+  "concurrency": {
+    "1": {
+      "workers": 1,
+      "candidates": 6,
+      "total_seconds": 28.316,
+      "time_to_first_result": 4.55,
+      "texts_per_second": 0.212,
+      "rss_mb": 42.9
+    },
+    "2": {
+      "workers": 2,
+      "candidates": 6,
+      "total_seconds": 28.542,
+      "time_to_first_result": 4.577,
+      "texts_per_second": 0.21,
+      "rss_mb": 43.0
+    }
+  },
+  "failure_characterization": {
+    "elemento_ausente": {
+      "detected": true,
+      "problems": [
+        "conteo: 3 entradas, 2 salidas",
+        "identificador ausente: c03"
+      ]
+    },
+    "identificador_duplicado": {
+      "detected": true,
+      "problems": [
+        "identificadores duplicados en la salida",
+        "identificador ausente: c03"
+      ]
+    },
+    "identificador_inventado": {
+      "detected": true,
+      "problems": [
+        "identificador inventado: inventado",
+        "identificador ausente: c03"
+      ]
+    },
+    "elemento_de_mas": {
+      "detected": true,
+      "problems": [
+        "conteo: 3 entradas, 4 salidas",
+        "identificador inventado: extra"
+      ]
+    },
+    "sugerencia_migrada": {
+      "detected": true,
+      "problems": [
+        "c01: marcador {{Jueves 10 de abril de 2026}} migrado desde c02",
+        "c01: marcador {{6:00 p.m.}} migrado desde c02",
+        "c01: la sugerencia es el texto de c02"
+      ]
+    }
+  },
+  "control_reproducibility": {
+    "compared": 20,
+    "critical_failures": [],
+    "critical_failure_count": 0,
+    "score_delta_mean": 0.0,
+    "score_delta_max": 0.0,
+    "metric_delta_mean": {
+      "clarity": 0.0,
+      "concision": 0.0,
+      "utility": 0.0,
+      "predictability": 0.0
+    },
+    "orthography_agreement": "20/20",
+    "jargon_agreement": "20/20",
+    "issue_category_agreement": "20/20",
+    "noop_agreement": "20/20",
+    "total_a_seconds": 80.084,
+    "total_b_seconds": 83.98
+  },
+  "regression": {
+    "runtime_tests": "236/236",
+    "regression_bank": "62/62",
+    "final_critical_failures": 0,
+    "plugin_unit_tests": "289/289",
+    "playwright_tests": "46/46",
+    "typecheck": "PASS",
+    "build": "PASS"
+  },
+  "decision": {
+    "recommended": "S1 secuencial progresiva",
+    "batch_size": null,
+    "rejected": {
+      "batch_2": "perdio 1 de 20 candidatos; TTFR 11.45s; sin ahorro",
+      "batch_4": "perdio 3 de 20 candidatos; solo -17.8% (umbral 30%); TTFR 20.5s",
+      "batch_6": "solo -7.0%; TTFR 28.5s; no-op discrepa en 5 de 20",
+      "reuse": "ratio de reutilizacion dentro de pantalla = 0",
+      "concurrency_2": "sin ganancia: Ollama encola internamente"
+    },
+    "ttfr_seconds": 5.118,
+    "total_seconds_20_candidates": 104.031,
+    "llm_call_reduction": "0%",
+    "gate": "GO"
+  }
+}

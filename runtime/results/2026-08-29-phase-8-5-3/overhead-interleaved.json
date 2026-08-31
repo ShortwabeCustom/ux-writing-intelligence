@@ -1,0 +1,23 @@
+{
+  "method": "orden alternado; se comparan solo las mediciones en primera posici\u00f3n",
+  "direct_first_p50": 5.728,
+  "runtime_first_p50": 5.977,
+  "runtime_overhead_seconds": 0.249,
+  "runtime_overhead_pct": 4.3,
+  "reference_8_5_2_direct_p50": 4.861,
+  "machine_drift_seconds": 0.867,
+  "direct_first": [
+    5.586,
+    5.689,
+    5.728,
+    6.042,
+    5.919
+  ],
+  "runtime_first": [
+    5.62,
+    5.812,
+    5.977,
+    6.425,
+    6.133
+  ]
+}
