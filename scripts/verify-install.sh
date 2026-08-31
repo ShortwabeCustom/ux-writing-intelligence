@@ -21,10 +21,7 @@ check() {
 }
 
 is_macos() { [[ "$(uname -s)" == "Darwin" ]]; }
-supported_arch() { [[ "$(uname -m)" == "arm64" || "$(uname -m)" == "x86_64" ]]; }
-node_ok() { command -v node >/dev/null && [[ "$(node -p 'process.versions.node.split(`.`)[0]')" -ge "$NODE_REQUIRED_MAJOR" ]]; }
-npm_ok() { command -v npm >/dev/null; }
-plugin_deps_ok() { (cd "$REPO_ROOT" && npm ls --depth=0 >/dev/null 2>&1); }
+supported_arch() { [[ "$(uname -m)" == "arm64" ]]; }
 plugin_build_ok() { [[ -s "$REPO_ROOT/dist/code.js" && -s "$REPO_ROOT/dist/ui.html" ]]; }
 manifest_ok() { [[ -f "$REPO_ROOT/manifest.json" ]]; }
 plugin_id_ok() { grep -Eq '"id"[[:space:]]*:[[:space:]]*"1674592820827897160"' "$REPO_ROOT/manifest.json"; }
@@ -36,9 +33,6 @@ runtime_api_ok() { runtime_status_ok; }
 
 check "macOS" is_macos
 check "architecture $(uname -m)" supported_arch
-check "Node >= $NODE_REQUIRED_MAJOR" node_ok
-check "npm" npm_ok
-check "plugin dependencies" plugin_deps_ok
 check "plugin build artifacts" plugin_build_ok
 check "manifest present" manifest_ok
 check "plugin ID unchanged" plugin_id_ok

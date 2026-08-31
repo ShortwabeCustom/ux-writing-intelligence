@@ -1,72 +1,54 @@
 # Install UX Writing Intelligence on macOS
 
-This installer sets up the Figma plugin, its local Python runtime, Ollama, and
-the approved `qwen3.5:4b` model. It does not install a background login service;
-the runtime is started and stopped explicitly.
+This package is for designers using Figma Desktop on an Apple silicon Mac.
+It contains the prebuilt Figma plugin and its local runtime. You do not need a
+GitHub account, Git, `gh`, Node, npm, or a cloud API key for **Solo local**.
 
-## Prerequisites
+The first setup needs internet access to install any missing system software,
+Python packages, Ollama, and the `qwen3.5:4b` model. The model download can take
+several minutes. Homebrew may ask for macOS administrator authorization if it
+is not already installed.
 
-- macOS on Apple Silicon (`arm64`) or Intel (`x86_64`)
-- Git and access to the private GitHub repository
-- Figma Desktop
-- Internet access for the initial dependencies and model download
+## Install
 
-Homebrew is used for missing system dependencies. If Homebrew itself is
-missing, the installer explains the official installation step and asks for
-confirmation before it runs anything that may request administrator approval.
+1. Unzip the downloaded package.
+2. Open Terminal, type `cd ` (including the trailing space), drag the unzipped
+   folder into Terminal, and press Return.
+3. Run:
 
-## Quick install
+   ```bash
+   ./scripts/install-mac.sh
+   ```
 
-```bash
-git clone https://github.com/ShortwabeCustom/ux-writing-intelligence.git
-cd ux-writing-intelligence
-./scripts/install-mac.sh
-```
+4. Wait for `Installation complete`. The installer prints the exact manifest
+   path to import.
+5. In Figma Desktop, choose **Plugins > Development > Import plugin from
+   manifest...** and select `manifest.json` from this folder.
+6. Open UX Writing Intelligence and choose **Solo local**.
 
-The installer is idempotent: rerunning it reuses healthy dependencies, the
-Python virtual environment, the existing Ollama model, and a healthy runtime.
+The installer is safe to run again. It reuses a compatible Python environment,
+the installed Ollama application and model, and a healthy local runtime.
 
-## Import the plugin in Figma
+## Start, stop, status, and verification
 
-Open Figma Desktop and choose **Plugins > Development > Import plugin from
-manifest...**. Select:
-
-```text
-ux-writing-intelligence/manifest.json
-```
-
-The installer also prints the exact absolute path for the current clone.
-
-## Runtime commands
-
-Run these commands from the repository root:
+From the unzipped package folder, use:
 
 ```bash
 ./scripts/start-runtime.sh
-./scripts/status-runtime.sh
 ./scripts/stop-runtime.sh
+./scripts/status-runtime.sh
 ./scripts/verify-install.sh
 ```
 
-The runtime listens only at `http://127.0.0.1:8787`. Ollama listens only at
-`127.0.0.1:11434`. These scripts do not create a LaunchAgent, launchd daemon,
-Homebrew service, firewall rule, or LAN listener.
+Keep the unzipped folder after importing the plugin: it contains the runtime.
+Moving it while the runtime is running is not supported; stop it first.
 
-## Update
+## Privacy
 
-Save or commit your own work before updating, then run:
+In **Solo local**, text is analyzed on this Mac. The runtime listens only on
+`127.0.0.1:8787`, and Ollama only on `127.0.0.1:11434`; neither is exposed to
+the local network. No GitHub credential or cloud API key is requested or
+stored by this installer. Cloud analysis, if used separately, remains optional.
 
-```bash
-git pull --ff-only
-./scripts/install-mac.sh
-```
-
-Rerunning the installer updates dependencies only when needed and rebuilds the
-plugin from the repository's locked source.
-
-## Privacy and cloud configuration
-
-In **Solo local** mode, AI content is processed on this Mac by the local
-runtime and Ollama. No API key is required for local-only operation. Cloud
-configuration remains optional and separate; this installer neither requests
-nor stores cloud credentials.
+The installer does not create a login item, LaunchAgent, Homebrew service, or
+firewall rule. Runtime lifecycle remains under the commands above.

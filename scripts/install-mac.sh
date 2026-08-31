@@ -35,29 +35,8 @@ else
   say "Homebrew: INSTALLED"
 fi
 
-if command -v node >/dev/null 2>&1 && [[ "$(node -p 'process.versions.node.split(`.`)[0]')" -ge "$NODE_REQUIRED_MAJOR" ]]; then
-  say "Node: FOUND ($(node --version))"
-else
-  say "Node >= $NODE_REQUIRED_MAJOR: INSTALLING with Homebrew"
-  brew install node
-  export PATH="$(brew --prefix node)/bin:$PATH"
-  hash -r
-  command -v node >/dev/null 2>&1 || fail "Node installation failed."
-  [[ "$(node -p 'process.versions.node.split(`.`)[0]')" -ge "$NODE_REQUIRED_MAJOR" ]] || fail "Installed Node is too old."
-  say "Node: INSTALLED ($(node --version))"
-fi
-command -v npm >/dev/null 2>&1 || fail "npm is missing."
-
-if [[ -d "$REPO_ROOT/node_modules" ]] && (cd "$REPO_ROOT" && npm ls --depth=0 >/dev/null 2>&1); then
-  say "Plugin dependencies: REUSED"
-else
-  say "Plugin dependencies: INSTALLING (npm ci)"
-  (cd "$REPO_ROOT" && npm ci)
-  say "Plugin dependencies: INSTALLED"
-fi
-(cd "$REPO_ROOT" && npm run build)
 [[ -s "$REPO_ROOT/dist/code.js" && -s "$REPO_ROOT/dist/ui.html" ]] || fail "Plugin build artifacts are missing."
-say "Plugin build: PASS"
+say "Prebuilt plugin: PASS"
 
 if command -v python3.12 >/dev/null 2>&1; then
   PYTHON_BIN="$(command -v python3.12)"
