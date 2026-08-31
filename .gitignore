@@ -31,3 +31,6 @@ htmlcov/
 
 # Temporary benchmark reruns
 results/_rerun-check/
+
+# Local phase reports
+reports/phase-9-2b-screen-execution.md
