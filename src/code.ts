@@ -57,6 +57,10 @@ import {
   isRunnable,
   reduceScreenAuditSession,
 } from './screen-audit-session';
+import {
+  belongsToFrame,
+  isSelectionInsideAuditedFrame,
+} from './screen-audit-selection';
 
 figma.showUI(__html__, {
   width: 360,
@@ -191,6 +195,18 @@ function handleSelectionChange(): void {
   selectionRevision += 1;
   activeRequestToken += 1;
   currentSelectionSnapshot = createSelectionSnapshot();
+
+  // Navigation initiated by the plugin and manual selection inside the same
+  // audited Frame share one semantic rule. No race-prone "ignore next event"
+  // flag is needed: compatible descendants preserve the review context.
+  if (screenAuditSession !== null && isSelectionInsideAuditedFrame(
+    figma.currentPage.selection,
+    screenAuditSession.frameId,
+  )) {
+    sendSelectionState();
+    return;
+  }
+
   invalidateScreenPreflight();
   sendSelectionState();
   sendScreenPreflightIfFrameSelected();
@@ -970,6 +986,93 @@ async function handleResumeScreenAudit(
   await runScreenAudit(sessionId);
 }
 
+async function handleScreenAuditNavigation(
+  auditSessionId: string,
+  candidateId: string,
+): Promise<void> {
+  const session = screenAuditSession;
+
+  if (session === null || session.sessionId !== auditSessionId) {
+    return;
+  }
+
+  let frame: BaseNode | null = null;
+  try {
+    frame = await figma.getNodeByIdAsync(session.frameId);
+  } catch {
+    frame = null;
+  }
+
+  if (screenAuditSession?.sessionId !== auditSessionId) {
+    return;
+  }
+
+  if (frame === null || frame.removed || frame.type !== 'FRAME') {
+    screenAuditSession = null;
+    sendMessage({
+      type: 'SCREEN_AUDIT_FRAME_UNAVAILABLE',
+      payload: { sessionId: auditSessionId },
+    });
+    return;
+  }
+
+  const item = session.items.find(
+    (candidate) => candidate.candidate.nodeId === candidateId,
+  );
+
+  if (item === undefined) {
+    return;
+  }
+
+  let node: BaseNode | null = null;
+  try {
+    node = await figma.getNodeByIdAsync(candidateId);
+  } catch {
+    node = null;
+  }
+
+  if (screenAuditSession?.sessionId !== auditSessionId) {
+    return;
+  }
+
+  if (frame.removed) {
+    screenAuditSession = null;
+    sendMessage({
+      type: 'SCREEN_AUDIT_FRAME_UNAVAILABLE',
+      payload: { sessionId: auditSessionId },
+    });
+    return;
+  }
+
+  if (node === null || node.removed || node.type !== 'TEXT') {
+    sendMessage({
+      type: 'SCREEN_AUDIT_NAVIGATION_RESULT',
+      payload: { sessionId: auditSessionId, candidateId, state: 'deleted' },
+    });
+    return;
+  }
+
+  if (!belongsToFrame(node, session.frameId)) {
+    sendMessage({
+      type: 'SCREEN_AUDIT_NAVIGATION_RESULT',
+      payload: { sessionId: auditSessionId, candidateId, state: 'deleted' },
+    });
+    return;
+  }
+
+  const textNode = node as TextNode;
+  const state = textNode.characters === item.candidate.text
+    ? 'current' as const
+    : 'changed_since_audit' as const;
+
+  figma.currentPage.selection = [textNode];
+  figma.viewport.scrollAndZoomIntoView([textNode]);
+  sendMessage({
+    type: 'SCREEN_AUDIT_NAVIGATION_RESULT',
+    payload: { sessionId: auditSessionId, candidateId, state },
+  });
+}
+
 async function handleUiMessage(message: UiToMainMessage): Promise<void> {
   switch (message.type) {
     case 'UI_READY':
@@ -1014,6 +1117,10 @@ async function handleUiMessage(message: UiToMainMessage): Promise<void> {
 
     case 'CONTINUE_SCREEN_AUDIT_CLOUD':
       await handleResumeScreenAudit(message.sessionId, 'cloud');
+      break;
+
+    case 'SCREEN_AUDIT_NAVIGATE_TO_ITEM':
+      await handleScreenAuditNavigation(message.auditSessionId, message.candidateId);
       break;
 
     case 'RETRY_LOCAL_ANALYSIS':

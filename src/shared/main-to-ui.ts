@@ -83,6 +83,16 @@ export function isMainToUiMessage(value: unknown): value is MainToUiMessage {
   }
 
   switch (value.type) {
+    case 'SCREEN_AUDIT_NAVIGATION_RESULT':
+      return isRecord(value.payload)
+        && typeof value.payload.sessionId === 'string'
+        && typeof value.payload.candidateId === 'string'
+        && (value.payload.state === 'current'
+          || value.payload.state === 'changed_since_audit'
+          || value.payload.state === 'deleted');
+    case 'SCREEN_AUDIT_FRAME_UNAVAILABLE':
+      return isRecord(value.payload)
+        && typeof value.payload.sessionId === 'string';
     case 'SCREEN_AUDIT_UPDATED':
       return isRecord(value.payload)
         && isScreenAuditSession(value.payload.session);

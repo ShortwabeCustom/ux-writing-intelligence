@@ -104,6 +104,28 @@
 
             <p id="screen-audit-current" class="screen-note" aria-live="polite"></p>
 
+            <section id="screen-audit-review" class="audit-review" hidden>
+              <div class="audit-summary" aria-label="Resumen de revisión">
+                <p id="screen-audit-reviewed-count"></p>
+                <p id="screen-audit-attention-count"></p>
+                <p id="screen-audit-good-count"></p>
+              </div>
+              <div id="screen-audit-filters" class="audit-filters" aria-label="Filtrar resultados">
+                <button type="button" data-filter="all" aria-pressed="false">Todos</button>
+                <button type="button" data-filter="attention" aria-pressed="false">Necesita atención</button>
+                <button type="button" data-filter="good" aria-pressed="false">Buen nivel</button>
+              </div>
+              <p id="screen-audit-active-position" class="screen-note" aria-live="polite"></p>
+              <div class="audit-navigation">
+                <button id="screen-audit-previous" class="secondary-button" type="button">Anterior</button>
+                <button id="screen-audit-next" class="secondary-button" type="button">Siguiente</button>
+              </div>
+            </section>
+
+            <p id="screen-audit-frame-unavailable" class="screen-error" role="alert" hidden>
+              La pantalla auditada ya no está disponible.
+            </p>
+
             <div id="screen-audit-results" class="screen-list"></div>
 
             <section id="screen-audit-paused" class="analysis-error" role="alert" hidden>

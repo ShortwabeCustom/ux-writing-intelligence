@@ -21,6 +21,19 @@ import {
 } from './screen-audit-presentation';
 import type { ScreenAuditItem, ScreenAuditSession } from './screen-audit-session';
 import type {
+  ScreenAuditNavigationState,
+  ScreenAuditReviewFilter,
+} from './screen-audit-review';
+import {
+  describeNavigationState,
+  filterReviewItems,
+  getDefaultReviewFilter,
+  getReviewCounts,
+  getReviewNavigation,
+  normalizeActiveCandidateId,
+  reviewableItems,
+} from './screen-audit-review';
+import type {
   AnalyzeError,
   AnalyzeResponse,
 } from './analyze-contracts';
@@ -109,6 +122,15 @@ const screenAuditChanged = getElement<HTMLElement>('screen-audit-changed');
 const screenAuditEngine = getElement<HTMLElement>('screen-audit-engine');
 const screenAuditProgressFill = getElement<HTMLElement>('screen-audit-progress-fill');
 const screenAuditCurrent = getElement<HTMLElement>('screen-audit-current');
+const screenAuditReview = getElement<HTMLElement>('screen-audit-review');
+const screenAuditReviewedCount = getElement<HTMLElement>('screen-audit-reviewed-count');
+const screenAuditAttentionCount = getElement<HTMLElement>('screen-audit-attention-count');
+const screenAuditGoodCount = getElement<HTMLElement>('screen-audit-good-count');
+const screenAuditFilters = getElement<HTMLElement>('screen-audit-filters');
+const screenAuditActivePosition = getElement<HTMLElement>('screen-audit-active-position');
+const screenAuditPrevious = getElement<HTMLButtonElement>('screen-audit-previous');
+const screenAuditNext = getElement<HTMLButtonElement>('screen-audit-next');
+const screenAuditFrameUnavailable = getElement<HTMLElement>('screen-audit-frame-unavailable');
 const screenAuditResults = getElement<HTMLElement>('screen-audit-results');
 const screenAuditPaused = getElement<HTMLElement>('screen-audit-paused');
 const screenAuditPausedTitle = getElement<HTMLElement>('screen-audit-paused-title');
@@ -212,6 +234,12 @@ let cloudRetryAvailable = false;
 let screenPreflight: ScreenAuditPreflight | null = null;
 /** Auditoría en curso. Solo en memoria: nada se persiste. */
 let screenAuditSession: ScreenAuditSession | null = null;
+let screenAuditReviewSessionId: string | null = null;
+let screenAuditReviewCompleted = false;
+let screenAuditReviewFilter: ScreenAuditReviewFilter = 'all';
+let screenAuditActiveCandidateId: string | null = null;
+let screenAuditNavigationStates: Record<string, ScreenAuditNavigationState> = {};
+let auditedFrameUnavailable = false;
 let settingsState: SettingsState = 'loading';
 let stableSettingsState: StableSettingsState = 'unconfigured';
 let settingsErrorCode: SettingsErrorCode | null = null;
@@ -451,6 +479,8 @@ function renderScreenAudit(): void {
     return;
   }
 
+  synchronizeReviewState(session);
+
   screenAuditTitle.textContent = describeAuditTitle(session);
   screenAuditFrame.textContent = session.frameName;
   screenAuditProgress.textContent = describeProgress(session);
@@ -475,24 +505,97 @@ function renderScreenAudit(): void {
   renderAuditPause(session);
 }
 
+function synchronizeReviewState(session: ScreenAuditSession): void {
+  if (screenAuditReviewSessionId !== session.sessionId) {
+    screenAuditReviewSessionId = session.sessionId;
+    screenAuditReviewCompleted = false;
+    screenAuditReviewFilter = 'all';
+    screenAuditActiveCandidateId = null;
+    screenAuditNavigationStates = {};
+    auditedFrameUnavailable = false;
+  }
+
+  if (session.status === 'completed' && !screenAuditReviewCompleted) {
+    const items = reviewableItems(session);
+    screenAuditReviewFilter = getDefaultReviewFilter(
+      getReviewCounts(items, screenAuditNavigationStates),
+    );
+    screenAuditActiveCandidateId = normalizeActiveCandidateId(
+      filterReviewItems(items, screenAuditReviewFilter, screenAuditNavigationStates),
+      null,
+    );
+    screenAuditReviewCompleted = true;
+  }
+}
+
 function renderAuditResults(session: ScreenAuditSession): void {
   screenAuditResults.replaceChildren();
 
-  for (const item of session.items) {
-    if (item.status !== 'success'
-        && item.status !== 'changed'
-        && item.status !== 'error') {
-      continue;
+  const items = reviewableItems(session);
+  const completed = session.status === 'completed';
+  const visibleItems = completed
+    ? filterReviewItems(items, screenAuditReviewFilter, screenAuditNavigationStates)
+    : items;
+
+  screenAuditReview.hidden = !completed;
+  screenAuditFrameUnavailable.hidden = !auditedFrameUnavailable;
+
+  if (completed) {
+    const counts = getReviewCounts(items, screenAuditNavigationStates);
+    screenAuditReviewedCount.textContent = counts.reviewed === 1
+      ? '1 texto revisado'
+      : `${counts.reviewed} textos revisados`;
+    screenAuditAttentionCount.textContent = counts.attention === 1
+      ? '1 necesita atención'
+      : `${counts.attention} necesitan atención`;
+    screenAuditGoodCount.textContent = counts.good === 1
+      ? '1 en buen nivel'
+      : `${counts.good} en buen nivel`;
+
+    for (const button of screenAuditFilters.querySelectorAll<HTMLButtonElement>('button')) {
+      button.setAttribute(
+        'aria-pressed',
+        String(button.dataset['filter'] === screenAuditReviewFilter),
+      );
+      button.disabled = auditedFrameUnavailable;
     }
 
+    screenAuditActiveCandidateId = normalizeActiveCandidateId(
+      visibleItems,
+      screenAuditActiveCandidateId,
+    );
+    const navigation = getReviewNavigation(visibleItems, screenAuditActiveCandidateId);
+    const subset = screenAuditReviewFilter === 'attention'
+      ? 'con atención'
+      : screenAuditReviewFilter === 'good'
+        ? 'en buen nivel'
+        : 'resultados';
+    screenAuditActivePosition.textContent = navigation.index < 0
+      ? 'No hay resultados en este filtro.'
+      : `Resultado seleccionado · ${navigation.index + 1} de ${visibleItems.length} ${subset}`;
+    screenAuditPrevious.disabled = auditedFrameUnavailable || !navigation.hasPrevious;
+    screenAuditNext.disabled = auditedFrameUnavailable || !navigation.hasNext;
+  }
+
+  for (const item of visibleItems) {
     screenAuditResults.appendChild(buildAuditItem(item));
   }
 }
 
-function buildAuditItem(item: ScreenAuditItem): HTMLElement {
-  const article = document.createElement('article');
+function buildAuditItem(item: ScreenAuditItem): HTMLButtonElement {
+  const article = document.createElement('button');
+  article.type = 'button';
   article.className = 'audit-item';
   article.dataset['status'] = item.status;
+  article.dataset['candidateId'] = item.candidate.nodeId;
+  const isActive = item.candidate.nodeId === screenAuditActiveCandidateId;
+  article.dataset['active'] = String(isActive);
+  article.setAttribute('aria-pressed', String(isActive));
+  article.setAttribute('aria-label', `Ver en pantalla: ${item.candidate.layerName}`);
+  article.disabled = auditedFrameUnavailable;
+  article.addEventListener('click', (): void => {
+    navigateToAuditCandidate(item.candidate.nodeId);
+  });
 
   const header = document.createElement('div');
   header.className = 'audit-item-header';
@@ -531,7 +634,54 @@ function buildAuditItem(item: ScreenAuditItem): HTMLElement {
   }
 
   article.appendChild(meta);
+
+  const navigationState = screenAuditNavigationStates[item.candidate.nodeId] ?? 'current';
+  const navigationMessage = describeNavigationState(navigationState);
+  if (navigationMessage.length > 0) {
+    const stale = document.createElement('span');
+    stale.className = 'audit-item-meta audit-item-navigation-state';
+    stale.textContent = navigationMessage;
+    article.appendChild(stale);
+  }
+
+  const action = document.createElement('span');
+  action.className = 'audit-item-action';
+  action.textContent = navigationState === 'deleted' ? 'No disponible' : 'Ver en pantalla';
+  article.appendChild(action);
   return article;
+}
+
+function navigateToAuditCandidate(candidateId: string): void {
+  const session = screenAuditSession;
+  if (session === null || auditedFrameUnavailable) {
+    return;
+  }
+
+  screenAuditActiveCandidateId = candidateId;
+  renderAuditResults(session);
+  postToMain({
+    type: 'SCREEN_AUDIT_NAVIGATE_TO_ITEM',
+    auditSessionId: session.sessionId,
+    candidateId,
+  });
+}
+
+function navigateRelative(offset: -1 | 1): void {
+  const session = screenAuditSession;
+  if (session === null || session.status !== 'completed') {
+    return;
+  }
+
+  const visibleItems = filterReviewItems(
+    reviewableItems(session),
+    screenAuditReviewFilter,
+    screenAuditNavigationStates,
+  );
+  const { index } = getReviewNavigation(visibleItems, screenAuditActiveCandidateId);
+  const target = visibleItems[index + offset];
+  if (target !== undefined) {
+    navigateToAuditCandidate(target.candidate.nodeId);
+  }
 }
 
 function renderAuditPause(session: ScreenAuditSession): void {
@@ -547,8 +697,9 @@ function renderAuditPause(session: ScreenAuditSession): void {
     : getAnalyzeErrorPresentation(failed.error);
 
   screenAuditPausedTitle.textContent = presentation?.title ?? 'La auditoría se detuvo';
-  screenAuditPausedMessage.textContent = presentation?.description
-    ?? 'No pudimos completar el análisis de este texto.';
+  screenAuditPausedMessage.textContent = failed?.error?.code === 'LOCAL_RUNTIME_UNAVAILABLE'
+    ? 'El análisis local se interrumpió. Puedes reintentarlo en esta Mac o continuar en la nube.'
+    : presentation?.description ?? 'No pudimos completar el análisis de este texto.';
 
   // En Solo local nunca se ofrece la nube, aunque haya clave configurada.
   screenAuditCloudBlock.hidden = !session.cloudContinuationAvailable;
@@ -1101,13 +1252,28 @@ function handleMainMessage(message: MainToUiMessage): void {
       screenAuditSession = message.payload.session;
       renderScreenPreflight();
       break;
+    case 'SCREEN_AUDIT_NAVIGATION_RESULT':
+      if (screenAuditSession?.sessionId === message.payload.sessionId) {
+        screenAuditNavigationStates[message.payload.candidateId] = message.payload.state;
+        screenAuditActiveCandidateId = message.payload.candidateId;
+        renderScreenAudit();
+      }
+      break;
+    case 'SCREEN_AUDIT_FRAME_UNAVAILABLE':
+      if (screenAuditSession?.sessionId === message.payload.sessionId) {
+        auditedFrameUnavailable = true;
+        renderScreenAudit();
+      }
+      break;
     case 'SCREEN_AUDIT_INVALIDATED':
       // Una auditoría obsoleta no puede seguir pintándose contra otra pantalla.
       screenAuditSession = null;
+      resetScreenAuditReview();
       renderScreenPreflight();
       break;
     case 'SCREEN_PREFLIGHT_READY':
       screenAuditSession = null;
+      resetScreenAuditReview();
       screenPreflight = message.payload.preflight;
       screenError.hidden = true;
       renderScreenPreflight();
@@ -1115,6 +1281,7 @@ function handleMainMessage(message: MainToUiMessage): void {
     case 'SCREEN_PREFLIGHT_INVALIDATED':
       // Un descubrimiento obsoleto no puede pintarse contra otra selección.
       screenAuditSession = null;
+      resetScreenAuditReview();
       screenPreflight = null;
       screenError.hidden = true;
       renderScreenPreflight();
@@ -1193,6 +1360,15 @@ function handleMainMessage(message: MainToUiMessage): void {
     default:
       assertNever(message);
   }
+}
+
+function resetScreenAuditReview(): void {
+  screenAuditReviewSessionId = null;
+  screenAuditReviewCompleted = false;
+  screenAuditReviewFilter = 'all';
+  screenAuditActiveCandidateId = null;
+  screenAuditNavigationStates = {};
+  auditedFrameUnavailable = false;
 }
 
 /**
@@ -1307,6 +1483,37 @@ screenAuditContinueCloud.addEventListener('click', (): void => {
     sessionId: screenAuditSession.sessionId,
   });
 });
+
+screenAuditFilters.addEventListener('click', (event: MouseEvent): void => {
+  const target = event.target;
+  if (!(target instanceof HTMLButtonElement)) {
+    return;
+  }
+
+  const filter = target.dataset['filter'];
+  if (filter !== 'all' && filter !== 'attention' && filter !== 'good') {
+    return;
+  }
+
+  screenAuditReviewFilter = filter;
+  if (screenAuditSession !== null) {
+    const visible = filterReviewItems(
+      reviewableItems(screenAuditSession),
+      filter,
+      screenAuditNavigationStates,
+    );
+    // Filter changes update UI selection only. Canvas movement remains tied
+    // to explicit card/Previous/Next actions.
+    screenAuditActiveCandidateId = normalizeActiveCandidateId(
+      visible,
+      screenAuditActiveCandidateId,
+    );
+    renderAuditResults(screenAuditSession);
+  }
+});
+
+screenAuditPrevious.addEventListener('click', (): void => navigateRelative(-1));
+screenAuditNext.addEventListener('click', (): void => navigateRelative(1));
 
 settingsCheckLocalButton.addEventListener('click', (): void => {
   postToMain({ type: 'CHECK_LOCAL_RUNTIME' });

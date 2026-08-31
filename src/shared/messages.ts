@@ -5,6 +5,7 @@ import type { AnalysisTransportKind } from '../analysis-transport';
 import type { ScreenAuditPreflight } from '../screen-audit-contracts';
 import { isScreenAuditPreflight } from '../screen-audit-contracts';
 import type { ScreenAuditSession } from '../screen-audit-session';
+import type { ScreenAuditNavigationState } from '../screen-audit-review';
 import type { ApplyError, ApplySuccessPayload } from '../apply-contracts';
 
 export type SelectionState =
@@ -56,6 +57,18 @@ export type LocalRuntimeStatusPayload = {
 export type ScreenPreflightErrorCode = 'DISCOVERY_FAILED';
 
 export type MainToUiMessage =
+  | {
+      type: 'SCREEN_AUDIT_NAVIGATION_RESULT';
+      payload: {
+        sessionId: string;
+        candidateId: string;
+        state: ScreenAuditNavigationState;
+      };
+    }
+  | {
+      type: 'SCREEN_AUDIT_FRAME_UNAVAILABLE';
+      payload: { sessionId: string };
+    }
   | {
       /**
        * Instantánea completa de la auditoría en curso.
@@ -196,6 +209,11 @@ export type UiToMainMessage =
       sessionId: string;
     }
   | {
+      type: 'SCREEN_AUDIT_NAVIGATE_TO_ITEM';
+      auditSessionId: string;
+      candidateId: string;
+    }
+  | {
       type: 'RETRY_LOCAL_ANALYSIS';
       selectionRevision: number;
     }
@@ -259,6 +277,14 @@ export function isUiToMainMessage(value: unknown): value is UiToMainMessage {
       return 'sessionId' in value
         && typeof value.sessionId === 'string'
         && value.sessionId.length > 0;
+
+    case 'SCREEN_AUDIT_NAVIGATE_TO_ITEM':
+      return 'auditSessionId' in value
+        && typeof value.auditSessionId === 'string'
+        && value.auditSessionId.length > 0
+        && 'candidateId' in value
+        && typeof value.candidateId === 'string'
+        && value.candidateId.length > 0;
 
     case 'START_SCREEN_AUDIT':
     case 'RETRY_LOCAL_ANALYSIS':

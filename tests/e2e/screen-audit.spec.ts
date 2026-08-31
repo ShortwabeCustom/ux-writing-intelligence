@@ -372,3 +372,125 @@ test('25: no se muestra ningún identificador técnico', async ({ plugin }) => {
   expect(text).not.toMatch(/screen-1|n0|n1|f1|sessionId|requestId|nodeId/u);
   expect(text).not.toMatch(/TextNode|FrameNode|payload|LOCAL_RUNTIME_UNAVAILABLE/u);
 });
+
+function completedMixedSession() {
+  let session = auditSession();
+  session = withResult(session, 0, 'local', 96);
+  session = withResult(session, 1, 'cloud', 72);
+  session = withResult(session, 2, 'local', 48);
+  session.items[1]!.result = { ...session.items[1]!.result!, severity: 'medium' };
+  session.items[2]!.result = { ...session.items[2]!.result!, severity: 'high' };
+  return session;
+}
+
+test('26: resumen y filtro por defecto priorizan atención sin score global', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(auditUpdate(completedMixedSession()));
+
+  await expect(plugin.ui.locator('#screen-audit-reviewed-count')).toHaveText('3 textos revisados');
+  await expect(plugin.ui.locator('#screen-audit-attention-count')).toHaveText('2 necesitan atención');
+  await expect(plugin.ui.locator('#screen-audit-good-count')).toHaveText('1 en buen nivel');
+  await expect(plugin.ui.locator('[data-filter="attention"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(results(plugin)).toHaveCount(2);
+
+  const text = await panel(plugin).textContent();
+  expect(text).not.toMatch(/score global|quality score|screen score|\d+(?:\.\d+)?\/100 de pantalla/iu);
+});
+
+test('27: card accesible navega, queda activa y no altera procedencia', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(auditUpdate(completedMixedSession()));
+
+  const first = results(plugin).first();
+  await expect(first).toHaveAttribute('aria-label', /Ver en pantalla/u);
+  await expect(first).toContainText('Ver en pantalla');
+  await first.click();
+  await plugin.expectMessages('SCREEN_AUDIT_NAVIGATE_TO_ITEM', 1);
+
+  const messages = await plugin.receivedOfType('SCREEN_AUDIT_NAVIGATE_TO_ITEM');
+  expect(messages[0]).toMatchObject({
+    auditSessionId: 'screen-1', candidateId: AUDIT_CANDIDATES[1].nodeId,
+  });
+  await expect(first).toHaveAttribute('data-active', 'true');
+  await expect(first.locator('.audit-item-meta').first()).toContainText('Nube');
+});
+
+test('28: Anterior/Siguiente recorren solo el filtro y respetan límites', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(auditUpdate(completedMixedSession()));
+
+  await expect(plugin.ui.locator('#screen-audit-previous')).toBeDisabled();
+  await expect(plugin.ui.locator('#screen-audit-next')).toBeEnabled();
+  await plugin.ui.locator('#screen-audit-next').click();
+  await plugin.expectMessages('SCREEN_AUDIT_NAVIGATE_TO_ITEM', 1);
+  await expect(plugin.ui.locator('#screen-audit-next')).toBeDisabled();
+  await expect(plugin.ui.locator('#screen-audit-previous')).toBeEnabled();
+  await expect(plugin.ui.locator('#screen-audit-active-position')).toContainText('2 de 2 con atención');
+
+  await plugin.ui.locator('#screen-audit-previous').click();
+  await plugin.expectMessages('SCREEN_AUDIT_NAVIGATE_TO_ITEM', 2);
+  const messages = await plugin.receivedOfType('SCREEN_AUDIT_NAVIGATE_TO_ITEM');
+  expect(messages.map((message) => message.candidateId)).toEqual([
+    AUDIT_CANDIDATES[2].nodeId,
+    AUDIT_CANDIDATES[1].nodeId,
+  ]);
+});
+
+test('29: cambiar filtro actualiza activo en UI sin navegar canvas', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(auditUpdate(completedMixedSession()));
+  await plugin.ui.locator('[data-filter="good"]').click();
+
+  await plugin.expectMessages('SCREEN_AUDIT_NAVIGATE_TO_ITEM', 0);
+  await expect(results(plugin)).toHaveCount(1);
+  await expect(results(plugin).first()).toContainText(AUDIT_CANDIDATES[0].layerName);
+  await expect(results(plugin).first()).toHaveAttribute('data-active', 'true');
+});
+
+test('30: estados cambiado y eliminado conservan resultado y procedencia', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(auditUpdate(completedMixedSession()));
+
+  await plugin.send({
+    type: 'SCREEN_AUDIT_NAVIGATION_RESULT',
+    payload: {
+      sessionId: 'screen-1', candidateId: AUDIT_CANDIDATES[1].nodeId,
+      state: 'changed_since_audit',
+    },
+  });
+  const changed = plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[1].nodeId}"]`);
+  await expect(changed).toContainText('Este texto cambió desde la auditoría.');
+  await expect(changed).toContainText('72/100');
+  await expect(changed.locator('.audit-item-meta').first()).toContainText('Nube');
+
+  await plugin.send({
+    type: 'SCREEN_AUDIT_NAVIGATION_RESULT',
+    payload: {
+      sessionId: 'screen-1', candidateId: AUDIT_CANDIDATES[2].nodeId,
+      state: 'deleted',
+    },
+  });
+  const deleted = plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[2].nodeId}"]`);
+  await expect(deleted).toContainText('Este texto ya no está disponible.');
+  await expect(deleted).toContainText('48/100');
+  await expect(deleted.locator('.audit-item-meta').first()).toContainText('Local');
+});
+
+test('31: fallo durante Screen Audit usa copy de interrupción', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(auditUpdate(withFailure(auditSession(), 0, true)));
+  await expect(plugin.ui.locator('#screen-audit-paused-message'))
+    .toContainText('El análisis local se interrumpió.');
+});
+
+test('32: Frame eliminado muestra estado claro y deshabilita navegación', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(auditUpdate(completedMixedSession()));
+  await plugin.send({
+    type: 'SCREEN_AUDIT_FRAME_UNAVAILABLE', payload: { sessionId: 'screen-1' },
+  });
+
+  await expect(plugin.ui.locator('#screen-audit-frame-unavailable')).toBeVisible();
+  await expect(plugin.ui.locator('#screen-audit-next')).toBeDisabled();
+  await expect(results(plugin).first()).toBeDisabled();
+});

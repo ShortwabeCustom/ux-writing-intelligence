@@ -48,17 +48,20 @@ function resultFor(text) {
 function textNode(id, characters, name) {
   return {
     id, name: name ?? `Capa ${id}`, type: 'TEXT', visible: true, removed: false,
+    parent: null,
     characters, hasMissingFont: false,
     getRangeAllFontNames: () => [{ family: 'Inter', style: 'Regular' }],
     absoluteBoundingBox: { x: 0, y: Number(id.replace(/\D/gu, '')) },
   };
 }
 
-function frameOf(name, nodes) {
-  return {
-    id: 'frame-1', name, type: 'FRAME', visible: true, removed: false,
+function frameOf(name, nodes, id = 'frame-1') {
+  const frame = {
+    id, name, type: 'FRAME', visible: true, removed: false, parent: null,
     children: nodes, absoluteBoundingBox: { x: 0, y: 0 },
   };
+  for (const node of nodes) node.parent = frame;
+  return frame;
 }
 
 const TEXTS = ['Continuar', 'Guardar cambios', 'Cancelar', 'Ver detalles', 'Aceptar'];
@@ -76,16 +79,26 @@ async function createPlugin({
   storage.set('ux-writing-analysis-mode', mode);
 
   const nodes = Array.from({ length: count }, (_, i) => textNode(`n${i + 1}`, TEXTS[i]));
-  const nodeById = new Map(nodes.map((n) => [n.id, n]));
-  let currentSelection = [frameOf(frameName, nodes)];
   const listeners = new Map();
+  const initialFrame = frameOf(frameName, nodes);
+  const nodeById = new Map([[initialFrame.id, initialFrame], ...nodes.map((n) => [n.id, n])]);
+  let currentSelection = [initialFrame];
+  const viewportCalls = [];
+  const currentPage = {
+    get selection() { return currentSelection; },
+    set selection(next) {
+      currentSelection = next;
+      listeners.get('selectionchange')?.();
+    },
+  };
 
   globalThis.__html__ = '';
   globalThis.figma = {
     showUI() {},
     ui: { postMessage: (m) => messages.push(m), onmessage: null },
     on: (event, handler) => listeners.set(event, handler),
-    get currentPage() { return { selection: currentSelection }; },
+    currentPage,
+    viewport: { scrollAndZoomIntoView: (selected) => viewportCalls.push(selected) },
     async getNodeByIdAsync(id) { return nodeById.get(id) ?? null; },
     clientStorage: {
       async getAsync(k) { return storage.get(k); },
@@ -135,7 +148,8 @@ async function createPlugin({
     .find((m) => m.type === 'SCREEN_PREFLIGHT_READY')?.payload.preflight;
 
   return {
-    send, drain, requests, messages, storageWrites, nodeById, listeners,
+    send, drain, requests, messages, storageWrites, nodeById, listeners, viewportCalls,
+    selected: () => currentSelection,
     preflight,
     startAudit: async () => {
       await send({
@@ -448,13 +462,121 @@ test('19: un resultado de una pantalla no puede entrar en otra', async () => {
   const first = plugin.session();
   assert.equal(first.frameName, 'Pantalla A');
 
-  await plugin.changeSelection([frameOf('Pantalla B', [textNode('n9', 'Otro texto')])]);
+  await plugin.changeSelection([frameOf('Pantalla B', [textNode('n9', 'Otro texto')], 'frame-2')]);
   await plugin.startAudit();
 
   const second = plugin.session();
   assert.notEqual(second.sessionId, first.sessionId);
   assert.equal(second.frameName, 'Pantalla B');
   assert.equal(second.total, 1);
+});
+
+test('19b: navegación selecciona, enfoca y conserva auditoría sin red ni mutación', async () => {
+  const plugin = await createPlugin({ count: 3 });
+  await plugin.startAudit();
+  const session = plugin.session();
+  const candidate = session.items[1].candidate;
+  const beforeRequests = plugin.analyzeRequests().length;
+  const beforeCharacters = plugin.nodeById.get(candidate.nodeId).characters;
+
+  await plugin.send({
+    type: 'SCREEN_AUDIT_NAVIGATE_TO_ITEM',
+    auditSessionId: session.sessionId,
+    candidateId: candidate.nodeId,
+  });
+
+  assert.equal(plugin.selected()[0].id, candidate.nodeId);
+  assert.equal(plugin.viewportCalls.length, 1);
+  assert.equal(plugin.viewportCalls[0][0].id, candidate.nodeId);
+  assert.equal(plugin.analyzeRequests().length, beforeRequests);
+  assert.equal(plugin.nodeById.get(candidate.nodeId).characters, beforeCharacters);
+  assert.equal(plugin.messages.some((m) => m.type === 'SCREEN_AUDIT_INVALIDATED'), false);
+  assert.equal(plugin.messages.at(-1).payload.state, 'current');
+});
+
+test('19c: selección manual del Frame, TextNode y SceneNode descendiente preserva review', async () => {
+  const plugin = await createPlugin({ count: 2 });
+  await plugin.startAudit();
+  const frame = plugin.nodeById.get('frame-1');
+  const rectangle = {
+    id: 'rect-1', name: 'Decoración', type: 'RECTANGLE', removed: false, parent: frame,
+  };
+
+  await plugin.changeSelection([frame]);
+  await plugin.changeSelection([plugin.nodeById.get('n1')]);
+  await plugin.changeSelection([rectangle]);
+
+  assert.equal(plugin.messages.some((m) => m.type === 'SCREEN_AUDIT_INVALIDATED'), false);
+  assert.equal(plugin.session().status, 'completed');
+});
+
+test('19d: auditSessionId incorrecto se ignora', async () => {
+  const plugin = await createPlugin({ count: 1 });
+  await plugin.startAudit();
+  const before = plugin.selected()[0].id;
+  await plugin.send({
+    type: 'SCREEN_AUDIT_NAVIGATE_TO_ITEM',
+    auditSessionId: 'screen-equivocada', candidateId: 'n1',
+  });
+  assert.equal(plugin.selected()[0].id, before);
+  assert.equal(plugin.viewportCalls.length, 0);
+});
+
+test('19e: texto modificado se selecciona, marca obsolescencia y no reanaliza', async () => {
+  const plugin = await createPlugin({ count: 1 });
+  await plugin.startAudit();
+  const session = plugin.session();
+  plugin.nodeById.get('n1').characters = 'Texto modificado manualmente';
+  const beforeRequests = plugin.analyzeRequests().length;
+
+  await plugin.send({
+    type: 'SCREEN_AUDIT_NAVIGATE_TO_ITEM',
+    auditSessionId: session.sessionId, candidateId: 'n1',
+  });
+
+  assert.equal(plugin.selected()[0].id, 'n1');
+  assert.equal(plugin.messages.at(-1).payload.state, 'changed_since_audit');
+  assert.equal(plugin.analyzeRequests().length, beforeRequests);
+});
+
+test('19f: nodo eliminado es seguro y permite revisar otro resultado', async () => {
+  const plugin = await createPlugin({ count: 2 });
+  await plugin.startAudit();
+  const session = plugin.session();
+  plugin.nodeById.get('n1').removed = true;
+  plugin.nodeById.delete('n1');
+
+  await plugin.send({
+    type: 'SCREEN_AUDIT_NAVIGATE_TO_ITEM',
+    auditSessionId: session.sessionId, candidateId: 'n1',
+  });
+  assert.equal(plugin.messages.at(-1).payload.state, 'deleted');
+
+  await plugin.send({
+    type: 'SCREEN_AUDIT_NAVIGATE_TO_ITEM',
+    auditSessionId: session.sessionId, candidateId: 'n2',
+  });
+  assert.equal(plugin.selected()[0].id, 'n2');
+});
+
+test('19g: nodo fuera del Frame se rechaza y Frame eliminado inutiliza sesión', async () => {
+  const plugin = await createPlugin({ count: 2 });
+  await plugin.startAudit();
+  const session = plugin.session();
+  plugin.nodeById.get('n1').parent = frameOf('Otra', [], 'frame-other');
+  await plugin.send({
+    type: 'SCREEN_AUDIT_NAVIGATE_TO_ITEM',
+    auditSessionId: session.sessionId, candidateId: 'n1',
+  });
+  assert.equal(plugin.messages.at(-1).payload.state, 'deleted');
+  assert.equal(plugin.viewportCalls.length, 0);
+
+  plugin.nodeById.get('frame-1').removed = true;
+  await plugin.send({
+    type: 'SCREEN_AUDIT_NAVIGATE_TO_ITEM',
+    auditSessionId: session.sessionId, candidateId: 'n2',
+  });
+  assert.equal(plugin.messages.at(-1).type, 'SCREEN_AUDIT_FRAME_UNAVAILABLE');
 });
 
 // --- 20..22 — obsolescencia del documento ------------------------------------

@@ -72,6 +72,7 @@ const UI_TO_MAIN_SAMPLES = {
   START_SCREEN_AUDIT: { selectionRevision: 0 },
   RETRY_SCREEN_AUDIT_LOCAL: { sessionId: 'screen-1' },
   CONTINUE_SCREEN_AUDIT_CLOUD: { sessionId: 'screen-1' },
+  SCREEN_AUDIT_NAVIGATE_TO_ITEM: { auditSessionId: 'screen-1', candidateId: 'n1' },
   USE_CLOUD_FOR_CURRENT_ANALYSIS: { selectionRevision: 0 },
   APPLY_SUGGESTION: { requestId: 'analysis-1' },
 };
@@ -118,6 +119,10 @@ const VALID_SESSION = {
 };
 
 const MAIN_TO_UI_SAMPLES = {
+  SCREEN_AUDIT_NAVIGATION_RESULT: {
+    payload: { sessionId: 'screen-1', candidateId: 'n1', state: 'current' },
+  },
+  SCREEN_AUDIT_FRAME_UNAVAILABLE: { payload: { sessionId: 'screen-1' } },
   SCREEN_AUDIT_UPDATED: { payload: { session: VALID_SESSION } },
   SCREEN_AUDIT_INVALIDATED: { payload: { sessionId: 'screen-1' } },
   SCREEN_PREFLIGHT_READY: { payload: { preflight: VALID_PREFLIGHT } },

@@ -1295,12 +1295,32 @@ input:focus-visible {
 }
 
 .audit-item {
+  width: 100%;
+  border: 1px solid transparent;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 8px;
   border-radius: 6px;
   background: var(--figma-color-bg, #ffffff);
+}
+
+.audit-item:hover {
+  border-color: var(--figma-color-border, #e6e6e6);
+}
+
+.audit-item:focus-visible {
+  outline: 2px solid var(--figma-color-border-brand-strong, #0d99ff);
+  outline-offset: 2px;
+}
+
+.audit-item[data-active="true"] {
+  border-color: var(--figma-color-border-brand-strong, #0d99ff);
+  box-shadow: inset 3px 0 0 var(--figma-color-bg-brand, #0d99ff);
 }
 
 .audit-item-header {
@@ -1333,6 +1353,75 @@ input:focus-visible {
 .audit-item-meta {
   font-size: 10px;
   color: var(--figma-color-text-secondary, #737373);
+}
+
+.audit-item-action {
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--figma-color-text-brand, #007be5);
+}
+
+.audit-review {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 4px 0;
+}
+
+.audit-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 8px;
+}
+
+.audit-summary p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--figma-color-text-secondary, #737373);
+}
+
+.audit-summary p:first-child {
+  grid-column: 1 / -1;
+  font-weight: 600;
+  color: var(--figma-color-text, #1a1a1a);
+}
+
+.audit-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.audit-filters button {
+  min-height: 26px;
+  padding: 4px 7px;
+  border: 1px solid var(--figma-color-border, #e6e6e6);
+  border-radius: 5px;
+  background: var(--figma-color-bg, #ffffff);
+  color: var(--figma-color-text, #1a1a1a);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.audit-filters button[aria-pressed="true"] {
+  border-color: var(--figma-color-border-brand-strong, #0d99ff);
+  font-weight: 600;
+}
+
+.audit-filters button:focus-visible {
+  outline: 2px solid var(--figma-color-border-brand-strong, #0d99ff);
+  outline-offset: 1px;
+}
+
+.audit-navigation {
+  display: flex;
+  gap: 6px;
+}
+
+.audit-navigation button {
+  flex: 1;
 }
 
 .audit-item[data-status="changed"] .audit-item-meta {
