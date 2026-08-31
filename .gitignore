@@ -1,10 +1,46 @@
-node_modules/
-dist/
-.DS_Store
-*.log
+# Environment / secrets
+.env
+.env.*
+!.env.example
 
-# Artefactos de Playwright: se regeneran, no se versionan.
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Node
+node_modules/
+
+# Build / tests
+dist/
 test-results/
 playwright-report/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Private keys / certificates
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Temporary / backup files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+*.orig
+
+# Project-specific accidental artifacts
+UX Writing Intelligence Temp/
+manifest.json.backup-before-plugin-id
+
+# Artefactos de Playwright: se regeneran, no se versionan.
 blob-report/
 .playwright/
