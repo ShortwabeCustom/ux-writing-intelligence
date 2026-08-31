@@ -1,0 +1,663 @@
+{
+  "input_dir": "../results/2026-08-29-phase-8-5-2",
+  "models": {
+    "qwen3.5:4b": {
+      "completeness": {
+        "requests": 186,
+        "unique_cases": 62,
+        "reps_per_case": 3.0,
+        "transport_errors": 0,
+        "retries": 0,
+        "structured_invalid": 0
+      },
+      "structured_output_success_rate": 100.0,
+      "raw_success_rate": 82.3,
+      "parity_success_rate": 100.0,
+      "critical_raw_failures": 6,
+      "critical_final_failures": 0,
+      "critical_raw_by_type": {
+        "NO_ADDED_CONTENT": 6
+      },
+      "critical_final_by_type": {},
+      "taxonomy_raw": {
+        "GLOSSARY_RAW_FAILURE": 15,
+        "ORTHOGRAPHY_RAW_FAILURE": 12,
+        "INVENTED_ACTION": 6
+      },
+      "taxonomy_final": {},
+      "safety_intervention": {
+        "runs_with_any": 33,
+        "runs_total": 186,
+        "rate_runs_pct": 17.7,
+        "cases_with_any": 11,
+        "cases_total": 62,
+        "rate_cases_pct": 17.7,
+        "reasons": {
+          "glossary_override": 15,
+          "orthography_override": 18,
+          "fallback_to_source": 6,
+          "semantic_fidelity_rejection": 6
+        }
+      },
+      "fallback_to_source": {
+        "count": 6,
+        "rate_pct": 3.2,
+        "case_ids": [
+          "bound_04",
+          "orto_04"
+        ],
+        "reasons": {
+          "NO_ADDED_CONTENT": 6
+        }
+      },
+      "deterministic_override": {
+        "count": 33,
+        "rate_pct": 17.7,
+        "case_ids": [
+          "bound_03",
+          "bound_04",
+          "gloss_01",
+          "gloss_02",
+          "gloss_03",
+          "gloss_reg_01",
+          "gloss_reg_02",
+          "orto_01",
+          "orto_03",
+          "orto_04",
+          "orto_05"
+        ],
+        "glossary": 15,
+        "orthography": 18
+      },
+      "unnecessary_rewrite": {
+        "no_op_runs": 39,
+        "raw_count": 0,
+        "raw_rate_pct": 0.0,
+        "final_count": 0,
+        "final_rate_pct": 0.0,
+        "raw_case_ids": [],
+        "final_case_ids": []
+      },
+      "semantic_detected_pass": {
+        "raw": {
+          "pass": 291,
+          "total": 291,
+          "pct": 100.0
+        },
+        "final": {
+          "pass": 291,
+          "total": 291,
+          "pct": 100.0
+        }
+      },
+      "protected_content": {
+        "raw": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "glossary": {
+        "raw": {
+          "pass": 171,
+          "total": 186,
+          "pct": 91.9
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "orthography": {
+        "raw": {
+          "pass": 174,
+          "total": 186,
+          "pct": 93.5
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "boundary": {
+        "raw": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "meta_leakage": {
+        "raw": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "locale": {
+        "raw": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "performance_warm": {
+        "wall_s": {
+          "n": 186,
+          "mean": 5.303,
+          "p50": 4.861,
+          "min": 3.481,
+          "max": 9.833,
+          "p95": 8.109,
+          "p95_basis": "percentil empírico, n=186"
+        },
+        "eval_tok_s": {
+          "n": 186,
+          "mean": 21.822,
+          "p50": 21.71,
+          "min": 16.05,
+          "max": 25.9,
+          "p95": 25.19,
+          "p95_basis": "percentil empírico, n=186"
+        },
+        "prompt_eval_s": {
+          "n": 186,
+          "mean": 0.997,
+          "p50": 0.192,
+          "min": 0.124,
+          "max": 3.418,
+          "p95": 2.976,
+          "p95_basis": "percentil empírico, n=186"
+        },
+        "eval_s": {
+          "n": 186,
+          "mean": 4.297,
+          "p50": 3.99,
+          "min": 3.244,
+          "max": 6.998,
+          "p95": 6.294,
+          "p95_basis": "percentil empírico, n=186"
+        },
+        "eval_count": {
+          "n": 186,
+          "mean": 92.516,
+          "p50": 89.0,
+          "min": 81,
+          "max": 145,
+          "p95": 125,
+          "p95_basis": "percentil empírico, n=186"
+        }
+      },
+      "resident_memory": {
+        "size": "3.1 GB",
+        "processor": "100%",
+        "evidence": "qwen3.5:4b    2a654d98e6fb    3.1 GB    100% GPU     4096       29 minutes from now",
+        "snapshot": "fin, modelo residente"
+      },
+      "keep_alive_used": "30m",
+      "cold": {
+        "requests": 10,
+        "wall_s": {
+          "n": 10,
+          "mean": 7.902,
+          "p50": 7.362,
+          "min": 6.774,
+          "max": 10.849,
+          "p95": null,
+          "p95_basis": "muestra insuficiente (n=10 < 20)"
+        },
+        "load_s": {
+          "n": 10,
+          "mean": 1.648,
+          "p50": 1.597,
+          "min": 1.581,
+          "max": 2.113,
+          "p95": null,
+          "p95_basis": "muestra insuficiente (n=10 < 20)"
+        }
+      },
+      "originacion_regression": [
+        {
+          "case_id": "gloss_01",
+          "rep": 1,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        },
+        {
+          "case_id": "gloss_01",
+          "rep": 2,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        },
+        {
+          "case_id": "gloss_01",
+          "rep": 3,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        },
+        {
+          "case_id": "gloss_reg_01",
+          "rep": 1,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        },
+        {
+          "case_id": "gloss_reg_01",
+          "rep": 2,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        },
+        {
+          "case_id": "gloss_reg_01",
+          "rep": 3,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        }
+      ],
+      "variability": {
+        "non_deterministic_cases": 0,
+        "total_cases": 62,
+        "rate_pct": 0.0,
+        "detail": {}
+      }
+    },
+    "qwen3.5:9b": {
+      "completeness": {
+        "requests": 186,
+        "unique_cases": 62,
+        "reps_per_case": 3.0,
+        "transport_errors": 0,
+        "retries": 0,
+        "structured_invalid": 0
+      },
+      "structured_output_success_rate": 100.0,
+      "raw_success_rate": 77.4,
+      "parity_success_rate": 100.0,
+      "critical_raw_failures": 24,
+      "critical_final_failures": 0,
+      "critical_raw_by_type": {
+        "NO_INVENTED_ACTION": 12,
+        "FACT:recovery_path": 6,
+        "NO_ADDED_CONTENT": 6
+      },
+      "critical_final_by_type": {},
+      "taxonomy_raw": {
+        "INVENTED_ACTION": 18,
+        "UNNECESSARY_REWRITE": 3,
+        "INVENTED_RECOVERY": 6,
+        "GLOSSARY_RAW_FAILURE": 15,
+        "ORTHOGRAPHY_RAW_FAILURE": 9
+      },
+      "taxonomy_final": {},
+      "safety_intervention": {
+        "runs_with_any": 42,
+        "runs_total": 186,
+        "rate_runs_pct": 22.6,
+        "cases_with_any": 14,
+        "cases_total": 62,
+        "rate_cases_pct": 22.6,
+        "reasons": {
+          "fallback_to_source": 18,
+          "high_quality_noop": 3,
+          "semantic_fidelity_rejection": 18,
+          "glossary_override": 15,
+          "orthography_override": 15
+        }
+      },
+      "fallback_to_source": {
+        "count": 18,
+        "rate_pct": 9.7,
+        "case_ids": [
+          "bound_02",
+          "bound_04",
+          "error_01",
+          "error_02",
+          "neg_01",
+          "orto_04"
+        ],
+        "reasons": {
+          "NO_INVENTED_ACTION": 12,
+          "FACT:recovery_path": 6,
+          "NO_ADDED_CONTENT": 6
+        }
+      },
+      "deterministic_override": {
+        "count": 30,
+        "rate_pct": 16.1,
+        "case_ids": [
+          "bound_03",
+          "bound_04",
+          "gloss_01",
+          "gloss_02",
+          "gloss_03",
+          "gloss_reg_01",
+          "gloss_reg_02",
+          "orto_01",
+          "orto_03",
+          "orto_04"
+        ],
+        "glossary": 15,
+        "orthography": 15
+      },
+      "unnecessary_rewrite": {
+        "no_op_runs": 39,
+        "raw_count": 3,
+        "raw_rate_pct": 7.7,
+        "final_count": 0,
+        "final_rate_pct": 0.0,
+        "raw_case_ids": [
+          "neg_01"
+        ],
+        "final_case_ids": []
+      },
+      "semantic_detected_pass": {
+        "raw": {
+          "pass": 285,
+          "total": 291,
+          "pct": 97.9
+        },
+        "final": {
+          "pass": 291,
+          "total": 291,
+          "pct": 100.0
+        }
+      },
+      "protected_content": {
+        "raw": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "glossary": {
+        "raw": {
+          "pass": 171,
+          "total": 186,
+          "pct": 91.9
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "orthography": {
+        "raw": {
+          "pass": 177,
+          "total": 186,
+          "pct": 95.2
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "boundary": {
+        "raw": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "meta_leakage": {
+        "raw": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "locale": {
+        "raw": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        },
+        "final": {
+          "pass": 186,
+          "total": 186,
+          "pct": 100.0
+        }
+      },
+      "performance_warm": {
+        "wall_s": {
+          "n": 186,
+          "mean": 11.14,
+          "p50": 10.377,
+          "min": 6.011,
+          "max": 21.235,
+          "p95": 18.233,
+          "p95_basis": "percentil empírico, n=186"
+        },
+        "eval_tok_s": {
+          "n": 186,
+          "mean": 11.311,
+          "p50": 11.12,
+          "min": 8.89,
+          "max": 13.9,
+          "p95": 13.21,
+          "p95_basis": "percentil empírico, n=186"
+        },
+        "prompt_eval_s": {
+          "n": 186,
+          "mean": 2.101,
+          "p50": 0.359,
+          "min": 0.266,
+          "max": 7.36,
+          "p95": 6.496,
+          "p95_basis": "percentil empírico, n=186"
+        },
+        "eval_s": {
+          "n": 186,
+          "mean": 9.032,
+          "p50": 8.463,
+          "min": 5.108,
+          "max": 18.604,
+          "p95": 13.582,
+          "p95_basis": "percentil empírico, n=186"
+        },
+        "eval_count": {
+          "n": 186,
+          "mean": 100.645,
+          "p50": 97.0,
+          "min": 67,
+          "max": 174,
+          "p95": 142,
+          "p95_basis": "percentil empírico, n=186"
+        }
+      },
+      "resident_memory": {
+        "size": "5.5 GB",
+        "processor": "100%",
+        "evidence": "qwen3.5:9b    6488c96fa5fa    5.5 GB    100% GPU     4096       29 minutes from now",
+        "snapshot": "fin, modelo residente"
+      },
+      "keep_alive_used": "30m",
+      "cold": {
+        "requests": 10,
+        "wall_s": {
+          "n": 10,
+          "mean": 19.343,
+          "p50": 18.587,
+          "min": 15.129,
+          "max": 23.209,
+          "p95": null,
+          "p95_basis": "muestra insuficiente (n=10 < 20)"
+        },
+        "load_s": {
+          "n": 10,
+          "mean": 4.113,
+          "p50": 4.022,
+          "min": 3.852,
+          "max": 4.637,
+          "p95": null,
+          "p95_basis": "muestra insuficiente (n=10 < 20)"
+        }
+      },
+      "originacion_regression": [
+        {
+          "case_id": "gloss_01",
+          "rep": 1,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        },
+        {
+          "case_id": "gloss_01",
+          "rep": 2,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        },
+        {
+          "case_id": "gloss_01",
+          "rep": 3,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        },
+        {
+          "case_id": "gloss_reg_01",
+          "rep": 1,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        },
+        {
+          "case_id": "gloss_reg_01",
+          "rep": 2,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        },
+        {
+          "case_id": "gloss_reg_01",
+          "rep": 3,
+          "raw": "Proceder con la originación",
+          "raw_valid": false,
+          "raw_critical": [],
+          "intervened": true,
+          "interventions": [
+            "glossary_override"
+          ],
+          "final": "Proceder con la solicitud",
+          "final_valid": true
+        }
+      ],
+      "variability": {
+        "non_deterministic_cases": 0,
+        "total_cases": 62,
+        "rate_pct": 0.0,
+        "detail": {}
+      }
+    }
+  }
+}

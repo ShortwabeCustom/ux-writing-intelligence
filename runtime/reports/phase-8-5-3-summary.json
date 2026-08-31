@@ -1,0 +1,100 @@
+{
+  "phase": "8.5.3",
+  "run_date": "2026-08-29",
+  "model": "qwen3.5:4b",
+  "host": "127.0.0.1",
+  "port": 8787,
+  "ollama": "http://127.0.0.1:11434",
+  "keep_alive": "30m",
+  "locale": "es-MX",
+  "gate": "GO",
+  "next_phase_authorized": false,
+  "next_phase_blocker": "FASE 8.5.4 requiere aprobación humana explícita; el plugin sigue sin conectarse",
+  "runtime": {
+    "max_ollama_calls_per_request": 2,
+    "structured_retries": 1,
+    "semantic_regenerations": 1,
+    "analysis_timeout_seconds": 30,
+    "local_api_key_required": false,
+    "cors_allowed_origins": [],
+    "binds_only_loopback": true
+  },
+  "tests": {
+    "suite": "pytest tests/",
+    "result": "140 passed, 1 warning in 0.25s",
+    "passed": 140,
+    "failed": 0
+  },
+  "golden_cases": {
+    "total": 10,
+    "passed": 10
+  },
+  "parity_bank_62": {
+    "cases": 62,
+    "final_critical_failures": 0,
+    "cases_with_critical": 0,
+    "structured_valid": "62/62",
+    "protected_content": "62/62",
+    "glossary": "62/62",
+    "orthography": "62/62",
+    "boundary": "62/62",
+    "meta_leakage_failures": 0,
+    "locale_failures": 0,
+    "semantic_failures": 0,
+    "expected_final": "12/12"
+  },
+  "final_critical_failures": 0,
+  "performance": {
+    "short_warm_p50_seconds": 6.007,
+    "short_warm_p95_seconds": 6.69,
+    "short_warm_max_seconds": 12.172,
+    "short_sample_size": 20,
+    "long_warm_p50_seconds": 8.631,
+    "long_sample_size": 5,
+    "gate_short_p50_target": 7,
+    "gate_short_p95_target": 10,
+    "gate_short_p50_met": true,
+    "gate_short_p95_met": true
+  },
+  "runtime_overhead": {
+    "method": "orden alternado; se comparan solo mediciones en primera posición",
+    "seconds": 0.249,
+    "pct": 4.3,
+    "direct_ollama_p50_now": 5.728,
+    "reference_8_5_2_direct_p50": 4.861,
+    "machine_drift_since_8_5_2_seconds": 0.867
+  },
+  "resident_memory": {
+    "model": "3.1 GB",
+    "processor": "100% GPU",
+    "source": "ollama ps"
+  },
+  "security": {
+    "runtime_socket": "127.0.0.1:8787",
+    "ollama_socket": "127.0.0.1:11434",
+    "public_listeners": 0,
+    "persistent_service": false,
+    "clean_sigterm_shutdown": true
+  },
+  "integrity": {
+    "plugin_modified": false,
+    "plugin_id": "1674592820827897160",
+    "manifest_modified": false,
+    "network_access_unchanged": true,
+    "production_modified": false,
+    "vps_ssh": false,
+    "api_key_touched": false,
+    "models_deleted": false,
+    "runtime_imports_benchmarks": false
+  },
+  "remaining_risks": [
+    "Los validadores semánticos son heurísticos: alta precisión, no alto recall",
+    "La regla de expansión inventada solo cubre fragmentos de <=4 palabras de contenido",
+    "El glosario tiene 7 terminos; el real de producto es mayor",
+    "La jerga solo se detecta via glosario",
+    "Una sola configuracion de hardware medida: M4 / 24 GB",
+    "La regeneracion semantica duplica la latencia: ~12s frente a ~6s",
+    "num_ctx=4096 no se estreso con una pantalla completa de Figma",
+    "El mapeo de codigos de error al conjunto cerrado del plugin queda para 8.5.4"
+  ]
+}

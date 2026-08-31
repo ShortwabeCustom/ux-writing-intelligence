@@ -1,0 +1,175 @@
+{
+  "summary": {
+    "short": {
+      "n": 7,
+      "p50": 4.822,
+      "min": 3.217,
+      "max": 10.601,
+      "mean": 5.457
+    },
+    "long": {
+      "n": 3,
+      "p50": 6.424,
+      "min": 5.569,
+      "max": 6.727,
+      "mean": 6.24
+    },
+    "failures": 0
+  },
+  "results": [
+    {
+      "text": "Continuar",
+      "kind": "no_op",
+      "wall_s": 3.217,
+      "suggestion": "Continuar",
+      "score": 100.0,
+      "orthography": 5.0,
+      "jargon": false,
+      "issues": [],
+      "reason": "El texto está bien: es claro, breve y dice lo que la persona necesita.",
+      "problems": []
+    },
+    {
+      "text": "prestamo",
+      "kind": "orthography",
+      "wall_s": 4.758,
+      "suggestion": "préstamo",
+      "score": 97.0,
+      "orthography": 4.0,
+      "jargon": false,
+      "issues": [
+        {
+          "category": "ortografia",
+          "severity": "medium",
+          "term": "prestamo",
+          "reason": "«prestamo» se escribe con tilde: «préstamo»."
+        }
+      ],
+      "reason": "«prestamo» se escribe con tilde: «préstamo».",
+      "problems": []
+    },
+    {
+      "text": "¿Como funciona?",
+      "kind": "orthography",
+      "wall_s": 10.601,
+      "suggestion": "¿Cómo funciona?",
+      "score": 97.0,
+      "orthography": 4.0,
+      "jargon": false,
+      "issues": [
+        {
+          "category": "ortografia",
+          "severity": "medium",
+          "term": "Como",
+          "reason": "En una pregunta, «Como» lleva tilde: «Cómo»."
+        }
+      ],
+      "reason": "En una pregunta, «Como» lleva tilde: «Cómo».",
+      "problems": []
+    },
+    {
+      "text": "Ingresa tus credenciales",
+      "kind": "glossary",
+      "wall_s": 5.032,
+      "suggestion": "Ingresa tus datos de acceso",
+      "score": 90.0,
+      "orthography": 5.0,
+      "jargon": true,
+      "issues": [
+        {
+          "category": "glosario",
+          "severity": "high",
+          "term": "credenciales",
+          "reason": "Es lenguaje interno. La persona usuaria reconoce «datos de acceso». Usa «datos de acceso»."
+        }
+      ],
+      "reason": "«credenciales» es lenguaje interno. En la interfaz conviene decir «datos de acceso».",
+      "problems": []
+    },
+    {
+      "text": "Tu visita ha sido confirmada.",
+      "kind": "no_op",
+      "wall_s": 4.767,
+      "suggestion": "Tu visita ha sido confirmada.",
+      "score": 100.0,
+      "orthography": 5.0,
+      "jargon": false,
+      "issues": [],
+      "reason": "El texto está bien: es claro, breve y dice lo que la persona necesita.",
+      "problems": []
+    },
+    {
+      "text": "hola ,María",
+      "kind": "orthography",
+      "wall_s": 5.005,
+      "suggestion": "hola, María",
+      "score": 94.0,
+      "orthography": 3.0,
+      "jargon": false,
+      "issues": [
+        {
+          "category": "ortografia",
+          "severity": "low",
+          "term": null,
+          "reason": "Sobra un espacio antes del signo de puntuación."
+        },
+        {
+          "category": "ortografia",
+          "severity": "low",
+          "term": null,
+          "reason": "Falta un espacio después de la coma."
+        }
+      ],
+      "reason": "Sobra un espacio antes del signo de puntuación.",
+      "problems": []
+    },
+    {
+      "text": "Hubo un problema al guardar.",
+      "kind": "no_recovery",
+      "wall_s": 4.822,
+      "suggestion": "Hubo un problema al guardar.",
+      "score": 100.0,
+      "orthography": 5.0,
+      "jargon": false,
+      "issues": [],
+      "reason": "El texto está bien: es claro, breve y dice lo que la persona necesita.",
+      "problems": []
+    },
+    {
+      "text": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.",
+      "kind": "placeholder",
+      "wall_s": 5.569,
+      "suggestion": "Tu visita será el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}.",
+      "score": 100.0,
+      "orthography": 5.0,
+      "jargon": false,
+      "issues": [],
+      "reason": "El texto está bien: es claro, breve y dice lo que la persona necesita.",
+      "problems": []
+    },
+    {
+      "text": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.",
+      "kind": "multiline",
+      "wall_s": 6.727,
+      "suggestion": "Hola María, seguimos contigo. 👋\n\nEsta vez no fue posible aprobar el incremento porque no se cumplieron todos los requisitos.\n\nSin embargo, aún puedes usar tu préstamo inicial desde tu App Banco Azteca.",
+      "score": 100.0,
+      "orthography": 5.0,
+      "jargon": false,
+      "issues": [],
+      "reason": "El texto está bien: es claro, breve y dice lo que la persona necesita.",
+      "problems": []
+    },
+    {
+      "text": "Escribe el monto que quieres solicitar.\n\nEl monto mínimo es de 3,000 pesos y el máximo depende de tu historial de pagos con nosotros.\n\nEste dato no afecta tu historial crediticio.",
+      "kind": "multiline",
+      "wall_s": 6.424,
+      "suggestion": "Escribe el monto que quieres solicitar.\n\nEl monto mínimo es de 3,000 pesos y el máximo depende de tu historial de pagos con nosotros.\n\nEste dato no afecta tu historial crediticio.",
+      "score": 100.0,
+      "orthography": 5.0,
+      "jargon": false,
+      "issues": [],
+      "reason": "El texto está bien: es claro, breve y dice lo que la persona necesita.",
+      "problems": []
+    }
+  ]
+}

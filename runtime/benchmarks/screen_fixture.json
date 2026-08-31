@@ -1,0 +1,146 @@
+{
+  "_comment": "Pantalla sintética representativa para FASE 9.2A. Contenido inventado y saneado: no procede de ningún archivo real de cliente.",
+  "frameName": "Confirmación de visita",
+  "candidates": [
+    {
+      "id": "c01",
+      "category": "heading",
+      "layerName": "Título",
+      "parentName": "Header",
+      "text": "Tu visita ha sido confirmada"
+    },
+    {
+      "id": "c02",
+      "category": "body",
+      "layerName": "Detalle fecha",
+      "parentName": "Body",
+      "text": "Te esperamos el {{Jueves 10 de abril de 2026}} a las {{6:00 p.m.}}."
+    },
+    {
+      "id": "c03",
+      "category": "body",
+      "layerName": "Dirección",
+      "parentName": "Body",
+      "text": "Dentro de tu domicilio registrado"
+    },
+    {
+      "id": "c04",
+      "category": "helper",
+      "layerName": "Requisitos",
+      "parentName": "Body",
+      "text": "No olvides tener a la mano tu identificacion oficial y un comprobante de domicilio reciente."
+    },
+    {
+      "id": "c05",
+      "category": "cta",
+      "layerName": "CTA principal",
+      "parentName": "Footer",
+      "text": "Confirmar visita"
+    },
+    {
+      "id": "c06",
+      "category": "secondary_cta",
+      "layerName": "CTA secundario",
+      "parentName": "Footer",
+      "text": "Cancelar"
+    },
+    {
+      "id": "c07",
+      "category": "input_label",
+      "layerName": "Etiqueta calle",
+      "parentName": "Formulario",
+      "text": "Calle y número"
+    },
+    {
+      "id": "c08",
+      "category": "input_label",
+      "layerName": "Etiqueta credenciales",
+      "parentName": "Formulario",
+      "text": "Ingresa tus credenciales"
+    },
+    {
+      "id": "c09",
+      "category": "helper",
+      "layerName": "Ayuda código",
+      "parentName": "Formulario",
+      "text": "Te enviaremos un codigo por mensaje de texto"
+    },
+    {
+      "id": "c10",
+      "category": "error",
+      "layerName": "Error de red",
+      "parentName": "Formulario",
+      "text": "No fue posible continuar."
+    },
+    {
+      "id": "c11",
+      "category": "error",
+      "layerName": "Error de documento",
+      "parentName": "Formulario",
+      "text": "No pudimos validar el documento porque la imagen esta borrosa."
+    },
+    {
+      "id": "c12",
+      "category": "question",
+      "layerName": "Pregunta ayuda",
+      "parentName": "Ayuda",
+      "text": "¿Como funciona?"
+    },
+    {
+      "id": "c13",
+      "category": "short_answer",
+      "layerName": "Respuesta",
+      "parentName": "Ayuda",
+      "text": "Sí"
+    },
+    {
+      "id": "c14",
+      "category": "nav_label",
+      "layerName": "Navegación",
+      "parentName": "Tab bar",
+      "text": "Inicio"
+    },
+    {
+      "id": "c15",
+      "category": "info",
+      "layerName": "Aviso prestamo",
+      "parentName": "Body",
+      "text": "Tu prestamo sigue activo mientras la visita este pendiente."
+    },
+    {
+      "id": "c16",
+      "category": "long",
+      "layerName": "Términos",
+      "parentName": "Body",
+      "text": "Si no recibimos tu confirmación antes de la fecha acordada, la visita no se llevará a cabo y tendrás que agendar una nueva desde la sección de citas.\n\nTe avisaremos por correo cuando el asesor esté en camino."
+    },
+    {
+      "id": "c17",
+      "category": "personalized",
+      "layerName": "Saludo",
+      "parentName": "Header",
+      "text": "Hola {{María}}, revisamos tu solicitud."
+    },
+    {
+      "id": "c18",
+      "category": "duplicate_cta",
+      "layerName": "CTA repetido",
+      "parentName": "Modal",
+      "text": "Confirmar visita"
+    },
+    {
+      "id": "c19",
+      "category": "confirmation",
+      "layerName": "Aviso guardado",
+      "parentName": "Body",
+      "text": "Guardamos tus cambios."
+    },
+    {
+      "id": "c20",
+      "category": "info",
+      "layerName": "Aviso saldo",
+      "parentName": "Body",
+      "text": "Consulta tu saldo disponible en cualquier momento."
+    }
+  ]
+}

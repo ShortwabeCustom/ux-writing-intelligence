@@ -1,0 +1,111 @@
+{
+  "phase": "8.5.6",
+  "date": "2026-08-29",
+  "machine": "MacBook Air Mac16,13 / Apple M4 / 24 GB / macOS 26.5.2",
+  "model": "qwen3.5:4b",
+  "keep_alive": "30m",
+  "plugin_tests": 222,
+  "runtime_tests": 236,
+  "typecheck": "PASS",
+  "build": "PASS",
+  "regression_bank_pass": 62,
+  "regression_bank_total": 62,
+  "final_critical_failures": 0,
+  "regression_bank_detail": {
+    "structured_valid": "62/62",
+    "protected_content": "62/62",
+    "glossary": "62/62",
+    "orthography": "62/62",
+    "boundary": "62/62",
+    "meta_leakage_failures": 0,
+    "locale_failures": 0,
+    "semantic_failures": 0,
+    "expected_final": "12/12",
+    "wall_p50_seconds": 6.05,
+    "wall_p95_seconds": 10.111
+  },
+  "performance": {
+    "cold_short_p50_seconds": 6.594,
+    "cold_short_max_seconds": 7.749,
+    "warm_short_p50_seconds": 4.899,
+    "warm_short_p95_seconds": 5.086,
+    "warm_medium_p50_seconds": 5.773,
+    "warm_long_p50_seconds": 7.688,
+    "regeneration_p50_seconds": 6.351,
+    "regeneration_max_seconds": 13.429,
+    "runtime_startup_p50_seconds": 0.221,
+    "routing_overhead_p50_seconds": 0.0012,
+    "note_p95": "solo se publica p95 con n>=20; con menos seria ruido"
+  },
+  "reliability": {
+    "soak_requests": 50,
+    "soak_failures": 0,
+    "soak_p50_seconds": 6.612,
+    "soak_p95_seconds": 8.66,
+    "runtime_rss_start_mb": 62.1,
+    "runtime_rss_end_mb": 62.4,
+    "runtime_rss_growth_mb": 0.3,
+    "memory_leak_detected": false,
+    "model_resident_gb": 3.1,
+    "clean_shutdown": true,
+    "orphan_processes": 0,
+    "port_collision_fails_clearly": true
+  },
+  "keep_alive_validation": {
+    "resident_after_analysis": true,
+    "resident_after_idle": true,
+    "reanalysis_after_idle_seconds": 4.975,
+    "expiry_observed": false,
+    "expiry_note": "no se espero a los 30 min de inactividad; no cambiaria ninguna decision"
+  },
+  "privacy": {
+    "local_only_cloud_requests": 0,
+    "auto_local_cloud_requests": 0,
+    "post_local_failure_auto_cloud_requests": 0,
+    "explicit_cloud_retry_requests": 1,
+    "api_key_sent_local": 0,
+    "plugin_direct_ollama_requests": 0,
+    "logs_contain_user_content": false
+  },
+  "security": {
+    "runtime_loopback_only": true,
+    "ollama_loopback_only": true,
+    "listeners_on_0_0_0_0": 0,
+    "lan_bindings": 0,
+    "manifest_wildcards": false,
+    "manifest_domains": [
+      "https://writing.productdesign.mx",
+      "http://localhost:8787"
+    ],
+    "plugin_id": "1674592820827897160",
+    "secrets_in_source_or_build": false,
+    "ollama_port_in_bundle": false,
+    "foreign_service_can_produce_ready": false
+  },
+  "figma_desktop_smoke": "PASS",
+  "figma_desktop_smoke_scope": "FASE 8.5.5: A B C D E F + recuperacion + contraste",
+  "figma_desktop_smoke_8_5_6_additional": "PASS",
+  "figma_web": "NOT TESTED",
+  "screen_audit_projection_seconds": {
+    "5_texts": 33,
+    "10_texts": 66,
+    "15_texts": 99,
+    "20_texts": 132,
+    "basis": "p50 de mezcla real (6.612 s), secuencial"
+  },
+  "gate": "GO",
+  "apply_regression": {
+    "apply_works": true,
+    "prestamo_to_prestamo_accented": true,
+    "native_undo_restores": true,
+    "no_automatic_reanalysis": true,
+    "correct_node_only": true,
+    "mixed_style_analysis_allowed": true,
+    "mixed_style_apply_blocked": true,
+    "no_text_font_or_style_corruption": true,
+    "transport_irrelevant_to_apply": true
+  },
+  "local_ai_migration": "RELEASED",
+  "released_date": "2026-08-29",
+  "release_scope_note": "medido en un MacBook Air M4 / 24 GB; no se generaliza a otro hardware. Figma Web no probado. Distribucion del runtime aun manual."
+}

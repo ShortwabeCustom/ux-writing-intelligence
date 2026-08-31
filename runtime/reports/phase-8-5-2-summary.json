@@ -1,0 +1,203 @@
+{
+  "phase": "8.5.2",
+  "run_date": "2026-08-29",
+  "recommended_model": "qwen3.5:4b",
+  "recommendation_option": "A — 4B default",
+  "confidence": "medium",
+  "confidence_note": "Alta en la comparación relativa 4B vs 9B (determinista y unánime); media en la afirmación absoluta de seguridad, que depende de la capa determinista y de validadores heurísticos en los que se halló y corrigió un bug.",
+  "gate": "GO",
+  "next_phase_authorized": false,
+  "next_phase_blocker": "requiere aprobación humana explícita antes de implementar 127.0.0.1:8787",
+  "hardware": {
+    "chip": "Apple M4",
+    "unified_memory_gb": 24,
+    "os": "macOS 26.5.2",
+    "arch": "arm64",
+    "not_measured": [
+      "8GB",
+      "16GB",
+      "M1",
+      "M2",
+      "M3",
+      "M4 Pro",
+      "M4 Max"
+    ]
+  },
+  "ollama": {
+    "version": "0.33.0",
+    "bind": "127.0.0.1:11434",
+    "public_listeners": 0,
+    "persistent_service": false
+  },
+  "method": {
+    "models_compared": [
+      "qwen3.5:4b",
+      "qwen3.5:9b"
+    ],
+    "reference_only": "qwen3:1.7b",
+    "cases_per_model": 62,
+    "semantic_stress_cases": 50,
+    "contract_cases": 12,
+    "warm_repetitions": 3,
+    "total_inference_calls": 392,
+    "structured_output_forced": true,
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 4096,
+    "keep_alive": "30m",
+    "shared_prompt": true,
+    "per_model_tuning": false
+  },
+  "models": {
+    "qwen3.5:4b": {
+      "warm_p50_seconds": 4.861,
+      "warm_p95_seconds": 8.109,
+      "warm_mean_seconds": 5.303,
+      "warm_sample_size": 186,
+      "tokens_per_second_p50": 21.71,
+      "cold_p50_seconds": 7.362,
+      "cold_load_seconds": 1.597,
+      "resident_memory": "3.1 GB",
+      "resident_processor": "100%",
+      "structured_output_success_rate_pct": 100.0,
+      "raw_success_rate_pct": 82.3,
+      "parity_success_rate_pct": 100.0,
+      "raw_critical_failures": 6,
+      "final_critical_failures": 0,
+      "raw_detected_semantic_pass_pct": 100.0,
+      "final_detected_semantic_pass_pct": 100.0,
+      "protected_content_final_pct": 100.0,
+      "glossary_raw_pct": 91.9,
+      "glossary_final_pct": 100.0,
+      "orthography_raw_pct": 93.5,
+      "orthography_final_pct": 100.0,
+      "boundary_final_pct": 100.0,
+      "meta_leakage_final_failures": 0,
+      "safety_intervention_rate_pct": 17.7,
+      "fallback_to_source_rate_pct": 3.2,
+      "deterministic_override_rate_pct": 17.7,
+      "unnecessary_rewrite_raw_rate_pct": 0.0,
+      "unnecessary_rewrite_final_rate_pct": 0.0,
+      "inter_repetition_variability_pct": 0.0,
+      "requests": 186,
+      "transport_errors": 0,
+      "structured_invalid": 0
+    },
+    "qwen3.5:9b": {
+      "warm_p50_seconds": 10.377,
+      "warm_p95_seconds": 18.233,
+      "warm_mean_seconds": 11.14,
+      "warm_sample_size": 186,
+      "tokens_per_second_p50": 11.12,
+      "cold_p50_seconds": 18.587,
+      "cold_load_seconds": 4.022,
+      "resident_memory": "5.5 GB",
+      "resident_processor": "100%",
+      "structured_output_success_rate_pct": 100.0,
+      "raw_success_rate_pct": 77.4,
+      "parity_success_rate_pct": 100.0,
+      "raw_critical_failures": 24,
+      "final_critical_failures": 0,
+      "raw_detected_semantic_pass_pct": 97.9,
+      "final_detected_semantic_pass_pct": 100.0,
+      "protected_content_final_pct": 100.0,
+      "glossary_raw_pct": 91.9,
+      "glossary_final_pct": 100.0,
+      "orthography_raw_pct": 95.2,
+      "orthography_final_pct": 100.0,
+      "boundary_final_pct": 100.0,
+      "meta_leakage_final_failures": 0,
+      "safety_intervention_rate_pct": 22.6,
+      "fallback_to_source_rate_pct": 9.7,
+      "deterministic_override_rate_pct": 16.1,
+      "unnecessary_rewrite_raw_rate_pct": 7.7,
+      "unnecessary_rewrite_final_rate_pct": 0.0,
+      "inter_repetition_variability_pct": 0.0,
+      "requests": 186,
+      "transport_errors": 0,
+      "structured_invalid": 0
+    }
+  },
+  "originacion_regression": {
+    "source": "Proceder con la originación",
+    "expected_final": "Proceder con la solicitud",
+    "known_bad_raw": "Proceder con la origen",
+    "reproduced_in_8_5_2": false,
+    "qwen3.5:4b": {
+      "raw": "Proceder con la originación",
+      "raw_valid": true,
+      "intervention": [
+        "glossary_override"
+      ],
+      "final": "Proceder con la solicitud",
+      "final_valid": true,
+      "runs": 6
+    },
+    "qwen3.5:9b": {
+      "raw": "Proceder con la originación",
+      "raw_valid": true,
+      "intervention": [
+        "glossary_override"
+      ],
+      "final": "Proceder con la solicitud",
+      "final_valid": true,
+      "runs": 6
+    }
+  },
+  "recommended_keep_alive": "30m",
+  "keep_alive_rationale": {
+    "cold_start_penalty_seconds": 2.5,
+    "cold_start_penalty_pct": 51,
+    "resident_memory": "3.1 GB",
+    "memory_pressure_observed": "none",
+    "swap_delta": "none"
+  },
+  "screen_audit_projection_seconds": {
+    "label": "SIMPLE SEQUENTIAL PROJECTION — not actual Screen Audit performance",
+    "qwen3.5:4b": {
+      "5": 24,
+      "10": 49,
+      "15": 73,
+      "20": 97
+    },
+    "qwen3.5:9b": {
+      "5": 52,
+      "10": 104,
+      "15": 156,
+      "20": 208
+    }
+  },
+  "validator_limitations": {
+    "heuristic": true,
+    "metric_name": "detected semantic pass, not semantic understanding accuracy",
+    "bug_found_and_fixed": "FACT:status lemma 'guardad\\w+' no capturaba 'Guardamos'; producía 3 falsos críticos finales por modelo",
+    "self_consistency_check": "62/62 casos auto-consistentes",
+    "ambiguous_accents_excluded": [
+      "esta/está",
+      "mas/más",
+      "aun/aún",
+      "si/sí",
+      "solicito/solicitó",
+      "el/él"
+    ]
+  },
+  "integrity": {
+    "plugin_modified": false,
+    "plugin_id": "1674592820827897160",
+    "production_modified": false,
+    "vps_ssh": false,
+    "api_keys_rotated": false,
+    "models_deleted": false,
+    "phase_8_5_1_preserved": true,
+    "ollama_public": false
+  },
+  "remaining_risks": [
+    "La seguridad la aporta la capa determinista, no el modelo: el 4B falla 17.7% en crudo",
+    "Los validadores heurísticos pueden tener más huecos; se encontró y corrigió uno",
+    "Hardware no medido: 8GB, 16GB, M1/M2/M3, variantes Pro/Max",
+    "Screen Audit sigue sin resolverse: 10 textos ~49s secuenciales",
+    "num_ctx=4096 no fue estresado con una pantalla completa de Figma",
+    "El glosario de prueba tiene 7 términos; el real es mayor",
+    "qwen3:1.7b sigue en producción y no se evaluó bajo este harness"
+  ]
+}

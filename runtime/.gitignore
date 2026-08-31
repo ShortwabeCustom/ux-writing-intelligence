@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# macOS
+.DS_Store
+
+# Logs / runtime
+*.log
+*.pid
+*.sock
+/tmp/
+
+# Local secrets / env
+.env
+.env.*
+!.env.example
+
+# Temporary benchmark reruns
+results/_rerun-check/
+
+# Local phase reports
+reports/phase-9-2b-screen-execution.md
