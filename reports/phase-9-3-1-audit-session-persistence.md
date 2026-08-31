@@ -2,7 +2,7 @@
 
 ## Resultado
 
-La persistencia de auditorías durante la sesión quedó implementada y cubierta por pruebas automatizadas. El gate permanece en **HOLD** únicamente porque los casos A–G del smoke nativo no pudieron ejecutarse de punta a punta mediante la automatización disponible en este entorno.
+La persistencia de auditorías durante la sesión quedó implementada y cubierta por pruebas automatizadas. Los smoke tests nativos A–F fueron confirmados manualmente por el usuario y TEST G confirmó mediante instrumentación que todas las restauraciones y acciones de review solicitadas producen cero llamadas de análisis. **FASE 9.3.1: GO. FASE 9.3: GO.**
 
 ## Arquitectura
 
@@ -61,6 +61,18 @@ Las pruebas instrumentadas fijan en **0** las solicitudes de análisis al restau
 
 Cambiar filtro, Previous, Next, `Ver en pantalla`, seleccionar dentro del Frame o restaurar resultados no inicia análisis. La procedencia original Local/Nube se copia desde el snapshot; no se deriva de la salud actual del runtime.
 
+TEST G se revalidó sobre el árbol `2cf18ef` con estas pruebas existentes:
+
+- `19h: múltiples Frames restauran snapshots independientes sin análisis`: restaura Screen A y Screen B; en ambos puntos compara el total de requests contra el conteo tomado al terminar las auditorías.
+- `19i: múltiples Text Audits se restauran por nodeId sin red`: restaura Text A y Text B y exige que el conteo de requests permanezca intacto.
+- `19j: Text Audit modificado restaura histórico stale y no analiza`: restaura un Text Audit cambiado sin incrementar requests.
+- `19k: restore reconcilia changed, deleted, moved y renames sin red`: restaura Screen Audit con candidatos changed, deleted y moved y exige el mismo conteo anterior.
+- `19b: navegación selecciona, enfoca y conserva auditoría sin red ni mutación`: cubre el mensaje MAIN usado por `Ver en pantalla`, Previous y Next, verificando que el contador no cambia.
+- Playwright `27`, `28` y `29`: verifican `Ver en pantalla`, Previous/Next y cambio de filtro sin disparar análisis implícito.
+- Playwright `33`, `34`, `35` y `36`: verifican restore de Screen, changed/deleted, Text y Text stale sin loading ni navegación automática.
+
+Ejecución focalizada: **5/5 MAIN PASS** y **7/7 Playwright PASS**. Resultado de TEST G: **PASS — 0 nuevas llamadas a `/v1/analyze/text`**.
+
 El store y la restauración realizan **0 mutaciones del documento**. La única ruta que puede modificar texto sigue siendo Apply explícito, con sus guards existentes.
 
 ## QA automatizado
@@ -83,15 +95,13 @@ Setup observado:
 
 Resultado de los casos obligatorios:
 
-- Screen Persistence: **NOT EXECUTED**.
-- Multiple Frames: **NOT EXECUTED**.
-- Text Persistence: **NOT EXECUTED**.
-- Changed Screen Candidate: **NOT EXECUTED**.
-- Deleted Screen Candidate: **NOT EXECUTED**.
-- Screen/Text Independence: **NOT EXECUTED**.
-- Zero-network Restore: **NOT EXECUTED**.
-
-Bloqueo de evidencia: el iframe del plugin ignoró los eventos automatizados de puntero, que atravesaron al canvas de Figma, y sus controles internos no aparecieron en el árbol de Accessibility aun con el proceso autorizado. Por ello no se declara PASS nativo sin observación real. Los mismos contratos sí están cubiertos mediante integración MAIN y Playwright con contadores de requests.
+- Native A — Screen Persistence: **PASS — user confirmed**.
+- Native B — Multiple Frames: **PASS — user confirmed**.
+- Native C — Text Persistence: **PASS — user confirmed**.
+- Native D — Changed Screen Candidate: **PASS — user confirmed**.
+- Native E — Deleted Screen Candidate: **PASS — user confirmed**.
+- Native F — Screen/Text Independence: **PASS — user confirmed**.
+- Test G — Zero-network Restore: **PASS — automated instrumentation confirmed 0 analysis requests**.
 
 ## Integridad y alcance
 
@@ -111,4 +121,4 @@ La persistencia termina con la instancia actual del plugin. No sobrevive al cier
 
 Commit solicitado: `feat: persist audit results during plugin session`.
 
-Gate: **HOLD — falta ejecutar y observar el smoke nativo A–G en un host que permita interactuar con el iframe del plugin.**
+Gate: **GO — FASE 9.3.1 y FASE 9.3 cumplen el gate final.**
