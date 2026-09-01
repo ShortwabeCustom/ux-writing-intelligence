@@ -2,8 +2,8 @@
 
 # Shared helpers for the non-persistent macOS distribution scripts.
 
-SCRIPT_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_LIB_DIR/.." && pwd)"
+SCRIPT_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="$(cd "$SCRIPT_LIB_DIR/.." && pwd -P)"
 RUNTIME_DIR="$REPO_ROOT/runtime"
 VERSIONS_FILE="$REPO_ROOT/versions.env"
 RUNTIME_URL=""
@@ -35,10 +35,7 @@ fail() {
 
 require_macos_architecture() {
   [[ "$(uname -s)" == "Darwin" ]] || fail "This installer supports macOS only."
-  case "$(uname -m)" in
-    arm64|x86_64) ;;
-    *) fail "Unsupported CPU architecture: $(uname -m). Supported: arm64, x86_64." ;;
-  esac
+  [[ "$(uname -m)" == "arm64" ]] || fail "This package requires Apple silicon (arm64); found $(uname -m)."
 }
 
 listener_names() {

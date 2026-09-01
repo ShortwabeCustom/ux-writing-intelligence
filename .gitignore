@@ -14,6 +14,7 @@ node_modules/
 
 # Build / tests
 dist/
+release/
 test-results/
 playwright-report/
 
