@@ -802,6 +802,80 @@ test('19l-bis: reauditoría explícita relee characters y reemplaza el score his
   assert.equal(plugin.session().items[0].result.score, 100);
 });
 
+test('19l-parity: mismo nodeId/text reemplaza 63 por 100 en ejecución y snapshot', async () => {
+  let screenRuns = 0;
+  const plugin = await createPlugin({
+    count: 1,
+    frameName: 'Pantalla sintética',
+    analyze: (body) => {
+      const individual = body.context === 'Texto de interfaz seleccionado en Figma';
+      if (!individual) screenRuns += 1;
+      return jsonResponse(200, {
+        ...resultFor(body.text),
+        score: individual || screenRuns === 2 ? 100 : 63,
+      });
+    },
+  });
+  const frame = plugin.nodeById.get('frame-1');
+  const node = plugin.nodeById.get('n1');
+  node.name = '1. ¿Desde qué cuenta';
+  node.characters = 'Préstamo';
+
+  await plugin.startAudit();
+  const historicalSessionId = plugin.session().sessionId;
+  const historicalCandidate = plugin.session().items[0].candidate;
+  assert.equal(historicalCandidate.nodeId, node.id);
+  assert.equal(historicalCandidate.layerName, node.name);
+  assert.equal(historicalCandidate.text, node.characters);
+  assert.equal(plugin.session().items[0].result.score, 63);
+
+  await plugin.changeSelection([node]);
+  await plugin.send({
+    type: 'ANALYZE_REQUEST', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  const individualRequest = JSON.parse(plugin.analyzeRequests().at(-1).options.body);
+  const individualResult = [...plugin.messages].reverse()
+    .find((message) => message.type === 'ANALYSIS_SUCCEEDED').result;
+  assert.equal(individualResult.score, 100);
+
+  const beforePassiveReturn = plugin.analyzeRequests().length;
+  await plugin.changeSelection([frame]);
+  assert.equal(plugin.analyzeRequests().length, beforePassiveReturn);
+
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  const screenRequest = JSON.parse(plugin.analyzeRequests().at(-1).options.body);
+  const completed = plugin.session();
+
+  assert.deepEqual(individualRequest, {
+    text: 'Préstamo',
+    context: 'Texto de interfaz seleccionado en Figma',
+    locale: 'es-MX',
+  });
+  assert.deepEqual(screenRequest, {
+    text: 'Préstamo',
+    context: 'Pantalla: Pantalla sintética. Capa: 1. ¿Desde qué cuenta. Contenedor: Pantalla sintética.',
+    locale: 'es-MX',
+  });
+  assert.deepEqual(
+    { ...screenRequest, context: individualRequest.context },
+    individualRequest,
+    'context debe ser la única diferencia del payload normalizado',
+  );
+  assert.notEqual(completed.sessionId, historicalSessionId);
+  assert.equal(completed.status, 'completed');
+  assert.equal(completed.items[0].result.score, 100);
+
+  const outside = frameOf('Fuera', [], 'frame-outside');
+  plugin.nodeById.set(outside.id, outside);
+  await plugin.changeSelection([outside]);
+  await plugin.changeSelection([frame]);
+  const restored = plugin.restoredScreens().at(-1);
+  assert.equal(restored.session.sessionId, completed.sessionId);
+  assert.equal(restored.session.items[0].result.score, 100);
+});
+
 test('19l-ter: reauditoría reconstruye candidatos nuevos, eliminados, movidos y elegibilidad', async () => {
   const plugin = await createPlugin({ count: 5 });
   const frame = plugin.nodeById.get('frame-1');

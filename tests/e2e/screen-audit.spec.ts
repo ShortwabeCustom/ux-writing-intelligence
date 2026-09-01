@@ -8,7 +8,8 @@
 import { test, expect } from './fixtures/plugin-fixture';
 import {
   AUDIT_CANDIDATES, FRAME_SELECTION, analysisMode, apiKeyStatus,
-  auditPreflight, auditSession, auditUpdate, runtimeStatus, selection,
+  analysisStarted, analysisSucceeded, auditPreflight, auditSession, auditUpdate,
+  runtimeStatus, selection,
   TEXT_SELECTION, RESULT_WITH_CHANGE,
   withChanged, withFailure, withResult,
 } from './fixtures/messages';
@@ -611,4 +612,39 @@ test('38: reauditoría oculta resultados históricos y empieza en 0 de N', async
   await expect(plugin.ui.locator('#screen-audit-progress')).toHaveText('0 de 3 analizados');
   await expect(results(plugin)).toHaveCount(0);
   await expect(plugin.ui.locator('#screen-audit-review')).toBeHidden();
+});
+
+test('39: resultado nuevo 100 reemplaza 63 y coincide con Text Audit renderizado', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  const historical = completedMixedSession();
+  historical.items[0]!.result = { ...historical.items[0]!.result!, score: 63 };
+  await plugin.send(auditUpdate(historical));
+  await plugin.ui.locator('[data-filter="all"]').click();
+  await expect(plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[0].nodeId}"]`))
+    .toContainText('63/100');
+
+  let fresh = auditSession({ sessionId: 'screen-2' });
+  await plugin.send(auditUpdate(fresh));
+  fresh = withResult(fresh, 0, 'local', 100);
+  fresh = withResult(fresh, 1, 'local', 100);
+  fresh = withResult(fresh, 2, 'local', 100);
+  await plugin.send(auditUpdate(fresh));
+
+  const freshCard = plugin.ui.locator(
+    `[data-candidate-id="${AUDIT_CANDIDATES[0].nodeId}"]`,
+  );
+  await expect(freshCard).toContainText('100/100');
+  await expect(freshCard).not.toContainText('63/100');
+
+  await plugin.send(selection(TEXT_SELECTION));
+  await plugin.ui.locator('#analyze-button').click();
+  await plugin.send(analysisStarted('local', 'analysis-parity'));
+  await plugin.send(analysisSucceeded({
+    ...RESULT_WITH_CHANGE,
+    text: TEXT_SELECTION.text,
+    suggestion: TEXT_SELECTION.text,
+    score: 100,
+  }, 'analysis-parity'));
+  await expect(plugin.ui.locator('#analysis-score')).toHaveText('100');
+  await expect(freshCard).toContainText('100/100');
 });
