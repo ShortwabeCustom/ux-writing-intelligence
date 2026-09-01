@@ -598,3 +598,17 @@ test('37: Screen y Text restaurados permanecen separados y sin score global', as
   const screenText = await panel(plugin).textContent();
   expect(screenText).not.toMatch(/score global|screen score|quality score/iu);
 });
+
+test('38: reauditoría oculta resultados históricos y empieza en 0 de N', async ({ plugin }) => {
+  await readyToAudit(plugin);
+  await plugin.send(restoredScreenMessage('all', AUDIT_CANDIDATES[0].nodeId));
+  await expect(results(plugin)).toHaveCount(3);
+
+  await plugin.ui.locator('#screen-audit-reaudit').click();
+  await plugin.expectMessages('START_SCREEN_AUDIT', 1);
+
+  await plugin.send(auditUpdate(auditSession({ sessionId: 'screen-2' })));
+  await expect(plugin.ui.locator('#screen-audit-progress')).toHaveText('0 de 3 analizados');
+  await expect(results(plugin)).toHaveCount(0);
+  await expect(plugin.ui.locator('#screen-audit-review')).toBeHidden();
+});

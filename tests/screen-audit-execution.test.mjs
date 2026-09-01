@@ -619,6 +619,37 @@ test('19h: múltiples Frames restauran snapshots independientes sin análisis', 
   assert.equal(plugin.analyzeRequests().length, requestsAfterAudits);
 });
 
+test('19h-bis: reauditar Frame A reemplaza solo A y preserva snapshot de Frame B', async () => {
+  const plugin = await createPlugin({ count: 1, frameName: 'Frame A' });
+  const frameA = plugin.nodeById.get('frame-1');
+  await plugin.startAudit();
+  const firstSessionA = plugin.session().sessionId;
+
+  const nodeB = textNode('b1', 'Texto B');
+  const frameB = frameOf('Frame B', [nodeB], 'frame-b');
+  plugin.nodeById.set(frameB.id, frameB);
+  plugin.nodeById.set(nodeB.id, nodeB);
+  await plugin.changeSelection([frameB]);
+  await plugin.startAudit();
+  const sessionB = plugin.session();
+
+  plugin.nodeById.get('n1').characters = 'Texto A corregido';
+  await plugin.changeSelection([frameA]);
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  assert.notEqual(plugin.session().sessionId, firstSessionA);
+  assert.equal(plugin.session().items[0].candidate.text, 'Texto A corregido');
+
+  const beforeRestoreB = plugin.analyzeRequests().length;
+  await plugin.changeSelection([frameB]);
+  const restoredB = plugin.restoredScreens().at(-1);
+  assert.equal(restoredB.frameId, 'frame-b');
+  assert.equal(restoredB.session.sessionId, sessionB.sessionId);
+  assert.equal(restoredB.session.items[0].candidate.text, 'Texto B');
+  assert.equal(plugin.analyzeRequests().length, beforeRestoreB);
+});
+
 test('19i: múltiples Text Audits se restauran por nodeId sin red', async () => {
   const plugin = await createPlugin({ count: 2 });
   const textA = plugin.nodeById.get('n1');
@@ -725,6 +756,93 @@ test('19l: Screen histórico y Text individual coexisten sin mezclar scores', as
   assert.equal(plugin.analyzeRequests().length, beforeRestore);
 });
 
+test('19l-bis: reauditoría explícita relee characters y reemplaza el score histórico', async () => {
+  const plugin = await createPlugin({
+    count: 2,
+    analyze: (body) => jsonResponse(200, {
+      ...resultFor(body.text),
+      score: body.text === 'Préstamo corregido' ? 100 : 63,
+    }),
+  });
+  const frame = plugin.nodeById.get('frame-1');
+  const candidate = plugin.nodeById.get('n1');
+
+  await plugin.startAudit();
+  const historicalSessionId = plugin.session().sessionId;
+  assert.equal(plugin.session().items[0].result.score, 63);
+
+  candidate.characters = 'Préstamo corregido';
+  await plugin.changeSelection([candidate]);
+  await plugin.send({
+    type: 'ANALYZE_REQUEST', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+
+  const beforePassiveReturn = plugin.analyzeRequests().length;
+  await plugin.changeSelection([frame]);
+  assert.equal(
+    plugin.analyzeRequests().length,
+    beforePassiveReturn,
+    'volver al Frame sin reauditar debe hacer 0 llamadas',
+  );
+
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+
+  assert.notEqual(plugin.session().sessionId, historicalSessionId);
+  assert.equal(
+    plugin.analyzeRequests().length - beforePassiveReturn,
+    2,
+    'cada candidato ready debe producir una nueva llamada explícita',
+  );
+  const reauditBodies = plugin.analyzeRequests().slice(beforePassiveReturn)
+    .map((request) => JSON.parse(request.options.body).text);
+  assert.deepEqual(reauditBodies, ['Préstamo corregido', 'Guardar cambios']);
+  assert.equal(plugin.session().items[0].candidate.text, 'Préstamo corregido');
+  assert.equal(plugin.session().items[0].result.score, 100);
+});
+
+test('19l-ter: reauditoría reconstruye candidatos nuevos, eliminados, movidos y elegibilidad', async () => {
+  const plugin = await createPlugin({ count: 5 });
+  const frame = plugin.nodeById.get('frame-1');
+  const becomesReady = plugin.nodeById.get('n4');
+  const becomesHidden = plugin.nodeById.get('n5');
+  becomesReady.visible = false;
+
+  await plugin.startAudit();
+  const beforeReaudit = plugin.analyzeRequests().length;
+
+  const deleted = plugin.nodeById.get('n2');
+  deleted.removed = true;
+  plugin.nodeById.delete(deleted.id);
+
+  const moved = plugin.nodeById.get('n3');
+  const otherFrame = frameOf('Otra pantalla', [moved], 'frame-other');
+  plugin.nodeById.set(otherFrame.id, otherFrame);
+
+  becomesReady.visible = true;
+  becomesHidden.visible = false;
+  const added = textNode('n6', 'Nuevo candidato');
+  added.parent = frame;
+  plugin.nodeById.set(added.id, added);
+  frame.children = [plugin.nodeById.get('n1'), becomesReady, becomesHidden, added];
+
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+
+  const newRequests = plugin.analyzeRequests().slice(beforeReaudit)
+    .map((request) => JSON.parse(request.options.body).text);
+  assert.deepEqual(newRequests, ['Continuar', 'Ver detalles', 'Nuevo candidato']);
+  assert.deepEqual(
+    plugin.session().items.map((item) => item.candidate.nodeId),
+    ['n1', 'n4', 'n6'],
+  );
+  assert.ok(!plugin.session().items.some((item) => item.candidate.nodeId === 'n2'));
+  assert.ok(!plugin.session().items.some((item) => item.candidate.nodeId === 'n3'));
+  assert.ok(!plugin.session().items.some((item) => item.candidate.nodeId === 'n5'));
+});
+
 test('19m: reauditoría fallida preserva el último Screen snapshot completo', async () => {
   let calls = 0;
   const plugin = await createPlugin({
@@ -794,7 +912,7 @@ test('19o: el store MAIN sobrevive a un nuevo UI_READY en la misma instancia', a
 
 // --- 20..22 — obsolescencia del documento ------------------------------------
 
-test('20 BLOQUEANTE: un texto que cambió no se analiza obsoleto', async () => {
+test('20 BLOQUEANTE: START relee un texto cambiado después del preflight', async () => {
   const plugin = await createPlugin({ count: 3 });
 
   // El documento cambia antes de empezar.
@@ -803,13 +921,35 @@ test('20 BLOQUEANTE: un texto que cambió no se analiza obsoleto', async () => {
 
   const bodies = plugin.analyzeRequests().map((r) => JSON.parse(r.options.body).text);
   assert.ok(!bodies.includes('Guardar cambios'), 'se analizó la fuente vieja');
-  assert.ok(!bodies.includes('Texto editado por la persona'), 'se analizó el texto nuevo');
+  assert.ok(bodies.includes('Texto editado por la persona'), 'no se analizó el texto actual');
 
   const session = plugin.session();
-  assert.equal(session.items[1].status, 'changed');
-  assert.equal(session.changed, 1);
-  assert.equal(session.completed, 2, 'un texto cambiado se contó como analizado');
+  assert.equal(session.items[1].candidate.text, 'Texto editado por la persona');
+  assert.equal(session.items[1].status, 'success');
+  assert.equal(session.changed, 0);
+  assert.equal(session.completed, 3);
   assert.equal(session.status, 'completed');
+});
+
+test('20b BLOQUEANTE: un texto que cambia durante la ejecución no se envía obsoleto', async () => {
+  let plugin;
+  plugin = await createPlugin({
+    count: 3,
+    analyze: (body) => {
+      if (body.text === 'Continuar') {
+        plugin.nodeById.get('n2').characters = 'Cambio durante la auditoría';
+      }
+      return null;
+    },
+  });
+  await plugin.startAudit();
+
+  const bodies = plugin.analyzeRequests().map((r) => JSON.parse(r.options.body).text);
+  assert.ok(!bodies.includes('Guardar cambios'), 'se analizó la fuente vieja');
+  assert.ok(!bodies.includes('Cambio durante la auditoría'), 'se analizó sin nuevo preflight');
+  assert.equal(plugin.session().items[1].status, 'changed');
+  assert.equal(plugin.session().changed, 1);
+  assert.equal(plugin.session().completed, 2);
 });
 
 test('21 y 22: un nodo eliminado se marca y no bloquea a los siguientes', async () => {
