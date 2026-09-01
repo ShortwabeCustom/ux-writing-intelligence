@@ -51,6 +51,14 @@ function textNode(id, characters, name) {
     parent: null,
     characters, hasMissingFont: false,
     getRangeAllFontNames: () => [{ family: 'Inter', style: 'Regular' }],
+    getStyledTextSegments: () => [{ characters }],
+    insertCharacters(start, insertedText) {
+      this.characters = this.characters.slice(0, start)
+        + insertedText + this.characters.slice(start);
+    },
+    deleteCharacters(start, end) {
+      this.characters = this.characters.slice(0, start) + this.characters.slice(end);
+    },
     absoluteBoundingBox: { x: 0, y: Number(id.replace(/\D/gu, '')) },
   };
 }
@@ -874,6 +882,124 @@ test('19l-parity: mismo nodeId/text reemplaza 63 por 100 en ejecución y snapsho
   const restored = plugin.restoredScreens().at(-1);
   assert.equal(restored.session.sessionId, completed.sessionId);
   assert.equal(restored.session.items[0].result.score, 100);
+});
+
+test('19l-apply: Apply real conserva nodeId y reauditoría envía characters aplicados', async () => {
+  let screenRuns = 0;
+  const corrected = '¿Cómo funciona el préstamo?';
+  const plugin = await createPlugin({
+    count: 1,
+    analyze: (body) => {
+      const individual = body.context === 'Texto de interfaz seleccionado en Figma';
+      if (!individual) screenRuns += 1;
+      return jsonResponse(200, {
+        ...resultFor(body.text),
+        score: individual || screenRuns === 2 ? 100 : 63,
+        suggestion: individual ? corrected : body.text,
+      });
+    },
+  });
+  const frame = plugin.nodeById.get('frame-1');
+  const original = plugin.nodeById.get('n1');
+  original.name = '1. ¿Desde qué cuenta';
+  original.characters = 'Préstamo';
+  const originalNodeId = original.id;
+
+  await plugin.startAudit();
+  assert.equal(plugin.session().items[0].result.score, 63);
+
+  await plugin.changeSelection([original]);
+  await plugin.send({
+    type: 'ANALYZE_REQUEST', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  const individualResult = [...plugin.messages].reverse()
+    .find((message) => message.type === 'ANALYSIS_SUCCEEDED');
+  await plugin.send({ type: 'APPLY_SUGGESTION', requestId: individualResult.requestId });
+
+  const applySuccess = [...plugin.messages].reverse()
+    .find((message) => message.type === 'APPLY_SUCCEEDED');
+  assert.equal(applySuccess.payload.nodeId, originalNodeId);
+  assert.equal(original.id, originalNodeId, 'Apply reemplazó la identidad del nodo');
+  assert.equal(original.removed, false);
+  assert.equal(plugin.nodeById.get(originalNodeId), original);
+  assert.equal(original.characters, corrected);
+
+  await plugin.changeSelection([frame]);
+  const beforeReaudit = plugin.analyzeRequests().length;
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+
+  const requests = plugin.analyzeRequests().slice(beforeReaudit)
+    .map((request) => JSON.parse(request.options.body));
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].text, corrected);
+  assert.equal(
+    requests[0].context,
+    'Pantalla: Domicilio. Capa: 1. ¿Desde qué cuenta. Contenedor: Domicilio.',
+  );
+  assert.equal(plugin.session().items[0].candidate.nodeId, originalNodeId);
+  assert.equal(plugin.session().items[0].candidate.text, corrected);
+  assert.equal(plugin.session().items[0].result.score, 100);
+});
+
+test('19l-replacement: reauditoría excluye A eliminado e incluye B actual con contexto actual', async () => {
+  let screenRuns = 0;
+  const corrected = '¿Cómo funciona el préstamo?';
+  const plugin = await createPlugin({
+    count: 1,
+    analyze: (body) => {
+      screenRuns += 1;
+      return jsonResponse(200, {
+        ...resultFor(body.text),
+        score: screenRuns === 1 ? 63 : 100,
+      });
+    },
+  });
+  const frame = plugin.nodeById.get('frame-1');
+  const original = plugin.nodeById.get('n1');
+  original.name = '1. ¿Desde qué cuenta';
+  original.characters = 'Préstamo';
+  await plugin.startAudit();
+  assert.equal(plugin.session().items[0].candidate.nodeId, original.id);
+
+  original.removed = true;
+  plugin.nodeById.delete(original.id);
+  frame.name = 'Domicilio actualizado';
+  const replacement = textNode('n-replacement', corrected, 'Pregunta de préstamo');
+  const currentContainer = {
+    id: 'container-current', name: 'Contenido actual', type: 'GROUP',
+    visible: true, removed: false, parent: frame, children: [replacement],
+    absoluteBoundingBox: { x: 0, y: 0 },
+  };
+  replacement.parent = currentContainer;
+  frame.children = [currentContainer];
+  plugin.nodeById.set(currentContainer.id, currentContainer);
+  plugin.nodeById.set(replacement.id, replacement);
+
+  const beforeReaudit = plugin.analyzeRequests().length;
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+
+  const requests = plugin.analyzeRequests().slice(beforeReaudit)
+    .map((request) => JSON.parse(request.options.body));
+  assert.deepEqual(requests, [{
+    text: corrected,
+    context: 'Pantalla: Domicilio actualizado. Capa: Pregunta de préstamo. Contenedor: Contenido actual.',
+    locale: 'es-MX',
+  }]);
+  assert.equal(plugin.session().items.some((item) => item.candidate.nodeId === original.id), false);
+  assert.equal(plugin.session().items[0].candidate.nodeId, replacement.id);
+  assert.equal(plugin.session().items[0].result.score, 100);
+
+  const outside = frameOf('Fuera', [], 'frame-outside');
+  plugin.nodeById.set(outside.id, outside);
+  await plugin.changeSelection([outside]);
+  await plugin.changeSelection([frame]);
+  const stored = plugin.restoredScreens().at(-1);
+  assert.equal(stored.session.items[0].candidate.nodeId, replacement.id);
+  assert.equal(stored.session.items[0].result.score, 100);
 });
 
 test('19l-ter: reauditoría reconstruye candidatos nuevos, eliminados, movidos y elegibilidad', async () => {
