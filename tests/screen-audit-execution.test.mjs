@@ -51,6 +51,14 @@ function textNode(id, characters, name) {
     parent: null,
     characters, hasMissingFont: false,
     getRangeAllFontNames: () => [{ family: 'Inter', style: 'Regular' }],
+    getStyledTextSegments: () => [{ characters }],
+    insertCharacters(start, insertedText) {
+      this.characters = this.characters.slice(0, start)
+        + insertedText + this.characters.slice(start);
+    },
+    deleteCharacters(start, end) {
+      this.characters = this.characters.slice(0, start) + this.characters.slice(end);
+    },
     absoluteBoundingBox: { x: 0, y: Number(id.replace(/\D/gu, '')) },
   };
 }
@@ -619,6 +627,37 @@ test('19h: múltiples Frames restauran snapshots independientes sin análisis', 
   assert.equal(plugin.analyzeRequests().length, requestsAfterAudits);
 });
 
+test('19h-bis: reauditar Frame A reemplaza solo A y preserva snapshot de Frame B', async () => {
+  const plugin = await createPlugin({ count: 1, frameName: 'Frame A' });
+  const frameA = plugin.nodeById.get('frame-1');
+  await plugin.startAudit();
+  const firstSessionA = plugin.session().sessionId;
+
+  const nodeB = textNode('b1', 'Texto B');
+  const frameB = frameOf('Frame B', [nodeB], 'frame-b');
+  plugin.nodeById.set(frameB.id, frameB);
+  plugin.nodeById.set(nodeB.id, nodeB);
+  await plugin.changeSelection([frameB]);
+  await plugin.startAudit();
+  const sessionB = plugin.session();
+
+  plugin.nodeById.get('n1').characters = 'Texto A corregido';
+  await plugin.changeSelection([frameA]);
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  assert.notEqual(plugin.session().sessionId, firstSessionA);
+  assert.equal(plugin.session().items[0].candidate.text, 'Texto A corregido');
+
+  const beforeRestoreB = plugin.analyzeRequests().length;
+  await plugin.changeSelection([frameB]);
+  const restoredB = plugin.restoredScreens().at(-1);
+  assert.equal(restoredB.frameId, 'frame-b');
+  assert.equal(restoredB.session.sessionId, sessionB.sessionId);
+  assert.equal(restoredB.session.items[0].candidate.text, 'Texto B');
+  assert.equal(plugin.analyzeRequests().length, beforeRestoreB);
+});
+
 test('19i: múltiples Text Audits se restauran por nodeId sin red', async () => {
   const plugin = await createPlugin({ count: 2 });
   const textA = plugin.nodeById.get('n1');
@@ -725,6 +764,285 @@ test('19l: Screen histórico y Text individual coexisten sin mezclar scores', as
   assert.equal(plugin.analyzeRequests().length, beforeRestore);
 });
 
+test('19l-bis: reauditoría explícita relee characters y reemplaza el score histórico', async () => {
+  const plugin = await createPlugin({
+    count: 2,
+    analyze: (body) => jsonResponse(200, {
+      ...resultFor(body.text),
+      score: body.text === 'Préstamo corregido' ? 100 : 63,
+    }),
+  });
+  const frame = plugin.nodeById.get('frame-1');
+  const candidate = plugin.nodeById.get('n1');
+
+  await plugin.startAudit();
+  const historicalSessionId = plugin.session().sessionId;
+  assert.equal(plugin.session().items[0].result.score, 63);
+
+  candidate.characters = 'Préstamo corregido';
+  await plugin.changeSelection([candidate]);
+  await plugin.send({
+    type: 'ANALYZE_REQUEST', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+
+  const beforePassiveReturn = plugin.analyzeRequests().length;
+  await plugin.changeSelection([frame]);
+  assert.equal(
+    plugin.analyzeRequests().length,
+    beforePassiveReturn,
+    'volver al Frame sin reauditar debe hacer 0 llamadas',
+  );
+
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+
+  assert.notEqual(plugin.session().sessionId, historicalSessionId);
+  assert.equal(
+    plugin.analyzeRequests().length - beforePassiveReturn,
+    2,
+    'cada candidato ready debe producir una nueva llamada explícita',
+  );
+  const reauditBodies = plugin.analyzeRequests().slice(beforePassiveReturn)
+    .map((request) => JSON.parse(request.options.body).text);
+  assert.deepEqual(reauditBodies, ['Préstamo corregido', 'Guardar cambios']);
+  assert.equal(plugin.session().items[0].candidate.text, 'Préstamo corregido');
+  assert.equal(plugin.session().items[0].result.score, 100);
+});
+
+test('19l-parity: mismo nodeId/text reemplaza 63 por 100 en ejecución y snapshot', async () => {
+  let screenRuns = 0;
+  const plugin = await createPlugin({
+    count: 1,
+    frameName: 'Pantalla sintética',
+    analyze: (body) => {
+      const individual = body.context === 'Texto de interfaz seleccionado en Figma';
+      if (!individual) screenRuns += 1;
+      return jsonResponse(200, {
+        ...resultFor(body.text),
+        score: individual || screenRuns === 2 ? 100 : 63,
+      });
+    },
+  });
+  const frame = plugin.nodeById.get('frame-1');
+  const node = plugin.nodeById.get('n1');
+  node.name = '1. ¿Desde qué cuenta';
+  node.characters = 'Préstamo';
+
+  await plugin.startAudit();
+  const historicalSessionId = plugin.session().sessionId;
+  const historicalCandidate = plugin.session().items[0].candidate;
+  assert.equal(historicalCandidate.nodeId, node.id);
+  assert.equal(historicalCandidate.layerName, node.name);
+  assert.equal(historicalCandidate.text, node.characters);
+  assert.equal(plugin.session().items[0].result.score, 63);
+
+  await plugin.changeSelection([node]);
+  await plugin.send({
+    type: 'ANALYZE_REQUEST', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  const individualRequest = JSON.parse(plugin.analyzeRequests().at(-1).options.body);
+  const individualResult = [...plugin.messages].reverse()
+    .find((message) => message.type === 'ANALYSIS_SUCCEEDED').result;
+  assert.equal(individualResult.score, 100);
+
+  const beforePassiveReturn = plugin.analyzeRequests().length;
+  await plugin.changeSelection([frame]);
+  assert.equal(plugin.analyzeRequests().length, beforePassiveReturn);
+
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  const screenRequest = JSON.parse(plugin.analyzeRequests().at(-1).options.body);
+  const completed = plugin.session();
+
+  assert.deepEqual(individualRequest, {
+    text: 'Préstamo',
+    context: 'Texto de interfaz seleccionado en Figma',
+    locale: 'es-MX',
+  });
+  assert.deepEqual(screenRequest, {
+    text: 'Préstamo',
+    context: 'Pantalla: Pantalla sintética. Capa: 1. ¿Desde qué cuenta. Contenedor: Pantalla sintética.',
+    locale: 'es-MX',
+  });
+  assert.deepEqual(
+    { ...screenRequest, context: individualRequest.context },
+    individualRequest,
+    'context debe ser la única diferencia del payload normalizado',
+  );
+  assert.notEqual(completed.sessionId, historicalSessionId);
+  assert.equal(completed.status, 'completed');
+  assert.equal(completed.items[0].result.score, 100);
+
+  const outside = frameOf('Fuera', [], 'frame-outside');
+  plugin.nodeById.set(outside.id, outside);
+  await plugin.changeSelection([outside]);
+  await plugin.changeSelection([frame]);
+  const restored = plugin.restoredScreens().at(-1);
+  assert.equal(restored.session.sessionId, completed.sessionId);
+  assert.equal(restored.session.items[0].result.score, 100);
+});
+
+test('19l-apply: Apply real conserva nodeId y reauditoría envía characters aplicados', async () => {
+  let screenRuns = 0;
+  const corrected = '¿Cómo funciona el préstamo?';
+  const plugin = await createPlugin({
+    count: 1,
+    analyze: (body) => {
+      const individual = body.context === 'Texto de interfaz seleccionado en Figma';
+      if (!individual) screenRuns += 1;
+      return jsonResponse(200, {
+        ...resultFor(body.text),
+        score: individual || screenRuns === 2 ? 100 : 63,
+        suggestion: individual ? corrected : body.text,
+      });
+    },
+  });
+  const frame = plugin.nodeById.get('frame-1');
+  const original = plugin.nodeById.get('n1');
+  original.name = '1. ¿Desde qué cuenta';
+  original.characters = 'Préstamo';
+  const originalNodeId = original.id;
+
+  await plugin.startAudit();
+  assert.equal(plugin.session().items[0].result.score, 63);
+
+  await plugin.changeSelection([original]);
+  await plugin.send({
+    type: 'ANALYZE_REQUEST', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+  const individualResult = [...plugin.messages].reverse()
+    .find((message) => message.type === 'ANALYSIS_SUCCEEDED');
+  await plugin.send({ type: 'APPLY_SUGGESTION', requestId: individualResult.requestId });
+
+  const applySuccess = [...plugin.messages].reverse()
+    .find((message) => message.type === 'APPLY_SUCCEEDED');
+  assert.equal(applySuccess.payload.nodeId, originalNodeId);
+  assert.equal(original.id, originalNodeId, 'Apply reemplazó la identidad del nodo');
+  assert.equal(original.removed, false);
+  assert.equal(plugin.nodeById.get(originalNodeId), original);
+  assert.equal(original.characters, corrected);
+
+  await plugin.changeSelection([frame]);
+  const beforeReaudit = plugin.analyzeRequests().length;
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+
+  const requests = plugin.analyzeRequests().slice(beforeReaudit)
+    .map((request) => JSON.parse(request.options.body));
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].text, corrected);
+  assert.equal(
+    requests[0].context,
+    'Pantalla: Domicilio. Capa: 1. ¿Desde qué cuenta. Contenedor: Domicilio.',
+  );
+  assert.equal(plugin.session().items[0].candidate.nodeId, originalNodeId);
+  assert.equal(plugin.session().items[0].candidate.text, corrected);
+  assert.equal(plugin.session().items[0].result.score, 100);
+});
+
+test('19l-replacement: reauditoría excluye A eliminado e incluye B actual con contexto actual', async () => {
+  let screenRuns = 0;
+  const corrected = '¿Cómo funciona el préstamo?';
+  const plugin = await createPlugin({
+    count: 1,
+    analyze: (body) => {
+      screenRuns += 1;
+      return jsonResponse(200, {
+        ...resultFor(body.text),
+        score: screenRuns === 1 ? 63 : 100,
+      });
+    },
+  });
+  const frame = plugin.nodeById.get('frame-1');
+  const original = plugin.nodeById.get('n1');
+  original.name = '1. ¿Desde qué cuenta';
+  original.characters = 'Préstamo';
+  await plugin.startAudit();
+  assert.equal(plugin.session().items[0].candidate.nodeId, original.id);
+
+  original.removed = true;
+  plugin.nodeById.delete(original.id);
+  frame.name = 'Domicilio actualizado';
+  const replacement = textNode('n-replacement', corrected, 'Pregunta de préstamo');
+  const currentContainer = {
+    id: 'container-current', name: 'Contenido actual', type: 'GROUP',
+    visible: true, removed: false, parent: frame, children: [replacement],
+    absoluteBoundingBox: { x: 0, y: 0 },
+  };
+  replacement.parent = currentContainer;
+  frame.children = [currentContainer];
+  plugin.nodeById.set(currentContainer.id, currentContainer);
+  plugin.nodeById.set(replacement.id, replacement);
+
+  const beforeReaudit = plugin.analyzeRequests().length;
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+
+  const requests = plugin.analyzeRequests().slice(beforeReaudit)
+    .map((request) => JSON.parse(request.options.body));
+  assert.deepEqual(requests, [{
+    text: corrected,
+    context: 'Pantalla: Domicilio actualizado. Capa: Pregunta de préstamo. Contenedor: Contenido actual.',
+    locale: 'es-MX',
+  }]);
+  assert.equal(plugin.session().items.some((item) => item.candidate.nodeId === original.id), false);
+  assert.equal(plugin.session().items[0].candidate.nodeId, replacement.id);
+  assert.equal(plugin.session().items[0].result.score, 100);
+
+  const outside = frameOf('Fuera', [], 'frame-outside');
+  plugin.nodeById.set(outside.id, outside);
+  await plugin.changeSelection([outside]);
+  await plugin.changeSelection([frame]);
+  const stored = plugin.restoredScreens().at(-1);
+  assert.equal(stored.session.items[0].candidate.nodeId, replacement.id);
+  assert.equal(stored.session.items[0].result.score, 100);
+});
+
+test('19l-ter: reauditoría reconstruye candidatos nuevos, eliminados, movidos y elegibilidad', async () => {
+  const plugin = await createPlugin({ count: 5 });
+  const frame = plugin.nodeById.get('frame-1');
+  const becomesReady = plugin.nodeById.get('n4');
+  const becomesHidden = plugin.nodeById.get('n5');
+  becomesReady.visible = false;
+
+  await plugin.startAudit();
+  const beforeReaudit = plugin.analyzeRequests().length;
+
+  const deleted = plugin.nodeById.get('n2');
+  deleted.removed = true;
+  plugin.nodeById.delete(deleted.id);
+
+  const moved = plugin.nodeById.get('n3');
+  const otherFrame = frameOf('Otra pantalla', [moved], 'frame-other');
+  plugin.nodeById.set(otherFrame.id, otherFrame);
+
+  becomesReady.visible = true;
+  becomesHidden.visible = false;
+  const added = textNode('n6', 'Nuevo candidato');
+  added.parent = frame;
+  plugin.nodeById.set(added.id, added);
+  frame.children = [plugin.nodeById.get('n1'), becomesReady, becomesHidden, added];
+
+  await plugin.send({
+    type: 'START_SCREEN_AUDIT', selectionRevision: plugin.selectionSnapshot().revision,
+  });
+
+  const newRequests = plugin.analyzeRequests().slice(beforeReaudit)
+    .map((request) => JSON.parse(request.options.body).text);
+  assert.deepEqual(newRequests, ['Continuar', 'Ver detalles', 'Nuevo candidato']);
+  assert.deepEqual(
+    plugin.session().items.map((item) => item.candidate.nodeId),
+    ['n1', 'n4', 'n6'],
+  );
+  assert.ok(!plugin.session().items.some((item) => item.candidate.nodeId === 'n2'));
+  assert.ok(!plugin.session().items.some((item) => item.candidate.nodeId === 'n3'));
+  assert.ok(!plugin.session().items.some((item) => item.candidate.nodeId === 'n5'));
+});
+
 test('19m: reauditoría fallida preserva el último Screen snapshot completo', async () => {
   let calls = 0;
   const plugin = await createPlugin({
@@ -794,7 +1112,7 @@ test('19o: el store MAIN sobrevive a un nuevo UI_READY en la misma instancia', a
 
 // --- 20..22 — obsolescencia del documento ------------------------------------
 
-test('20 BLOQUEANTE: un texto que cambió no se analiza obsoleto', async () => {
+test('20 BLOQUEANTE: START relee un texto cambiado después del preflight', async () => {
   const plugin = await createPlugin({ count: 3 });
 
   // El documento cambia antes de empezar.
@@ -803,13 +1121,35 @@ test('20 BLOQUEANTE: un texto que cambió no se analiza obsoleto', async () => {
 
   const bodies = plugin.analyzeRequests().map((r) => JSON.parse(r.options.body).text);
   assert.ok(!bodies.includes('Guardar cambios'), 'se analizó la fuente vieja');
-  assert.ok(!bodies.includes('Texto editado por la persona'), 'se analizó el texto nuevo');
+  assert.ok(bodies.includes('Texto editado por la persona'), 'no se analizó el texto actual');
 
   const session = plugin.session();
-  assert.equal(session.items[1].status, 'changed');
-  assert.equal(session.changed, 1);
-  assert.equal(session.completed, 2, 'un texto cambiado se contó como analizado');
+  assert.equal(session.items[1].candidate.text, 'Texto editado por la persona');
+  assert.equal(session.items[1].status, 'success');
+  assert.equal(session.changed, 0);
+  assert.equal(session.completed, 3);
   assert.equal(session.status, 'completed');
+});
+
+test('20b BLOQUEANTE: un texto que cambia durante la ejecución no se envía obsoleto', async () => {
+  let plugin;
+  plugin = await createPlugin({
+    count: 3,
+    analyze: (body) => {
+      if (body.text === 'Continuar') {
+        plugin.nodeById.get('n2').characters = 'Cambio durante la auditoría';
+      }
+      return null;
+    },
+  });
+  await plugin.startAudit();
+
+  const bodies = plugin.analyzeRequests().map((r) => JSON.parse(r.options.body).text);
+  assert.ok(!bodies.includes('Guardar cambios'), 'se analizó la fuente vieja');
+  assert.ok(!bodies.includes('Cambio durante la auditoría'), 'se analizó sin nuevo preflight');
+  assert.equal(plugin.session().items[1].status, 'changed');
+  assert.equal(plugin.session().changed, 1);
+  assert.equal(plugin.session().completed, 2);
 });
 
 test('21 y 22: un nodo eliminado se marca y no bloquea a los siguientes', async () => {

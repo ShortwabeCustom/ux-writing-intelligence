@@ -1133,26 +1133,27 @@ async function runScreenAudit(sessionId: string): Promise<void> {
 }
 
 async function handleStartScreenAudit(selectionRevisionFromUi: number): Promise<void> {
-  if (currentSelectionSnapshot.status === 'frame'
-      && currentSelectionSnapshot.revision === selectionRevisionFromUi
-      && (currentPreflight === null
-        || currentPreflight.frameId !== currentSelectionSnapshot.nodeId)) {
-    const selected = figma.currentPage.selection[0];
-    if (selected?.type === 'FRAME') {
-      try {
-        currentPreflight = buildPreflight(
-          selected as unknown as ScreenNodeLike,
-          screenPreflightRevision,
-        );
-      } catch {
-        return;
-      }
-    }
+  if (currentSelectionSnapshot.status !== 'frame'
+      || currentSelectionSnapshot.revision !== selectionRevisionFromUi) {
+    return;
   }
 
-  if (currentSelectionSnapshot.status !== 'frame'
-      || currentSelectionSnapshot.revision !== selectionRevisionFromUi
-      || currentPreflight === null) {
+  const selected = figma.currentPage.selection[0];
+  if (selected?.type !== 'FRAME' || selected.id !== currentSelectionSnapshot.nodeId) {
+    return;
+  }
+
+  // START_SCREEN_AUDIT expresa una ejecución nueva, no una restauración. Se
+  // vuelve a recorrer el Frame incluso si ya existe un preflight del mismo ID:
+  // los nodos pueden haber cambiado, aparecido, desaparecido o movido desde la
+  // auditoría anterior. El snapshot completado permanece intacto en el store
+  // hasta que esta nueva sesión termine con éxito.
+  try {
+    currentPreflight = buildPreflight(
+      selected as unknown as ScreenNodeLike,
+      screenPreflightRevision,
+    );
+  } catch {
     return;
   }
 
