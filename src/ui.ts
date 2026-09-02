@@ -627,11 +627,6 @@ function buildAuditItem(item: ScreenAuditItem): HTMLButtonElement {
   const header = document.createElement('div');
   header.className = 'audit-item-header';
 
-  const scope = document.createElement('span');
-  scope.className = 'audit-item-scope';
-  scope.textContent = 'Evaluación en contexto';
-  article.appendChild(scope);
-
   let scoreLabel = '';
 
   if (item.status === 'success' && item.result !== null) {

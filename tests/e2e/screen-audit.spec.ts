@@ -157,11 +157,11 @@ test('10 BLOQUEANTE: no aparece ninguna puntuación global de pantalla', async (
   expect(text).toContain('96/100');
   expect(text).toContain('80/100');
   expect(text).toContain('64/100');
-  await expect(plugin.ui.locator('.audit-item-scope')).toHaveCount(3);
-  await expect(plugin.ui.locator('.audit-item-scope').first())
-    .toHaveText('Evaluación en contexto');
+  await expect(plugin.ui.locator('.audit-item-scope')).toHaveCount(0);
   await expect(plugin.ui.locator('.audit-item-severity').first()).toHaveText('Buen nivel');
   await expect(plugin.ui.locator('.audit-item-provenance').first()).toHaveText('Local');
+  await expect(plugin.ui.locator('.audit-item').first())
+    .toHaveAttribute('aria-label', /Evaluación en contexto/u);
 });
 
 // --- 11..15 — procedencia por elemento ----------------------------------------
