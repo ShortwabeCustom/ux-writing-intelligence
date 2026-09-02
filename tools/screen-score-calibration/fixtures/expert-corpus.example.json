@@ -1,0 +1,19 @@
+{
+  "corpus_version": "exploratory-example",
+  "screens": [
+    {
+      "screen_id": "screen-example-001",
+      "screen_archetype": "form",
+      "ready_count": 3,
+      "contextual_scores": [100, 94, 63],
+      "principal_risk": { "score": 63, "severity": "medium" },
+      "expert": {
+        "numeric_ratings": [],
+        "status_votes": [],
+        "confidence": [],
+        "disagreement_flag": false,
+        "notes": "Replace with anonymized expert labels during calibration."
+      }
+    }
+  ]
+}
