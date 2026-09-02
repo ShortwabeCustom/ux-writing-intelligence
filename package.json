@@ -14,7 +14,8 @@
     "screen-score:synthetic": "node tools/screen-score-calibration/evaluate.mjs --synthetic",
     "screen-score:invariants": "node tools/screen-score-calibration/invariants.mjs",
     "screen-score:calibrate": "node tools/screen-score-calibration/evaluate.mjs --input",
-    "test:screen-score": "node --test tools/screen-score-calibration/harness.test.mjs"
+    "test:screen-score": "node --test tools/screen-score-calibration/harness.test.mjs",
+    "screen-score:corpus": "node tools/screen-score-calibration/prepare-corpus.mjs"
   },
   "devDependencies": {
     "@figma/plugin-typings": "^1.135.0",

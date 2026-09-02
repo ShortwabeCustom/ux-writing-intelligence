@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Screen Score expert review responses",
+  "type": "object",
+  "required": ["reviewer_id", "review_protocol_version", "condition", "responses"],
+  "properties": {
+    "reviewer_id": { "pattern": "^EXP-[0-9]{3}$" },
+    "review_protocol_version": { "const": "1" },
+    "condition": { "enum": ["SCREEN_ONLY", "SCREEN_PLUS_FINDINGS"] },
+    "review_order_seed": { "type": "string" },
+    "responses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["screen_id", "numeric_quality_0_100", "categorical_status", "confidence_1_5"],
+        "properties": {
+          "screen_id": { "pattern": "^SCR-[0-9]{3}$" },
+          "numeric_quality_0_100": { "type": "number", "minimum": 0, "maximum": 100 },
+          "categorical_status": { "enum": ["Buen nivel", "Necesita atención", "Requiere revisión"] },
+          "weakest_copy_risk": { "type": "string" },
+          "confidence_1_5": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "optional_rationale": { "type": "string" }
+        }
+      }
+    }
+  }
+}

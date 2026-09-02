@@ -27,9 +27,12 @@ Candidate status threshold pairs are `80/60`, `85/65`, `85/70`, and `90/70` wher
 npm run screen-score:synthetic
 npm run screen-score:invariants
 npm run screen-score:calibrate -- --input path/to/corpus.json --output report.json
+npm run screen-score:corpus -- --output corpus-manifest.json
 ```
 
 Synthetic-only output always reports `PARAMETER DECISION: INSUFFICIENT EVIDENCE`.
+
+`screen-score:corpus` validates anonymized current-complete records, derives count/risk strata, reports privacy exclusions and flags repeated score distributions as `POSSIBLE_DUPLICATE`. It does not read Figma files or source mappings.
 
 ## Input schema
 
