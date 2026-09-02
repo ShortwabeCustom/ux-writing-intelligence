@@ -1,0 +1,57 @@
+{
+  "corpus_version": "screen-score-calibration-exploratory-v1",
+  "status": "PREPARATION",
+  "created_date": "2026-09-02",
+  "target_screen_count": 40,
+  "acceptable_screen_count": { "minimum": 30, "maximum": 50 },
+  "current_eligible_screen_count": 0,
+  "archetype_targets": {
+    "form": 6,
+    "onboarding_setup": 5,
+    "transactional": 6,
+    "confirmation_success": 4,
+    "errors_blockers": 4,
+    "empty_states": 3,
+    "informational": 4,
+    "decision_selection": 4,
+    "dense_complex_content": 4
+  },
+  "n_stratum_targets": {
+    "small": 8,
+    "medium": 14,
+    "large": 12,
+    "very_large": 6
+  },
+  "worst_score_stratum_targets": {
+    "0-20": 5,
+    "21-40": 5,
+    "41-60": 5,
+    "61-80": 5,
+    "81-100": 5
+  },
+  "privacy_status_counts": {
+    "SAFE": 0,
+    "REDACTION_REQUIRED": 0,
+    "EXCLUDE": 0
+  },
+  "quality_pattern_targets": {
+    "uniform_high": null,
+    "uniform_medium": null,
+    "uniform_weak": null,
+    "single_severe_outlier": null,
+    "several_moderate_outliers": null,
+    "high_mean_severe_minimum": null,
+    "medium_mean_consistent": null,
+    "low_mean_one_strong_result": null
+  },
+  "coverage_gaps": [
+    "CORPUS COVERAGE GAP: no complete current real Screen Audit exports available in repository"
+  ],
+  "scoring_contract_version": null,
+  "expert_condition_primary": "SCREEN_ONLY",
+  "expert_numeric_scores_hidden": true,
+  "candidate_winner": "NONE",
+  "parameter_decision": "INSUFFICIENT EVIDENCE",
+  "source_mapping": "SEPARATE LOCAL RESEARCH ONLY",
+  "records": []
+}

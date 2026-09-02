@@ -1,0 +1,17 @@
+{
+  "corpus_version": "screen-score-calibration-exploratory-v1",
+  "screens": [
+    {
+      "screen_id": "SCR-001",
+      "primary_archetype": "form",
+      "ready_count": 3,
+      "analyzed_success_count": 3,
+      "contextual_scores": [100, 94, 63],
+      "audit_state": "current_complete",
+      "audit_complete": true,
+      "audit_current": true,
+      "privacy_status": "SAFE",
+      "principal_risk": { "score": 63, "severity": "medium" }
+    }
+  ]
+}

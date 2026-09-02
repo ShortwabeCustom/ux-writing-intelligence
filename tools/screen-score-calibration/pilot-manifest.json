@@ -1,0 +1,26 @@
+{
+  "pilot_version": "screen-score-calibration-pilot-v1",
+  "corpus_version": "screen-score-calibration-exploratory-v1",
+  "status": "NOT_READY",
+  "screen_ids": [],
+  "eligible_screen_count": 0,
+  "target_screen_count": 5,
+  "privacy_status_counts": {
+    "SAFE": 0,
+    "REDACTION_REQUIRED": 0,
+    "EXCLUDE": 0
+  },
+  "blinding_status": "NOT_RUN",
+  "coverage": {
+    "high": false,
+    "medium": false,
+    "low": false,
+    "severe_outlier": false,
+    "dense": false,
+    "archetypes_represented": 0
+  },
+  "parameter_winner": "NONE",
+  "parameter_decision": "INSUFFICIENT EVIDENCE",
+  "expert_responses": "NOT_COLLECTED",
+  "known_gap": "PILOT COVERAGE GAP: no five-screen eligible real set is available"
+}
