@@ -624,6 +624,13 @@ function buildAuditItem(item: ScreenAuditItem): HTMLButtonElement {
     navigateToAuditCandidate(item.candidate.nodeId);
   });
 
+  if (currentSelectionState.status === 'ready') {
+    const contextualCue = document.createElement('span');
+    contextualCue.className = 'audit-item-context-cue';
+    contextualCue.textContent = 'En contexto';
+    article.appendChild(contextualCue);
+  }
+
   const header = document.createElement('div');
   header.className = 'audit-item-header';
 

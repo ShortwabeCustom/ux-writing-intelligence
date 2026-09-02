@@ -162,6 +162,7 @@ test('10 BLOQUEANTE: no aparece ninguna puntuación global de pantalla', async (
   await expect(plugin.ui.locator('.audit-item-provenance').first()).toHaveText('Local');
   await expect(plugin.ui.locator('.audit-item').first())
     .toHaveAttribute('aria-label', /Evaluación en contexto/u);
+  await expect(plugin.ui.locator('.audit-item-context-cue')).toHaveCount(0);
 });
 
 // --- 11..15 — procedencia por elemento ----------------------------------------
@@ -607,6 +608,10 @@ test('37: Screen y Text restaurados permanecen separados y sin score global', as
   await expect(panel(plugin)).toBeVisible();
   await expect(plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[1].nodeId}"]`))
     .toContainText('72/100');
+  await expect(plugin.ui.locator('.audit-item-context-cue')).toHaveCount(3);
+  await expect(plugin.ui.locator('.audit-item-context-cue').first()).toHaveText('En contexto');
+  await expect(plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[1].nodeId}"]`))
+    .toHaveAttribute('aria-label', /Evaluación en contexto, 72 de 100, Necesita atención/u);
   await expect(plugin.ui.locator('#analysis-score')).toHaveText('97');
   const screenText = await panel(plugin).textContent();
   expect(screenText).not.toMatch(/score global|screen score|quality score/iu);
