@@ -92,6 +92,10 @@
 
             <h3 id="screen-audit-title" class="screen-name"></h3>
             <p id="screen-audit-frame" class="screen-label"></p>
+            <p class="audit-scope-label">Evaluación en contexto</p>
+            <p class="audit-scope-explanation">
+              Considera cómo funciona este texto dentro de la pantalla y junto al contenido que lo rodea.
+            </p>
 
             <p id="screen-audit-progress" class="screen-count screen-count-ready"
                aria-live="polite"></p>
@@ -218,10 +222,13 @@
 
           <section id="analysis-result" class="analysis-result" aria-live="polite" hidden>
             <p id="text-audit-stale" class="analysis-stale" role="status" hidden>
-              Este texto cambió desde el análisis.
+              Este texto cambió desde el análisis. <strong>Resultado histórico.</strong>
             </p>
             <div class="score-summary">
-              <span class="result-label">UX Writing Score</span>
+              <span class="result-label">Evaluación del texto</span>
+              <p class="audit-scope-explanation">
+                Evalúa la calidad del texto seleccionado por sí solo.
+              </p>
               <div class="score-summary-row">
                 <p class="score-value-row">
                   <strong id="analysis-score" class="score-value">0</strong>
