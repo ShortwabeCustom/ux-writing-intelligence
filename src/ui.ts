@@ -624,13 +624,21 @@ function buildAuditItem(item: ScreenAuditItem): HTMLButtonElement {
     navigateToAuditCandidate(item.candidate.nodeId);
   });
 
+  if (currentSelectionState.status === 'ready') {
+    const contextualCue = document.createElement('span');
+    contextualCue.className = 'audit-item-context-cue';
+    contextualCue.textContent = 'En contexto';
+    article.appendChild(contextualCue);
+  }
+
   const header = document.createElement('div');
   header.className = 'audit-item-header';
 
-  const layer = document.createElement('span');
-  layer.className = 'audit-item-layer';
-  layer.textContent = item.candidate.layerName;
-  header.appendChild(layer);
+  let scoreLabel = '';
+
+  if (item.status === 'success' && item.result !== null) {
+    scoreLabel = `${item.result.score} de 100`;
+  }
 
   if (item.status === 'success' && item.result !== null) {
     const score = document.createElement('span');
@@ -639,6 +647,11 @@ function buildAuditItem(item: ScreenAuditItem): HTMLButtonElement {
     // significaría nada y requiere su propia definición de producto.
     score.textContent = `${item.result.score}/100`;
     header.appendChild(score);
+
+    const severity = document.createElement('span');
+    severity.className = `audit-item-severity severity-${item.result.severity}`;
+    severity.textContent = getResultPresentation(item.result).severityLabel;
+    header.appendChild(severity);
   }
 
   article.appendChild(header);
@@ -648,19 +661,23 @@ function buildAuditItem(item: ScreenAuditItem): HTMLButtonElement {
   preview.textContent = previewText(item.candidate.text);
   article.appendChild(preview);
 
+  const layer = document.createElement('span');
+  layer.className = 'audit-item-layer';
+  layer.textContent = item.candidate.layerName;
+  article.appendChild(layer);
+
   const meta = document.createElement('span');
   meta.className = 'audit-item-meta';
 
   if (item.status === 'error') {
-    meta.textContent = `No se pudo analizar · ${describeItemProvenance(item)}`;
+    meta.textContent = 'No se pudo analizar';
   } else if (item.status === 'changed') {
-    meta.textContent = describeItemProvenance(item);
-  } else if (item.result !== null) {
-    const presentation = getResultPresentation(item.result);
-    meta.textContent = `${presentation.severityLabel} · ${describeItemProvenance(item)}`;
+    meta.textContent = '';
   }
 
-  article.appendChild(meta);
+  if (meta.textContent.length > 0) {
+    article.appendChild(meta);
+  }
 
   const navigationMessage = describeNavigationState(navigationState);
   if (navigationMessage.length > 0) {
@@ -668,12 +685,39 @@ function buildAuditItem(item: ScreenAuditItem): HTMLButtonElement {
     stale.className = 'audit-item-meta audit-item-navigation-state';
     stale.textContent = navigationMessage;
     article.appendChild(stale);
+
+    if (navigationState === 'changed_since_audit') {
+      const historical = document.createElement('span');
+      historical.className = 'audit-item-meta audit-item-historical';
+      historical.textContent = 'Resultado histórico';
+      article.appendChild(historical);
+    }
+  }
+
+  if (item.status === 'success' || item.status === 'changed' || item.status === 'error') {
+    const provenance = document.createElement('span');
+    provenance.className = 'audit-item-meta audit-item-provenance';
+    provenance.textContent = describeItemProvenance(item);
+    article.appendChild(provenance);
   }
 
   const action = document.createElement('span');
   action.className = 'audit-item-action';
   action.textContent = navigationState === 'deleted' ? 'No disponible' : 'Ver en pantalla';
   article.appendChild(action);
+  article.setAttribute(
+    'aria-label',
+    [
+      'Evaluación en contexto',
+      scoreLabel,
+      item.status === 'success' && item.result !== null
+        ? getResultPresentation(item.result).severityLabel
+        : '',
+      item.candidate.layerName,
+      navigationMessage,
+      navigationState === 'deleted' ? 'No disponible' : 'Ver en pantalla',
+    ].filter((label) => label.length > 0).join(', '),
+  );
   return article;
 }
 
@@ -949,7 +993,7 @@ function renderAnalysisResult(result: AnalyzeResponse): void {
   analysisScore.textContent = String(result.score);
   analysisScore.parentElement?.setAttribute(
     'aria-label',
-    `UX Writing Score: ${result.score} de 100`,
+    `Evaluación del texto, ${result.score} de 100, ${presentation.severityLabel}`,
   );
   analysisSeverity.textContent = presentation.severityLabel;
   analysisSeverity.className = `result-severity severity-${result.severity}`;

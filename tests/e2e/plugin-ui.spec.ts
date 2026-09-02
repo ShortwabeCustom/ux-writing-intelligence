@@ -51,6 +51,12 @@ test('23: un resultado sin cambios renderiza «No requiere cambios»', async ({ 
   await expect(plugin.ui.locator('#no-change-content')).toBeVisible();
   await expect(plugin.ui.locator('#no-change-content')).toContainText('No requiere cambios');
   await expect(plugin.ui.locator('#analysis-score')).toHaveText('100');
+  await expect(plugin.ui.locator('#analysis-result .score-summary .result-label'))
+    .toHaveText('Evaluación del texto');
+  await expect(plugin.ui.locator('#analysis-result .audit-scope-explanation'))
+    .toHaveText('Evalúa la calidad del texto seleccionado por sí solo.');
+  await expect(plugin.ui.locator('#analysis-score').locator('..'))
+    .toHaveAttribute('aria-label', 'Evaluación del texto, 100 de 100, Buen nivel');
   // Sin cambios no hay nada que aplicar.
   await expect(plugin.ui.locator('#apply-suggestion-button')).toBeHidden();
 });

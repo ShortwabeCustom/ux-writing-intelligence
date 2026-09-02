@@ -131,6 +131,10 @@ test('09: la auditoría completada lo dice con conteos verdaderos', async ({ plu
   }
   await plugin.send(auditUpdate(session));
 
+  await expect(plugin.ui.locator('#screen-audit .audit-scope-label'))
+    .toHaveText('Evaluación en contexto');
+  await expect(plugin.ui.locator('#screen-audit .audit-scope-explanation'))
+    .toHaveText('Considera cómo funciona este texto dentro de la pantalla y junto al contenido que lo rodea.');
   await expect(plugin.ui.locator('#screen-audit-title')).toHaveText('Auditoría completada');
   await expect(plugin.ui.locator('#screen-audit-progress'))
     .toHaveText('3 de 3 textos revisados');
@@ -153,6 +157,12 @@ test('10 BLOQUEANTE: no aparece ninguna puntuación global de pantalla', async (
   expect(text).toContain('96/100');
   expect(text).toContain('80/100');
   expect(text).toContain('64/100');
+  await expect(plugin.ui.locator('.audit-item-scope')).toHaveCount(0);
+  await expect(plugin.ui.locator('.audit-item-severity').first()).toHaveText('Buen nivel');
+  await expect(plugin.ui.locator('.audit-item-provenance').first()).toHaveText('Local');
+  await expect(plugin.ui.locator('.audit-item').first())
+    .toHaveAttribute('aria-label', /Evaluación en contexto/u);
+  await expect(plugin.ui.locator('.audit-item-context-cue')).toHaveCount(0);
 });
 
 // --- 11..15 — procedencia por elemento ----------------------------------------
@@ -261,7 +271,7 @@ test('18 y 19 BLOQUEANTE: un fallo local pausa y no avanza al siguiente', async 
   await expect(results(plugin).nth(0).locator('.audit-item-meta')).toContainText('Local');
   await expect(results(plugin).nth(1)).toContainText(AUDIT_CANDIDATES[1].layerName);
   await expect(results(plugin).nth(1)).toContainText('No se pudo analizar');
-  await expect(results(plugin).nth(1).locator('.audit-item-meta')).toContainText('Local');
+  await expect(results(plugin).nth(1).locator('.audit-item-provenance')).toHaveText('Local');
   await expect(results(plugin).filter({ hasText: AUDIT_CANDIDATES[2].text })).toHaveCount(0);
   await expect(plugin.ui.locator('#screen-audit-current'))
     .toContainText(AUDIT_CANDIDATES[1].text);
@@ -299,7 +309,7 @@ test('21 BLOQUEANTE: en Solo local un fallo NUNCA ofrece la nube', async ({ plug
   await expect(plugin.ui.locator('#screen-audit-retry-local')).toBeVisible();
   await expect(results(plugin)).toHaveCount(2);
   await expect(results(plugin).nth(1)).toContainText('No se pudo analizar');
-  await expect(results(plugin).nth(1).locator('.audit-item-meta')).toContainText('Local');
+  await expect(results(plugin).nth(1).locator('.audit-item-provenance')).toHaveText('Local');
   await expect(plugin.ui.locator('#screen-audit-current'))
     .toContainText(AUDIT_CANDIDATES[1].text);
 });
@@ -462,8 +472,9 @@ test('30: estados cambiado y eliminado conservan resultado y procedencia', async
   });
   const changed = plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[1].nodeId}"]`);
   await expect(changed).toContainText('Este texto cambió desde la auditoría.');
+  await expect(changed).toContainText('Resultado histórico');
   await expect(changed).toContainText('72/100');
-  await expect(changed.locator('.audit-item-meta').first()).toContainText('Nube');
+  await expect(changed.locator('.audit-item-provenance')).toHaveText('Nube');
 
   await plugin.send({
     type: 'SCREEN_AUDIT_NAVIGATION_RESULT',
@@ -475,7 +486,7 @@ test('30: estados cambiado y eliminado conservan resultado y procedencia', async
   const deleted = plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[2].nodeId}"]`);
   await expect(deleted).toContainText('Este texto ya no está disponible.');
   await expect(deleted).toContainText('48/100');
-  await expect(deleted.locator('.audit-item-meta').first()).toContainText('Local');
+  await expect(deleted.locator('.audit-item-provenance')).toHaveText('Local');
 });
 
 test('31: fallo durante Screen Audit usa copy de interrupción', async ({ plugin }) => {
@@ -540,6 +551,7 @@ test('34: Screen restore presenta changed/deleted y aplica fallback activo segur
   const changed = plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[1].nodeId}"]`);
   const deleted = plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[2].nodeId}"]`);
   await expect(changed).toContainText('Este texto cambió desde la auditoría.');
+  await expect(changed).toContainText('Resultado histórico');
   await expect(changed).toHaveAttribute('data-active', 'true');
   await expect(deleted).toContainText('Este texto ya no está disponible.');
   await expect(deleted).toBeDisabled();
@@ -581,7 +593,8 @@ test('36: Text Audit stale conserva histórico, avisa y bloquea Apply', async ({
 
   await expect(plugin.ui.locator('#analysis-score')).toHaveText('97');
   await expect(plugin.ui.locator('#text-audit-stale'))
-    .toHaveText('Este texto cambió desde el análisis.');
+    .toContainText('Este texto cambió desde el análisis.');
+  await expect(plugin.ui.locator('#text-audit-stale')).toContainText('Resultado histórico');
   await expect(plugin.ui.locator('#apply-suggestion-button')).toBeHidden();
   await expect(plugin.ui.locator('#analyze-again-button')).toHaveText('Analizar de nuevo');
 });
@@ -595,6 +608,10 @@ test('37: Screen y Text restaurados permanecen separados y sin score global', as
   await expect(panel(plugin)).toBeVisible();
   await expect(plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[1].nodeId}"]`))
     .toContainText('72/100');
+  await expect(plugin.ui.locator('.audit-item-context-cue')).toHaveCount(3);
+  await expect(plugin.ui.locator('.audit-item-context-cue').first()).toHaveText('En contexto');
+  await expect(plugin.ui.locator(`[data-candidate-id="${AUDIT_CANDIDATES[1].nodeId}"]`))
+    .toHaveAttribute('aria-label', /Evaluación en contexto, 72 de 100, Necesita atención/u);
   await expect(plugin.ui.locator('#analysis-score')).toHaveText('97');
   const screenText = await panel(plugin).textContent();
   expect(screenText).not.toMatch(/score global|screen score|quality score/iu);
