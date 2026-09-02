@@ -54,6 +54,8 @@ Historical snapshots are excluded until explicitly re-audited. The mathematical 
 
 Primary condition: **SCREEN ONLY**. Experts judge actual screen content without contextual scores or model-generated numeric values, avoiding anchoring. A secondary `SCREEN_PLUS_FINDINGS` condition may be used diagnostically later, recorded separately, and must hide numeric scores.
 
+The platform-neutral instrument is frozen as `expert-study-protocol-v1`. Its primary unit is one screen and five responses: categorical status, numeric quality, weakest-risk yes/no with optional note, confidence, and optional rationale. Required responses are never imputed; incomplete responses remain incomplete.
+
 Minimum exploratory panel: 3 UX Writing/Content Design experts. Preferred: 5–7. This is product calibration coverage, not statistical proof.
 
 Pilot: 5 screens, including high, medium, low, severe-outlier, and dense. Do not merge pilot responses into the study unless instructions and protocol remain unchanged.

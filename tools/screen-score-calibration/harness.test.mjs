@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { calculateScreenScore } from './score-model.mjs';
 import { classifyScreenStatus } from './status-model.mjs';
 import { SYNTHETIC_CORPUS } from './synthetic-corpus.mjs';
+import { randomizeReviewOrder } from './randomize.mjs';
 
 const candidateLambdas = [0.20, 0.25, 0.30, 0.35, 0.40, 0.45];
 
@@ -95,4 +96,16 @@ test('synthetic JSON export is canonical and reproducible', async () => {
   }
   assert.equal(await readFile(firstPath, 'utf8'), await readFile(secondPath, 'utf8'));
   await rm(directory, { recursive: true, force: true });
+});
+
+test('review randomization is deterministic and reviewer-specific', () => {
+  const records = Array.from({ length: 20 }, (_, index) => ({ screen_id: `SCR-${String(index + 1).padStart(3, '0')}` }));
+  const first = randomizeReviewOrder(records, { reviewerId: 'EXP-001' });
+  const repeat = randomizeReviewOrder(records, { reviewerId: 'EXP-001' });
+  const other = randomizeReviewOrder(records, { reviewerId: 'EXP-002' });
+  assert.deepEqual(first, repeat);
+  assert.notDeepEqual(first.map((record) => record.screen_id), other.map((record) => record.screen_id));
+  assert.equal(first[0].review_order, 1);
+  assert.equal(first[9].block, 1);
+  assert.equal(first[10].block, 2);
 });
